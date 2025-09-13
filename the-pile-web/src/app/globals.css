@@ -1,58 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: 224 71% 4%;
-  --foreground: 213 31% 91%;
-  --muted: 223 47% 11%;
-  --muted-foreground: 215.4 16.3% 56.9%;
-  --popover: 224 71% 4%;
-  --popover-foreground: 215 20.2% 65.1%;
-  --card: 224 71% 4%;
-  --card-foreground: 213 31% 91%;
-  --border: 216 34% 17%;
-  --input: 216 34% 17%;
-  --primary: 217 91% 60%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 222.2 84% 4.9%;
-  --secondary-foreground: 210 40% 98%;
-  --accent: 216 34% 17%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 63% 31%;
-  --destructive-foreground: 210 40% 98%;
-  --ring: 216 34% 17%;
-  --radius: 0.5rem;
+  /* Atmospheric Base Colors */
+  --background: 258 45% 5%;        /* Deep space purple #0f0816 */
+  --background-elevated: 256 35% 10%; /* Rich dark purple #1a1225 */
+  --background-surface: 250 25% 16%; /* Purple-gray surface #2a2438 */
+  --foreground: 32 15% 89%;        /* Warm off-white #E5E0D8 */
+  --foreground-muted: 32 15% 69%;  /* Muted beige #B5A99C */
   
-  /* The Pile custom colors */
-  --pile-shame: 0 84% 60%;
-  --pile-amnesty: 271 91% 65%;
-  --pile-success: 142 76% 36%;
+  /* Sacred Relic Status Colors */
+  --status-unplayed: 344 30% 42%;     /* Muted red-purple #8B4B5C */
+  --status-unplayed-glow: 344 30% 52%; /* Brighter for effects */
+  --status-playing: 41 55% 64%;       /* Warm gold #D4A574 */
+  --status-playing-glow: 41 65% 74%;  /* Brighter for effects */
+  --status-completed: 100 30% 47%;    /* Noble green #6B9B5A */
+  --status-completed-glow: 100 40% 57%; /* Brighter for effects */
+  --status-amnesty: 216 20% 54%;     /* Cool blue-gray #7B8FA8 */
+  --status-amnesty-glow: 216 30% 64%; /* Brighter for effects */
+  
+  /* Mystical Accents */
+  --mystical-gold: 41 55% 61%;        /* Primary highlight #C8A96E */
+  --mystical-gold-bright: 41 65% 71%; /* Bright gold for hover states */
+  --shadow-deep: 260 55% 3%;          /* Deep shadows #070511 */
+  
+  /* Component Mapping */
+  --muted: var(--background-elevated);
+  --muted-foreground: var(--foreground-muted);
+  --popover: var(--background-elevated);
+  --popover-foreground: var(--foreground);
+  --card: var(--background-surface);
+  --card-foreground: var(--foreground);
+  --border: var(--background-surface);
+  --input: var(--background-surface);
+  --primary: var(--mystical-gold);
+  --primary-foreground: var(--background);
+  --secondary: var(--background-elevated);
+  --secondary-foreground: var(--foreground);
+  --accent: var(--mystical-gold);
+  --accent-foreground: var(--background);
+  --destructive: var(--status-unplayed);
+  --destructive-foreground: var(--foreground);
+  --ring: var(--mystical-gold);
+  --radius: 0.75rem;
 }
 
 body {
-  background: hsl(var(--background));
+  background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--background-elevated)) 100%);
   color: hsl(var(--foreground));
+  font-family: 'Inter', sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
+  min-height: 100vh;
+  position: relative;
 }
 
-.pile-glow {
-  box-shadow: 0 0 30px rgba(220, 38, 38, 0.3);
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 80%, hsl(var(--mystical-gold)) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, hsl(var(--status-playing)) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, hsl(var(--status-completed)) 0%, transparent 50%);
+  opacity: 0.02;
+  pointer-events: none;
+  z-index: -1;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Crimson Text', serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+
+/* Sacred Relic Glows */
+.glow-unplayed {
+  box-shadow: 0 0 20px hsla(var(--status-unplayed-glow), 0.4);
+}
+
+.glow-playing {
+  box-shadow: 0 0 25px hsla(var(--status-playing-glow), 0.5);
+}
+
+.glow-completed {
+  box-shadow: 0 0 30px hsla(var(--status-completed-glow), 0.6);
+}
+
+.glow-amnesty {
+  box-shadow: 0 0 20px hsla(var(--status-amnesty-glow), 0.4);
+}
+
+.mystical-glow {
+  box-shadow: 0 0 40px hsla(var(--mystical-gold), 0.3);
+}
+
+/* Atmospheric Animations */
 .amnesty-float {
-  animation: float-away 2s ease-in forwards;
+  animation: float-away 3s ease-out forwards;
 }
 
-@keyframes pile-pulse {
-  0%, 100% {
-    transform: scale(1);
+.sacred-pulse {
+  animation: sacred-pulse 3s ease-in-out infinite;
+}
+
+.tomb-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tomb-hover:hover {
+  transform: translateY(-4px) scale(1.02);
+  filter: brightness(1.1) saturate(1.2);
+}
+
+@keyframes float-away {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
   50% {
-    transform: scale(1.05);
+    opacity: 0.7;
+    transform: translateY(-20px) scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.8);
   }
 }
 
-.pile-pulse {
-  animation: pile-pulse 2s ease-in-out infinite;
+@keyframes sacred-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.03);
+    filter: brightness(1.1);
+  }
+}
+
+/* Texture Overlay for Cards */
+.texture-overlay {
+  position: relative;
+}
+
+.texture-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.1) 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Sacred Relic Icon Animations */
+.relic-icon {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.relic-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Game Card Desaturation for Unplayed */
+.game-unplayed {
+  filter: grayscale(0.6) brightness(0.7);
+  transition: filter 0.3s ease;
+}
+
+.game-unplayed:hover {
+  filter: grayscale(0.2) brightness(0.9);
+}
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--mystical-gold));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--mystical-gold-bright));
+}
+
+/* Custom scrollbar for game graveyard */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--background-elevated));
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--mystical-gold));
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--mystical-gold-bright));
 }
