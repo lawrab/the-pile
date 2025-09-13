@@ -30,7 +30,7 @@ class PileService:
     async def get_steam_app_details(self, app_id: int) -> dict:
         """Fetch game details from Steam Store API"""
         url = f"https://store.steampowered.com/api/appdetails"
-        params = {"appids": app_id, "filters": "basic,genres,categories,price_overview"}
+        params = {"appids": app_id, "filters": "basic,genres,categories,price_overview,screenshots"}
         
         try:
             async with httpx.AsyncClient() as client:
@@ -81,7 +81,8 @@ class PileService:
                         is_free=is_free,
                         release_date=details.get("release_date", {}).get("date", "") if details.get("release_date") else "",
                         developer=", ".join(details.get("developers", [])) if details.get("developers") else "",
-                        publisher=", ".join(details.get("publishers", [])) if details.get("publishers") else ""
+                        publisher=", ".join(details.get("publishers", [])) if details.get("publishers") else "",
+                        screenshots=[s["path_full"] for s in details.get("screenshots", [])] if details.get("screenshots") else []
                     )
                     db.add(steam_game)
                     # Commit immediately to get the ID and release the lock
@@ -105,6 +106,8 @@ class PileService:
                         steam_game.developer = ", ".join(details.get("developers", []))
                     if details.get("publishers"):
                         steam_game.publisher = ", ".join(details.get("publishers", []))
+                    if details.get("screenshots"):
+                        steam_game.screenshots = [s["path_full"] for s in details.get("screenshots", [])]
                     steam_game.last_updated = datetime.utcnow()
                     db.commit()
                 
@@ -193,5 +196,83 @@ class PileService:
             pile_entry.amnesty_reason = reason
             db.commit()
             return True
+        
+        return False
+
+    async def start_playing(self, user_id: int, steam_game_id: int, db: Session) -> bool:
+        """Mark a game as currently being played"""
+        pile_entry = db.query(PileEntry).filter(
+            PileEntry.user_id == user_id,
+            PileEntry.steam_game_id == steam_game_id
+        ).first()
+        
+        if pile_entry:
+            pile_entry.status = GameStatus.PLAYING
+            db.commit()
+            return True
+        
+        return False
+    
+    async def mark_completed(self, user_id: int, steam_game_id: int, db: Session) -> bool:
+        """Mark a game as completed"""
+        pile_entry = db.query(PileEntry).filter(
+            PileEntry.user_id == user_id,
+            PileEntry.steam_game_id == steam_game_id
+        ).first()
+        
+        if pile_entry:
+            pile_entry.status = GameStatus.COMPLETED
+            pile_entry.completion_date = datetime.utcnow()
+            db.commit()
+            return True
+        
+        return False
+    
+    async def mark_abandoned(self, user_id: int, steam_game_id: int, reason: str, db: Session) -> bool:
+        """Mark a game as abandoned"""
+        pile_entry = db.query(PileEntry).filter(
+            PileEntry.user_id == user_id,
+            PileEntry.steam_game_id == steam_game_id
+        ).first()
+        
+        if pile_entry:
+            pile_entry.status = GameStatus.ABANDONED
+            pile_entry.abandon_date = datetime.utcnow()
+            pile_entry.abandon_reason = reason
+            db.commit()
+            return True
+        
+        return False
+    
+    async def update_status(self, user_id: int, steam_game_id: int, status: str, db: Session) -> bool:
+        """Update game status directly"""
+        pile_entry = db.query(PileEntry).filter(
+            PileEntry.user_id == user_id,
+            PileEntry.steam_game_id == steam_game_id
+        ).first()
+        
+        if pile_entry:
+            # Convert string status to enum
+            status_map = {
+                'unplayed': GameStatus.UNPLAYED,
+                'playing': GameStatus.PLAYING,
+                'completed': GameStatus.COMPLETED,
+                'abandoned': GameStatus.ABANDONED,
+                'amnesty_granted': GameStatus.AMNESTY_GRANTED
+            }
+            
+            if status in status_map:
+                pile_entry.status = status_map[status]
+                
+                # Set appropriate timestamps
+                if status == 'completed':
+                    pile_entry.completion_date = datetime.utcnow()
+                elif status == 'amnesty_granted':
+                    pile_entry.amnesty_date = datetime.utcnow()
+                elif status == 'abandoned':
+                    pile_entry.abandon_date = datetime.utcnow()
+                
+                db.commit()
+                return True
         
         return False

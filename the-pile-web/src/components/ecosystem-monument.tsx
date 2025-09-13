@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef, forwardRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tooltip } from './ui/tooltip'
 import { Download, Share2 } from 'lucide-react'
@@ -306,9 +306,8 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
   }
 
   // Animation wrapper for smooth transitions
-  const AnimatedGameElement = ({ element, children }: { element: GameElement; children: React.ReactNode }) => (
+  const AnimatedGameElement = React.memo(({ element, children }: { element: GameElement; children: React.ReactNode }) => (
     <motion.g 
-      key={element.id}
       initial={{ opacity: 0, scale: 0 }}
       animate={{ 
         opacity: 1, 
@@ -328,7 +327,7 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
     >
       {children}
     </motion.g>
-  )
+  ))
 
   const renderGameElement = (element: GameElement) => {
     const isHovered = hoveredGame === element.id
@@ -338,7 +337,7 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
     switch (element.type) {
       case 'seed':
         return (
-          <AnimatedGameElement element={element}>
+          <AnimatedGameElement key={element.id} element={element}>
             {/* Seed with subtle glow */}
             <motion.circle
               cx={element.x}
@@ -369,112 +368,147 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
       
       case 'sprout':
         return (
-          <g key={element.id}>
+          <AnimatedGameElement key={element.id} element={element}>
             {/* Sprout base */}
-            <circle
+            <motion.circle
               cx={element.x}
               cy={element.y + element.size * 0.3}
-              r={element.size * 0.8 * scale}
+              r={element.size * 0.8}
               fill="#8B7355"
               opacity={0.9}
+              animate={{
+                r: element.size * 0.8 * scale
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             />
             {/* Growing stem */}
-            <rect
-              x={element.x - 1 * scale}
+            <motion.rect
+              x={element.x - 1}
               y={element.y - element.size * 0.5}
-              width={2 * scale}
-              height={element.size * scale}
+              width={2}
+              height={element.size}
               fill={element.color}
               rx={1}
-              style={{
-                filter: isHovered ? `drop-shadow(0 0 8px ${element.glowColor})` : 'none',
-                transition: 'all 0.3s ease'
+              animate={{
+                x: element.x - 1 * scale,
+                width: 2 * scale,
+                height: element.size * scale,
+                filter: isHovered ? `drop-shadow(0 0 8px ${element.glowColor})` : 'none'
               }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             />
             {/* Small leaves */}
-            <ellipse
-              cx={element.x - 3 * scale}
+            <motion.ellipse
+              cx={element.x - 3}
               cy={element.y - element.size * 0.2}
-              rx={2 * scale}
-              ry={4 * scale}
+              rx={2}
+              ry={4}
               fill={element.color}
               opacity={0.8}
+              animate={{
+                cx: element.x - 3 * scale,
+                rx: 2 * scale,
+                ry: 4 * scale
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             />
-            <ellipse
-              cx={element.x + 3 * scale}
+            <motion.ellipse
+              cx={element.x + 3}
               cy={element.y}
-              rx={2 * scale}
-              ry={4 * scale}
+              rx={2}
+              ry={4}
               fill={element.color}
               opacity={0.8}
+              animate={{
+                cx: element.x + 3 * scale,
+                rx: 2 * scale,
+                ry: 4 * scale
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             />
-          </g>
+          </AnimatedGameElement>
         )
       
       case 'tree':
         return (
-          <g key={element.id}>
+          <AnimatedGameElement key={element.id} element={element}>
             {/* Tree trunk */}
-            <rect
-              x={element.x - 2 * scale}
+            <motion.rect
+              x={element.x - 2}
               y={element.y - element.size * 0.2}
-              width={4 * scale}
-              height={element.size * 0.8 * scale}
+              width={4}
+              height={element.size * 0.8}
               fill="#8B7355"
               rx={2}
+              animate={{
+                x: element.x - 2 * scale,
+                width: 4 * scale,
+                height: element.size * 0.8 * scale
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             />
             {/* Tree crown */}
-            <circle
+            <motion.circle
               cx={element.x}
               cy={element.y - element.size * 0.3}
-              r={element.size * 0.8 * scale}
+              r={element.size * 0.8}
               fill={element.color}
-              style={{
-                filter: isHovered ? `drop-shadow(0 0 12px ${element.glowColor})` : `drop-shadow(0 0 4px ${element.glowColor})`,
-                transition: 'all 0.3s ease'
+              animate={{
+                r: element.size * 0.8 * scale,
+                filter: isHovered ? `drop-shadow(0 0 12px ${element.glowColor})` : `drop-shadow(0 0 4px ${element.glowColor})`
               }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             />
             {/* Highlight for completed games */}
-            <circle
+            <motion.circle
               cx={element.x - 2}
               cy={element.y - element.size * 0.5}
-              r={2 * scale}
+              r={2}
               fill="#FFEB3B"
               opacity={0.8}
+              animate={{
+                r: 2 * scale
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               style={{ animation: 'twinkle 2s ease-in-out infinite alternate' }}
             />
-          </g>
+          </AnimatedGameElement>
         )
       
       case 'withered':
         return (
-          <g key={element.id}>
+          <AnimatedGameElement key={element.id} element={element}>
             {/* Withered remains */}
-            <circle
+            <motion.circle
               cx={element.x}
               cy={element.y}
-              r={element.size * scale}
+              r={element.size}
               fill={element.color}
               opacity={0.5}
-              style={{
-                filter: isHovered ? `drop-shadow(0 0 6px ${element.glowColor})` : 'none',
-                transition: 'all 0.3s ease'
+              animate={{
+                r: element.size * scale,
+                filter: isHovered ? `drop-shadow(0 0 6px ${element.glowColor})` : 'none'
               }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             />
             {/* Peaceful glow for amnesty */}
             {element.game.status === 'amnesty_granted' && (
-              <circle
+              <motion.circle
                 cx={element.x}
                 cy={element.y}
-                r={element.size * 1.5 * scale}
+                r={element.size * 1.5}
                 fill="none"
                 stroke={element.glowColor}
                 strokeWidth={1}
                 opacity={0.3}
+                animate={{
+                  r: element.size * 1.5 * scale
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
                 style={{ animation: 'pulse 3s ease-in-out infinite' }}
               />
             )}
-          </g>
+          </AnimatedGameElement>
         )
       
       default:
@@ -590,13 +624,13 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
       </div>
 
       {/* Export Controls */}
-      <div className="flex items-center justify-center gap-2 mt-4">
+      <div className="flex items-center justify-center gap-2 mt-4 p-2 bg-black/20 rounded-lg border border-white/10">
         <Tooltip content="Download as PNG image">
           <Button
             size="sm"
-            variant="ghost"
+            variant="outline"
             onClick={exportAsImage}
-            className="text-xs"
+            className="text-xs hover:bg-purple-900/30 border-purple-700/30"
           >
             <Download size={14} className="mr-1" />
             Image
@@ -606,9 +640,9 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
         <Tooltip content="Export ecosystem data">
           <Button
             size="sm"
-            variant="ghost"
+            variant="outline"
             onClick={exportAsData}
-            className="text-xs"
+            className="text-xs hover:bg-blue-900/30 border-blue-700/30"
           >
             📊 Data
           </Button>
@@ -617,9 +651,9 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
         <Tooltip content="Share ecosystem stats">
           <Button
             size="sm"
-            variant="ghost"
+            variant="outline"
             onClick={shareEcosystem}
-            className="text-xs"
+            className="text-xs hover:bg-green-900/30 border-green-700/30"
           >
             <Share2 size={14} className="mr-1" />
             Share

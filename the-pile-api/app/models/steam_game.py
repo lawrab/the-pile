@@ -23,6 +23,7 @@ class SteamGame(Base):
     release_date = Column(String)  # Steam returns this as string
     developer = Column(String)
     publisher = Column(String)
+    screenshots = Column(JSON)  # List of screenshot URLs
     
     # Tracking
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

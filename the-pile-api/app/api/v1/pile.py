@@ -89,3 +89,98 @@ async def grant_amnesty(
         )
     
     return {"message": "Amnesty granted", "game_id": game_id}
+
+@router.post("/start-playing/{game_id}")
+async def start_playing(
+    game_id: int,
+    current_user: dict = Depends(user_service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark a game as currently being played"""
+    result = await pile_service.start_playing(
+        current_user["id"], game_id, db
+    )
+    
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found in your pile"
+        )
+    
+    return {"message": "Game marked as playing", "game_id": game_id}
+
+
+@router.post("/complete/{game_id}")
+async def mark_completed(
+    game_id: int,
+    current_user: dict = Depends(user_service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark a game as completed"""
+    result = await pile_service.mark_completed(
+        current_user["id"], game_id, db
+    )
+    
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found in your pile"
+        )
+    
+    return {"message": "Game marked as completed", "game_id": game_id}
+
+
+@router.post("/abandon/{game_id}")
+async def mark_abandoned(
+    game_id: int,
+    abandon_data: AmnestyRequest,  # Reuse the same schema for reason
+    current_user: dict = Depends(user_service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark a game as abandoned"""
+    result = await pile_service.mark_abandoned(
+        current_user["id"], game_id, abandon_data.reason, db
+    )
+    
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found in your pile"
+        )
+    
+    return {"message": "Game marked as abandoned", "game_id": game_id}
+
+
+@router.post("/status/{game_id}")
+async def update_status(
+    game_id: int,
+    status_data: dict,  # Expect {"status": "playing"/"completed"/etc}
+    current_user: dict = Depends(user_service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update game status directly"""
+    status_value = status_data.get("status")
+    if not status_value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Status field is required"
+        )
+    
+    valid_statuses = ['unplayed', 'playing', 'completed', 'abandoned', 'amnesty_granted']
+    if status_value not in valid_statuses:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+        )
+    
+    result = await pile_service.update_status(
+        current_user["id"], game_id, status_value, db
+    )
+    
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found in your pile"
+        )
+    
+    return {"message": f"Game status updated to {status_value}", "game_id": game_id}
