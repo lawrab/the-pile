@@ -21,7 +21,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -32,6 +31,8 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+# Only ignore Python lib directories, not frontend lib directories
+**/lib/python*
 
 # Web
 the-pile-web/.next/
