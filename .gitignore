@@ -42,6 +42,17 @@ the-pile-web/.env.local
 the-pile-web/out/
 the-pile-web/build/
 
+# E2E Tests
+e2e-tests/node_modules/
+e2e-tests/test-results/
+e2e-tests/playwright-report/
+e2e-tests/playwright/.cache/
+
+# Node.js (global patterns)
+node_modules/
+package-lock.json
+yarn.lock
+
 # IDE
 .vscode/
 .idea/

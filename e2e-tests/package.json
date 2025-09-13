@@ -1,0 +1,22 @@
+{
+  "name": "the-pile-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E tests for The Pile application",
+  "scripts": {
+    "test": "playwright test",
+    "test:parallel": "playwright test --workers=75%",
+    "test:headed": "playwright test --headed --workers=1",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:chromium": "playwright test --project=chromium-visual",
+    "test:chromium-headed": "playwright test --project=chromium-visual --headed --workers=1",
+    "test:chromium-debug": "playwright test --project=chromium-visual --debug",
+    "report": "playwright show-report",
+    "install": "playwright install"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.0.0"
+  },
+  "private": true
+}

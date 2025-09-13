@@ -1,0 +1,478 @@
+<testsuites id="" name="" tests="30" failures="0" skipped="0" errors="0" time="16.583553">
+<testsuite name="auth-debug.spec.ts" timestamp="2025-09-13T21:28:40.119Z" hostname="chromium-visual" tests="2" failures="0" skipped="0" time="8.303" errors="0">
+<testcase name="Authentication Debug › debug authentication step by step" classname="auth-debug.spec.ts" time="4.325">
+<system-out>
+<![CDATA[Step 1: Setting up authentication mock
+Step 2: Going to pile page
+PAGE LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+PAGE LOG: Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s 
+
+Check the render method of `PopChild`. 
+    at eval (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:379:15)
+    at PopChildMeasure (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:13:1)
+    at PopChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:33:21)
+    at PresenceChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PresenceChild.mjs:15:26)
+    at AnimatePresence (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/index.mjs:72:28)
+    at svg
+    at div
+    at div
+    at EcosystemMonument (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:127:11)
+    at div
+    at div
+    at div
+    at div
+    at div
+    at PilePage (webpack-internal:///(app-pages-browser)/./src/app/pile/page.tsx:31:81)
+    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at AuthProvider (webpack-internal:///(app-pages-browser)/./src/lib/auth-provider.tsx:18:11)
+    at QueryClientProvider (webpack-internal:///(app-pages-browser)/./node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:27:11)
+    at QueryProvider (webpack-internal:///(app-pages-browser)/./src/lib/query-provider.tsx:17:11)
+    at body
+    at html
+    at RootLayout (Server)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)
+    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)
+    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)
+    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)
+    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)
+    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)
+    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)
+Step 3: Waiting for page to load
+LocalStorage token: mock-jwt-token-for-e2e-testing
+LocalStorage user: {"steam_id":"76561197960435530","username":"Debug User","avatar_url":"https://avatars.steamstatic.com/test.jpg","shame_score":42,"last_sync_at":"2025-09-13T21:28:41.634Z"}
+Has login message: [33mfalse[39m
+Has pile header: [33mtrue[39m
+
+[[ATTACHMENT|test-results/auth-debug-Authentication--1a08f-authentication-step-by-step-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Debug › debug with navigateAsAuthenticated helper" classname="auth-debug.spec.ts" time="3.978">
+<system-out>
+<![CDATA[Using navigateAsAuthenticated helper
+PAGE LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+PAGE LOG: Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s 
+
+Check the render method of `PopChild`. 
+    at eval (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:379:15)
+    at PopChildMeasure (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:13:1)
+    at PopChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:33:21)
+    at PresenceChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PresenceChild.mjs:15:26)
+    at AnimatePresence (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/index.mjs:72:28)
+    at svg
+    at div
+    at div
+    at EcosystemMonument (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:127:11)
+    at div
+    at div
+    at div
+    at div
+    at div
+    at PilePage (webpack-internal:///(app-pages-browser)/./src/app/pile/page.tsx:31:81)
+    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at AuthProvider (webpack-internal:///(app-pages-browser)/./src/lib/auth-provider.tsx:18:11)
+    at QueryClientProvider (webpack-internal:///(app-pages-browser)/./node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:27:11)
+    at QueryProvider (webpack-internal:///(app-pages-browser)/./src/lib/query-provider.tsx:17:11)
+    at body
+    at html
+    at RootLayout (Server)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)
+    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)
+    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)
+    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)
+    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)
+    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)
+    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)
+LocalStorage token: mock-jwt-token-for-e2e-testing
+LocalStorage user: {"steam_id":"76561197960435530","username":"Debug User 2","avatar_url":"https://avatars.steamstatic.com/test.jpg","shame_score":42,"last_sync_at":"2025-09-13T21:28:41.563Z"}
+
+[[ATTACHMENT|test-results/auth-debug-Authentication--0473c-igateAsAuthenticated-helper-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="auth-flow.spec.ts" timestamp="2025-09-13T21:28:40.119Z" hostname="chromium-visual" tests="5" failures="0" skipped="0" time="15.859" errors="0">
+<testcase name="Authentication Flow › should display landing page correctly" classname="auth-flow.spec.ts" time="2.909">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/auth-flow-Authentication-F-0fa78-play-landing-page-correctly-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should initiate Steam OAuth flow" classname="auth-flow.spec.ts" time="3.835">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/auth-flow-Authentication-F-78c6c-d-initiate-Steam-OAuth-flow-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should handle authentication errors gracefully" classname="auth-flow.spec.ts" time="3.09">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/auth-flow-Authentication-F-dbc1a-ntication-errors-gracefully-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should show protected routes require authentication" classname="auth-flow.spec.ts" time="2.729">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/auth-flow-Authentication-F-35b42-utes-require-authentication-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should allow access to protected routes when authenticated" classname="auth-flow.spec.ts" time="3.296">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+PAGE LOG: Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s 
+
+Check the render method of `PopChild`. 
+    at eval (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:379:15)
+    at PopChildMeasure (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:13:1)
+    at PopChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:33:21)
+    at PresenceChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PresenceChild.mjs:15:26)
+    at AnimatePresence (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/index.mjs:72:28)
+    at svg
+    at div
+    at div
+    at EcosystemMonument (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:127:11)
+    at div
+    at div
+    at div
+    at div
+    at div
+    at PilePage (webpack-internal:///(app-pages-browser)/./src/app/pile/page.tsx:31:81)
+    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)
+    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)
+    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)
+    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)
+    at AuthProvider (webpack-internal:///(app-pages-browser)/./src/lib/auth-provider.tsx:18:11)
+    at QueryClientProvider (webpack-internal:///(app-pages-browser)/./node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:27:11)
+    at QueryProvider (webpack-internal:///(app-pages-browser)/./src/lib/query-provider.tsx:17:11)
+    at body
+    at html
+    at RootLayout (Server)
+    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)
+    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)
+    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)
+    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)
+    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)
+    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)
+    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)
+    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)
+    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)
+    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)
+    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)
+    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)
+    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)
+Auth test - token present: [33mtrue[39m
+Auth test - h1 content: ⚱️ The Pile of Regret
+
+[[ATTACHMENT|test-results/auth-flow-Authentication-F-f6015-d-routes-when-authenticated-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="game-management.spec.ts" timestamp="2025-09-13T21:28:40.119Z" hostname="chromium-visual" tests="6" failures="0" skipped="0" time="17.51" errors="0">
+<testcase name="Game Management › should load pile page with games" classname="game-management.spec.ts" time="3.221">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/game-management-Game-Manag-57387-d-load-pile-page-with-games-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Game Management › should show game action buttons" classname="game-management.spec.ts" time="2.608">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/game-management-Game-Manag-42ace-ld-show-game-action-buttons-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Game Management › should handle game interactions" classname="game-management.spec.ts" time="3.599">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+Amnesty API intercepted: http://localhost:8000/api/v1/pile/amnesty/1
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/game-management-Game-Manag-7db25-ld-handle-game-interactions-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Game Management › should display ecosystem health section" classname="game-management.spec.ts" time="2.772">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/game-management-Game-Manag-bc631-ay-ecosystem-health-section-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Game Management › should show navigation buttons" classname="game-management.spec.ts" time="2.706">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/game-management-Game-Manag-41746-uld-show-navigation-buttons-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Game Management › should display import library button" classname="game-management.spec.ts" time="2.604">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/game-management-Game-Manag-59601-splay-import-library-button-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="pile-visualization.spec.ts" timestamp="2025-09-13T21:28:40.119Z" hostname="chromium-visual" tests="6" failures="0" skipped="0" time="15.752" errors="0">
+<testcase name="Pile Visualization › should load pile dashboard when authenticated" classname="pile-visualization.spec.ts" time="2.615">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/pile-visualization-Pile-Vi-fa4e3-ashboard-when-authenticated-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pile Visualization › should display Sacred Altar section" classname="pile-visualization.spec.ts" time="2.699">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/pile-visualization-Pile-Vi-6a85b-isplay-Sacred-Altar-section-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pile Visualization › should display Digital Graveyard section" classname="pile-visualization.spec.ts" time="2.569">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/pile-visualization-Pile-Vi-d7cff-y-Digital-Graveyard-section-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pile Visualization › should display ecosystem section" classname="pile-visualization.spec.ts" time="2.445">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/pile-visualization-Pile-Vi-8a34d-d-display-ecosystem-section-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pile Visualization › should handle page load without errors" classname="pile-visualization.spec.ts" time="2.685">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/pile-visualization-Pile-Vi-d82e1-le-page-load-without-errors-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Pile Visualization › should display navigation elements" classname="pile-visualization.spec.ts" time="2.739">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/pile-visualization-Pile-Vi-9ff85-display-navigation-elements-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="steam-integration.spec.ts" timestamp="2025-09-13T21:28:40.119Z" hostname="chromium-visual" tests="6" failures="0" skipped="0" time="16.734" errors="0">
+<testcase name="Steam Integration › should show Steam import button when authenticated" classname="steam-integration.spec.ts" time="2.776">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/steam-integration-Steam-In-e9906-t-button-when-authenticated-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Steam Integration › should handle Steam library import" classname="steam-integration.spec.ts" time="3.614">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+Import API intercepted: http://localhost:8000/api/v1/pile/import
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/steam-integration-Steam-In-35a45-handle-Steam-library-import-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Steam Integration › should display user authentication status" classname="steam-integration.spec.ts" time="2.714">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/steam-integration-Steam-In-4c9fc--user-authentication-status-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Steam Integration › should show game information from Steam" classname="steam-integration.spec.ts" time="2.572">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/steam-integration-Steam-In-ac48d-game-information-from-Steam-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Steam Integration › should handle Steam integration gracefully" classname="steam-integration.spec.ts" time="2.572">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/steam-integration-Steam-In-82ed3-team-integration-gracefully-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Steam Integration › should display navigation elements" classname="steam-integration.spec.ts" time="2.486">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/steam-integration-Steam-In-a806f-display-navigation-elements-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="user-journey.spec.ts" timestamp="2025-09-13T21:28:40.119Z" hostname="chromium-visual" tests="5" failures="0" skipped="0" time="13.628" errors="0">
+<testcase name="Complete User Journey › should complete full user flow from landing to pile management" classname="user-journey.spec.ts" time="4.299">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+Import API intercepted: http://localhost:8000/api/v1/pile/import
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/user-journey-Complete-User-9e9b5--landing-to-pile-management-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete User Journey › should handle navigation between sections" classname="user-journey.spec.ts" time="3.031">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+Stats API intercepted: http://localhost:8000/api/v1/stats/reality-check
+Stats API intercepted: http://localhost:8000/api/v1/stats/shame-score
+Stats API intercepted: http://localhost:8000/api/v1/stats/insights
+
+[[ATTACHMENT|test-results/user-journey-Complete-User-7f64a-navigation-between-sections-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete User Journey › should handle responsive design" classname="user-journey.spec.ts" time="1.931">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/user-journey-Complete-User-0e5bf-ld-handle-responsive-design-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete User Journey › should handle basic accessibility" classname="user-journey.spec.ts" time="2.261">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/user-journey-Complete-User-f67db--handle-basic-accessibility-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Complete User Journey › should show consistent branding" classname="user-journey.spec.ts" time="2.106">
+<system-out>
+<![CDATA[Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me
+Pile API intercepted: http://localhost:8000/api/v1/pile/
+
+[[ATTACHMENT|test-results/user-journey-Complete-User-246ca-ld-show-consistent-branding-chromium-visual/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

@@ -1,0 +1,1644 @@
+{
+  "config": {
+    "configFile": "/home/lrabbets/repos/the-pile/e2e-tests/playwright.config.ts",
+    "rootDir": "/home/lrabbets/repos/the-pile/e2e-tests/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/home/lrabbets/repos/the-pile/e2e-tests/global-setup.ts",
+    "globalTeardown": "/home/lrabbets/repos/the-pile/e2e-tests/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 8
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/lrabbets/repos/the-pile/e2e-tests/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "chromium-visual",
+        "name": "chromium-visual",
+        "testDir": "/home/lrabbets/repos/the-pile/e2e-tests/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 10000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 8,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "auth-debug.spec.ts",
+      "file": "auth-debug.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication Debug",
+          "file": "auth-debug.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "debug authentication step by step",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4325,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Step 1: Setting up authentication mock\n"
+                        },
+                        {
+                          "text": "Step 2: Going to pile page\n"
+                        },
+                        {
+                          "text": "PAGE LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "PAGE LOG: Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s \n\nCheck the render method of `PopChild`. \n    at eval (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:379:15)\n    at PopChildMeasure (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:13:1)\n    at PopChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:33:21)\n    at PresenceChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PresenceChild.mjs:15:26)\n    at AnimatePresence (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/index.mjs:72:28)\n    at svg\n    at div\n    at div\n    at EcosystemMonument (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:127:11)\n    at div\n    at div\n    at div\n    at div\n    at div\n    at PilePage (webpack-internal:///(app-pages-browser)/./src/app/pile/page.tsx:31:81)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at AuthProvider (webpack-internal:///(app-pages-browser)/./src/lib/auth-provider.tsx:18:11)\n    at QueryClientProvider (webpack-internal:///(app-pages-browser)/./node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:27:11)\n    at QueryProvider (webpack-internal:///(app-pages-browser)/./src/lib/query-provider.tsx:17:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)\n"
+                        },
+                        {
+                          "text": "Step 3: Waiting for page to load\n"
+                        },
+                        {
+                          "text": "LocalStorage token: mock-jwt-token-for-e2e-testing\n"
+                        },
+                        {
+                          "text": "LocalStorage user: {\"steam_id\":\"76561197960435530\",\"username\":\"Debug User\",\"avatar_url\":\"https://avatars.steamstatic.com/test.jpg\",\"shame_score\":42,\"last_sync_at\":\"2025-09-13T21:28:41.634Z\"}\n"
+                        },
+                        {
+                          "text": "Has login message: \u001b[33mfalse\u001b[39m\n"
+                        },
+                        {
+                          "text": "Has pile header: \u001b[33mtrue\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:40.653Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/auth-debug-Authentication--1a08f-authentication-step-by-step-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f65cf927a4ec83fa9793-77afbbaec9b0cec88b42",
+              "file": "auth-debug.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "debug with navigateAsAuthenticated helper",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3978,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Using navigateAsAuthenticated helper\n"
+                        },
+                        {
+                          "text": "PAGE LOG: %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "PAGE LOG: Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s \n\nCheck the render method of `PopChild`. \n    at eval (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:379:15)\n    at PopChildMeasure (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:13:1)\n    at PopChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:33:21)\n    at PresenceChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PresenceChild.mjs:15:26)\n    at AnimatePresence (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/index.mjs:72:28)\n    at svg\n    at div\n    at div\n    at EcosystemMonument (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:127:11)\n    at div\n    at div\n    at div\n    at div\n    at div\n    at PilePage (webpack-internal:///(app-pages-browser)/./src/app/pile/page.tsx:31:81)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at AuthProvider (webpack-internal:///(app-pages-browser)/./src/lib/auth-provider.tsx:18:11)\n    at QueryClientProvider (webpack-internal:///(app-pages-browser)/./node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:27:11)\n    at QueryProvider (webpack-internal:///(app-pages-browser)/./src/lib/query-provider.tsx:17:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)\n"
+                        },
+                        {
+                          "text": "LocalStorage token: mock-jwt-token-for-e2e-testing\n"
+                        },
+                        {
+                          "text": "LocalStorage user: {\"steam_id\":\"76561197960435530\",\"username\":\"Debug User 2\",\"avatar_url\":\"https://avatars.steamstatic.com/test.jpg\",\"shame_score\":42,\"last_sync_at\":\"2025-09-13T21:28:41.563Z\"}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:40.728Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/auth-debug-Authentication--0473c-igateAsAuthenticated-helper-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f65cf927a4ec83fa9793-286b0f47f77a2b8a3a39",
+              "file": "auth-debug.spec.ts",
+              "line": 45,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth-flow.spec.ts",
+      "file": "auth-flow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication Flow",
+          "file": "auth-flow.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display landing page correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 2909,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:40.596Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/auth-flow-Authentication-F-0fa78-play-landing-page-correctly-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "df6b40174562c70df515-d26c902231cfa0d99c5a",
+              "file": "auth-flow.spec.ts",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "title": "should initiate Steam OAuth flow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3835,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:40.624Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/auth-flow-Authentication-F-78c6c-d-initiate-Steam-OAuth-flow-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "df6b40174562c70df515-835a7820a89a3893a257",
+              "file": "auth-flow.spec.ts",
+              "line": 17,
+              "column": 7
+            },
+            {
+              "title": "should handle authentication errors gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 3090,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:40.594Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/auth-flow-Authentication-F-dbc1a-ntication-errors-gracefully-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "df6b40174562c70df515-2ca08ccd7c8403808026",
+              "file": "auth-flow.spec.ts",
+              "line": 31,
+              "column": 7
+            },
+            {
+              "title": "should show protected routes require authentication",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 2729,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:40.585Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/auth-flow-Authentication-F-35b42-utes-require-authentication-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "df6b40174562c70df515-f51296c3dd9ec7500314",
+              "file": "auth-flow.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "should allow access to protected routes when authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 3296,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "PAGE LOG: Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s \n\nCheck the render method of `PopChild`. \n    at eval (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:379:15)\n    at PopChildMeasure (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:13:1)\n    at PopChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PopChild.mjs:33:21)\n    at PresenceChild (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/PresenceChild.mjs:15:26)\n    at AnimatePresence (webpack-internal:///(app-pages-browser)/./node_modules/framer-motion/dist/es/components/AnimatePresence/index.mjs:72:28)\n    at svg\n    at div\n    at div\n    at EcosystemMonument (webpack-internal:///(app-pages-browser)/./src/components/ecosystem-monument.tsx:127:11)\n    at div\n    at div\n    at div\n    at div\n    at div\n    at PilePage (webpack-internal:///(app-pages-browser)/./src/app/pile/page.tsx:31:81)\n    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/client-page.js:14:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:243:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:349:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:153:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:228:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:370:11)\n    at AuthProvider (webpack-internal:///(app-pages-browser)/./src/lib/auth-provider.tsx:18:11)\n    at QueryClientProvider (webpack-internal:///(app-pages-browser)/./node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:27:11)\n    at QueryProvider (webpack-internal:///(app-pages-browser)/./src/lib/query-provider.tsx:17:11)\n    at body\n    at html\n    at RootLayout (Server)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/ReactDevOverlay.js:87:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:321:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:207:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:113:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:160:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:585:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:112:27)\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:117:11)\n"
+                        },
+                        {
+                          "text": "Auth test - token present: \u001b[33mtrue\u001b[39m\n"
+                        },
+                        {
+                          "text": "Auth test - h1 content: ⚱️ The Pile of Regret\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:40.601Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/auth-flow-Authentication-F-f6015-d-routes-when-authenticated-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "df6b40174562c70df515-b60c8a95f3cc2366e8f8",
+              "file": "auth-flow.spec.ts",
+              "line": 47,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "game-management.spec.ts",
+      "file": "game-management.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Game Management",
+          "file": "game-management.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load pile page with games",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 3221,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:40.659Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/game-management-Game-Manag-57387-d-load-pile-page-with-games-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1d54e11cf13daec69d05-39cb9d6faf27ac7a089b",
+              "file": "game-management.spec.ts",
+              "line": 11,
+              "column": 7
+            },
+            {
+              "title": "should show game action buttons",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 2608,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:43.510Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/game-management-Game-Manag-42ace-ld-show-game-action-buttons-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1d54e11cf13daec69d05-c27effe383108af9d8af",
+              "file": "game-management.spec.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "should handle game interactions",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3599,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "Amnesty API intercepted: http://localhost:8000/api/v1/pile/amnesty/1\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:43.694Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/game-management-Game-Manag-7db25-ld-handle-game-interactions-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1d54e11cf13daec69d05-acf67ad9269d88022361",
+              "file": "game-management.spec.ts",
+              "line": 47,
+              "column": 7
+            },
+            {
+              "title": "should display ecosystem health section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 2772,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:43.868Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/game-management-Game-Manag-bc631-ay-ecosystem-health-section-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1d54e11cf13daec69d05-325878185108db24f8c2",
+              "file": "game-management.spec.ts",
+              "line": 68,
+              "column": 7
+            },
+            {
+              "title": "should show navigation buttons",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 2706,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:44.082Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/game-management-Game-Manag-41746-uld-show-navigation-buttons-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1d54e11cf13daec69d05-b83b1679ef0a0369299d",
+              "file": "game-management.spec.ts",
+              "line": 87,
+              "column": 7
+            },
+            {
+              "title": "should display import library button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 2604,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:44.122Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/game-management-Game-Manag-59601-splay-import-library-button-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1d54e11cf13daec69d05-b1bd3ff3bb7e57502f34",
+              "file": "game-management.spec.ts",
+              "line": 104,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "pile-visualization.spec.ts",
+      "file": "pile-visualization.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Pile Visualization",
+          "file": "pile-visualization.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load pile dashboard when authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 2615,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:44.706Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/pile-visualization-Pile-Vi-fa4e3-ashboard-when-authenticated-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f6c77a55b661d5317d91-3e5843f0d0e90953846d",
+              "file": "pile-visualization.spec.ts",
+              "line": 11,
+              "column": 7
+            },
+            {
+              "title": "should display Sacred Altar section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2699,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:44.988Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/pile-visualization-Pile-Vi-6a85b-isplay-Sacred-Altar-section-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f6c77a55b661d5317d91-3b1a63b0b786b87a05a4",
+              "file": "pile-visualization.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "should display Digital Graveyard section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2569,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:45.212Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/pile-visualization-Pile-Vi-d7cff-y-Digital-Graveyard-section-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f6c77a55b661d5317d91-b78508356e861751904a",
+              "file": "pile-visualization.spec.ts",
+              "line": 33,
+              "column": 7
+            },
+            {
+              "title": "should display ecosystem section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 2445,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:46.152Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/pile-visualization-Pile-Vi-8a34d-d-display-ecosystem-section-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f6c77a55b661d5317d91-94c71e50f2fd3283c1c6",
+              "file": "pile-visualization.spec.ts",
+              "line": 45,
+              "column": 7
+            },
+            {
+              "title": "should handle page load without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 2685,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:46.675Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/pile-visualization-Pile-Vi-d82e1-le-page-load-without-errors-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f6c77a55b661d5317d91-5aa6ebb4eb763c04a5b8",
+              "file": "pile-visualization.spec.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "should display navigation elements",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 2739,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:46.756Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/pile-visualization-Pile-Vi-9ff85-display-navigation-elements-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f6c77a55b661d5317d91-aeb8ceb1144794b9127f",
+              "file": "pile-visualization.spec.ts",
+              "line": 72,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "steam-integration.spec.ts",
+      "file": "steam-integration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Steam Integration",
+          "file": "steam-integration.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should show Steam import button when authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 2776,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:46.829Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/steam-integration-Steam-In-e9906-t-button-when-authenticated-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7f462b064b154bcca80-4a9b6c4c0c58511122fc",
+              "file": "steam-integration.spec.ts",
+              "line": 11,
+              "column": 7
+            },
+            {
+              "title": "should handle Steam library import",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3614,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "Import API intercepted: http://localhost:8000/api/v1/pile/import\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:47.340Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/steam-integration-Steam-In-35a45-handle-Steam-library-import-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7f462b064b154bcca80-c53b5cfd1c2c44bba6c1",
+              "file": "steam-integration.spec.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "should display user authentication status",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 2714,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:47.365Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/steam-integration-Steam-In-4c9fc--user-authentication-status-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7f462b064b154bcca80-d26053c6dd2244684e1d",
+              "file": "steam-integration.spec.ts",
+              "line": 33,
+              "column": 7
+            },
+            {
+              "title": "should show game information from Steam",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2572,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:47.735Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/steam-integration-Steam-In-ac48d-game-information-from-Steam-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7f462b064b154bcca80-38d0549e4796b66aa5a4",
+              "file": "steam-integration.spec.ts",
+              "line": 47,
+              "column": 7
+            },
+            {
+              "title": "should handle Steam integration gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2572,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:47.805Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/steam-integration-Steam-In-82ed3-team-integration-gracefully-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7f462b064b154bcca80-0694e30e891a2e5abe19",
+              "file": "steam-integration.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "should display navigation elements",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 2486,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:48.634Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/steam-integration-Steam-In-a806f-display-navigation-elements-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7f462b064b154bcca80-e524537ec37c19fab07d",
+              "file": "steam-integration.spec.ts",
+              "line": 85,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "user-journey.spec.ts",
+      "file": "user-journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Complete User Journey",
+          "file": "user-journey.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should complete full user flow from landing to pile management",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 4299,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "Import API intercepted: http://localhost:8000/api/v1/pile/import\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:49.399Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/user-journey-Complete-User-9e9b5--landing-to-pile-management-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "71a1cccb6623f87e1233-468f912599bfa7f643f1",
+              "file": "user-journey.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "should handle navigation between sections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 3031,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        },
+                        {
+                          "text": "Stats API intercepted: http://localhost:8000/api/v1/stats/reality-check\n"
+                        },
+                        {
+                          "text": "Stats API intercepted: http://localhost:8000/api/v1/stats/shame-score\n"
+                        },
+                        {
+                          "text": "Stats API intercepted: http://localhost:8000/api/v1/stats/insights\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:49.534Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/user-journey-Complete-User-7f64a-navigation-between-sections-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "71a1cccb6623f87e1233-db6608388a0f1da1c61f",
+              "file": "user-journey.spec.ts",
+              "line": 49,
+              "column": 7
+            },
+            {
+              "title": "should handle responsive design",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 1931,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:49.648Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/user-journey-Complete-User-0e5bf-ld-handle-responsive-design-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "71a1cccb6623f87e1233-692ae0e273e2fae1b6ab",
+              "file": "user-journey.spec.ts",
+              "line": 68,
+              "column": 7
+            },
+            {
+              "title": "should handle basic accessibility",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 2261,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:50.113Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/user-journey-Complete-User-f67db--handle-basic-accessibility-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "71a1cccb6623f87e1233-f75a9b133a2a6fff3098",
+              "file": "user-journey.spec.ts",
+              "line": 88,
+              "column": 7
+            },
+            {
+              "title": "should show consistent branding",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 10000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-visual",
+                  "projectName": "chromium-visual",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2106,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Auth API (pattern) intercepted: http://localhost:8000/api/v1/auth/me\n"
+                        },
+                        {
+                          "text": "Pile API intercepted: http://localhost:8000/api/v1/pile/\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-13T21:28:50.356Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/lrabbets/repos/the-pile/e2e-tests/test-results/user-journey-Complete-User-246ca-ld-show-consistent-branding-chromium-visual/video.webm"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "71a1cccb6623f87e1233-27ec4e62698f4c6d36ce",
+              "file": "user-journey.spec.ts",
+              "line": 107,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-13T21:28:37.593Z",
+    "duration": 16583.553,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
