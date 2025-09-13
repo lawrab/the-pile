@@ -1,0 +1,64 @@
+import axios from 'axios'
+import type { User, PileEntry, RealityCheck, ShameScore, BehavioralInsights, ShareableStats } from '@/types'
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// Handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('auth_token')
+      window.location.href = '/auth/steam'
+    }
+    return Promise.reject(error)
+  }
+)
+
+export const authApi = {
+  getSteamLoginUrl: () => api.get<{ auth_url: string }>('/auth/steam/login'),
+  getCurrentUser: () => api.get<User>('/auth/me'),
+}
+
+export const pileApi = {
+  getPile: (params?: {
+    status?: string
+    genre?: string
+    limit?: number
+    offset?: number
+  }) => api.get<PileEntry[]>('/pile/', { params }),
+  
+  importSteamLibrary: () => api.post('/pile/import'),
+  syncPlaytime: () => api.post('/pile/sync'),
+  grantAmnesty: (gameId: number, reason: string) => 
+    api.post(`/pile/amnesty/${gameId}`, { reason }),
+}
+
+export const statsApi = {
+  getRealityCheck: () => api.get<RealityCheck>('/stats/reality-check'),
+  getShameScore: () => api.get<ShameScore>('/stats/shame-score'),
+  getInsights: () => api.get<BehavioralInsights>('/stats/insights'),
+}
+
+export const shareApi = {
+  createShareableStats: () => api.post<{ share_id: string; image_url: string; text_stats: ShareableStats }>('/share/create'),
+  getSharedStats: (shareId: string) => api.get<ShareableStats>(`/share/${shareId}`),
+}
+
+export { api }
