@@ -249,14 +249,47 @@ interface GameGraveyardProps {
   onGrantAmnesty?: (gameId: string) => void
   onStartPlaying?: (gameId: string) => void
   className?: string
+  activeFilter?: string | null
 }
 
 export function GameGraveyard({ 
   pile, 
   onGrantAmnesty, 
   onStartPlaying, 
-  className = '' 
+  className = '',
+  activeFilter
 }: GameGraveyardProps) {
+  // Filter the pile based on active filter
+  const filteredPile = activeFilter 
+    ? pile.filter(entry => entry.status === activeFilter)
+    : pile
+
+  const getGraveyardTitle = () => {
+    if (!activeFilter) return "🪦 The Digital Graveyard"
+    
+    const filterTitles = {
+      'unplayed': '⏳ The Realm of Broken Promises',
+      'playing': '🔥 The Sacred Battlegrounds', 
+      'completed': '👑 The Hall of Glory',
+      'amnesty_granted': '🕊️ The Garden of Peace'
+    }
+    
+    return filterTitles[activeFilter as keyof typeof filterTitles] || "🪦 The Digital Graveyard"
+  }
+
+  const getGraveyardDescription = () => {
+    if (!activeFilter) return "Each tombstone tells a story of promises made and dreams deferred"
+    
+    const descriptions = {
+      'unplayed': 'Here lie the games that remain untouched, waiting for their moment of awakening',
+      'playing': 'These noble souls burn bright with the flame of active engagement',
+      'completed': 'Behold the champions who have reached journey\'s end in triumph',
+      'amnesty_granted': 'Here rest the pardoned, released from the burden of obligation'
+    }
+    
+    return descriptions[activeFilter as keyof typeof descriptions] || "Each tombstone tells a story of promises made and dreams deferred"
+  }
+  
   return (
     <div className={className}>
       {/* Graveyard Title */}
@@ -265,16 +298,21 @@ export function GameGraveyard({
           className="text-2xl font-bold mb-2" 
           style={{ fontFamily: 'Crimson Text, serif' }}
         >
-          🪦 The Digital Graveyard
+          {getGraveyardTitle()}
         </h2>
-        <p className="text-gray-400 text-sm italic">
-          Each tombstone tells a story of promises made and dreams deferred
+        <p className="text-gray-400 text-sm italic leading-relaxed">
+          {getGraveyardDescription()}
         </p>
+        {activeFilter && (
+          <div className="mt-2 text-xs text-yellow-500">
+            Showing {filteredPile.length} of {pile.length} games
+          </div>
+        )}
       </div>
       
       {/* Games Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[600px] overflow-y-auto custom-scrollbar">
-        {pile.map((entry) => (
+        {filteredPile.map((entry) => (
           <GameTombstone 
             key={entry.id} 
             entry={entry}
@@ -284,11 +322,16 @@ export function GameGraveyard({
         ))}
       </div>
       
-      {pile.length === 0 && (
+      {filteredPile.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4 opacity-50">🌸</div>
+          <div className="text-6xl mb-4 opacity-50">
+            {activeFilter ? '🔮' : '🌸'}
+          </div>
           <p className="text-gray-500 italic">
-            The graveyard stands empty, awaiting the first fallen dreams...
+            {activeFilter 
+              ? `No games found in the ${activeFilter.replace('_', ' ')} realm...`
+              : 'The graveyard stands empty, awaiting the first fallen dreams...'
+            }
           </p>
         </div>
       )}

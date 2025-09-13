@@ -17,6 +17,7 @@ import { ImportLibraryButton } from '@/components/import-library-button'
 export default function PilePage() {
   const { user } = useAuth()
   const { data: pile, isLoading } = usePile(!!user)
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   if (!user) {
     return (
@@ -91,7 +92,12 @@ export default function PilePage() {
         </div>
 
         {/* Sacred Altar */}
-        <SacredAltar pile={pile} className="mb-12" />
+        <SacredAltar 
+          pile={pile} 
+          className="mb-12" 
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+        />
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-8">
@@ -99,6 +105,7 @@ export default function PilePage() {
           <div className="lg:col-span-2">
             <GameGraveyard 
               pile={pile}
+              activeFilter={activeFilter}
               onGrantAmnesty={(gameId) => {
                 // TODO: Implement amnesty granting
                 console.log('Granting amnesty to:', gameId)

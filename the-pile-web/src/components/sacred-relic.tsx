@@ -7,6 +7,8 @@ interface SacredRelicProps {
   status: 'unplayed' | 'playing' | 'completed' | 'amnesty'
   count: number
   className?: string
+  isActive?: boolean
+  onClick?: (status: string) => void
 }
 
 const relicConfig = {
@@ -56,7 +58,7 @@ const relicConfig = {
   }
 }
 
-export function SacredRelic({ status, count, className = '' }: SacredRelicProps) {
+export function SacredRelic({ status, count, className = '', isActive = false, onClick }: SacredRelicProps) {
   const config = relicConfig[status]
   const IconComponent = config.icon
   
@@ -70,13 +72,15 @@ export function SacredRelic({ status, count, className = '' }: SacredRelicProps)
         transition-all duration-500 ease-out
         hover:scale-105 hover:${config.glowClass}
         texture-overlay
+        ${isActive ? `scale-110 ${config.glowClass} ring-2 ring-yellow-400/50` : ''}
         ${className}
       `}
+      onClick={() => onClick?.(status)}
       style={{
         boxShadow: `
           inset 0 1px 0 rgba(255, 255, 255, 0.05),
           0 4px 16px rgba(0, 0, 0, 0.3),
-          0 8px 32px hsla(var(${config.statusVar}), 0.1)
+          0 8px 32px hsla(var(${config.statusVar}), ${isActive ? '0.3' : '0.1'})
         `
       }}
     >
@@ -149,14 +153,22 @@ export function SacredRelic({ status, count, className = '' }: SacredRelicProps)
 interface SacredAltarProps {
   pile: any[]
   className?: string
+  activeFilter?: string | null
+  onFilterChange?: (filter: string | null) => void
 }
 
-export function SacredAltar({ pile, className = '' }: SacredAltarProps) {
+export function SacredAltar({ pile, className = '', activeFilter, onFilterChange }: SacredAltarProps) {
   const stats = {
     unplayed: pile.filter(entry => entry.status === 'unplayed').length,
     playing: pile.filter(entry => entry.status === 'playing').length,
     completed: pile.filter(entry => entry.status === 'completed').length,
     amnesty: pile.filter(entry => entry.status === 'amnesty_granted').length
+  }
+  
+  const handleRelicClick = (status: string) => {
+    // If clicking the active filter, clear it; otherwise set the new filter
+    const newFilter = activeFilter === status ? null : status
+    onFilterChange?.(newFilter)
   }
   
   return (
@@ -169,14 +181,47 @@ export function SacredAltar({ pile, className = '' }: SacredAltarProps) {
         <p className="text-gray-400 text-sm italic">
           Where the echoes of your gaming journey find their eternal rest
         </p>
+        {activeFilter && (
+          <div className="mt-4">
+            <p className="text-yellow-400 text-sm font-medium" style={{ fontFamily: 'Crimson Text, serif' }}>
+              🔮 Viewing only: <span className="capitalize">{activeFilter.replace('_', ' ')}</span> games
+            </p>
+            <button 
+              onClick={() => onFilterChange?.(null)}
+              className="text-xs text-gray-500 hover:text-gray-300 underline mt-1"
+            >
+              Show all relics
+            </button>
+          </div>
+        )}
       </div>
       
       {/* Sacred Relics Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <SacredRelic status="unplayed" count={stats.unplayed} />
-        <SacredRelic status="playing" count={stats.playing} />
-        <SacredRelic status="completed" count={stats.completed} />
-        <SacredRelic status="amnesty" count={stats.amnesty} />
+        <SacredRelic 
+          status="unplayed" 
+          count={stats.unplayed}
+          isActive={activeFilter === 'unplayed'}
+          onClick={handleRelicClick}
+        />
+        <SacredRelic 
+          status="playing" 
+          count={stats.playing}
+          isActive={activeFilter === 'playing'}
+          onClick={handleRelicClick}
+        />
+        <SacredRelic 
+          status="completed" 
+          count={stats.completed}
+          isActive={activeFilter === 'completed'}
+          onClick={handleRelicClick}
+        />
+        <SacredRelic 
+          status="amnesty" 
+          count={stats.amnesty}
+          isActive={activeFilter === 'amnesty_granted'}
+          onClick={(status) => handleRelicClick('amnesty_granted')}
+        />
       </div>
     </div>
   )
