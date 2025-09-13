@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink } from 'lucide-react'
+import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink, Trophy } from 'lucide-react'
 import { Button } from './ui/button'
 
 interface GameDetailModalProps {
@@ -98,10 +98,12 @@ export function GameDetailModal({
     }
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!isOpen || !game) return null
 
-  const config = statusConfig[game.status]
-  const steamUrl = `https://store.steampowered.com/app/${game.steam_game.steam_app_id}`
+  const config = statusConfig[game.status] || statusConfig.unplayed
+  const steamUrl = game.steam_game?.steam_app_id 
+    ? `https://store.steampowered.com/app/${game.steam_game.steam_app_id}`
+    : '#'
   
   const formatPlaytime = (minutes: number) => {
     if (minutes === 0) return 'Never played'
@@ -127,7 +129,7 @@ export function GameDetailModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-fix"
         onClick={onClose}
       />
       
@@ -164,8 +166,8 @@ export function GameDetailModal({
             {/* Game Image */}
             <div className="aspect-video rounded-xl overflow-hidden mb-6 bg-gray-900/50">
               <img
-                src={game.steam_game.image_url || '/default-game.svg'}
-                alt={game.steam_game.name}
+                src={game.steam_game?.image_url || '/default-game.svg'}
+                alt={game.steam_game?.name || 'Unknown Game'}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.currentTarget.src = '/default-game.svg'
@@ -268,34 +270,36 @@ export function GameDetailModal({
             {/* Game Title */}
             <div className="mb-6">
               <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
-                {game.steam_game.name}
+                {game.steam_game?.name || 'Unknown Game'}
               </h1>
               
-              {game.steam_game.developer && (
+              {game.steam_game?.developer && (
                 <p className="text-gray-400 mb-1">
                   <strong>Developer:</strong> {game.steam_game.developer}
                 </p>
               )}
               
-              {game.steam_game.publisher && (
+              {game.steam_game?.publisher && (
                 <p className="text-gray-400 mb-4">
                   <strong>Publisher:</strong> {game.steam_game.publisher}
                 </p>
               )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(steamUrl, '_blank')}
-                className="mb-4"
-              >
-                <ExternalLink size={14} className="mr-2" />
-                View on Steam
-              </Button>
+              {steamUrl !== '#' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(steamUrl, '_blank')}
+                  className="mb-4"
+                >
+                  <ExternalLink size={14} className="mr-2" />
+                  View on Steam
+                </Button>
+              )}
             </div>
 
             {/* Genres */}
-            {game.steam_game.genres && game.steam_game.genres.length > 0 && (
+            {game.steam_game?.genres && game.steam_game.genres.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
                   Genres
@@ -314,7 +318,7 @@ export function GameDetailModal({
             )}
 
             {/* Tags */}
-            {game.steam_game.tags && game.steam_game.tags.length > 0 && (
+            {game.steam_game?.tags && game.steam_game.tags.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
                   Tags
@@ -333,7 +337,7 @@ export function GameDetailModal({
             )}
 
             {/* Description */}
-            {game.steam_game.description && (
+            {game.steam_game?.description && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-3" style={{ fontFamily: 'Crimson Text, serif' }}>
                   About This Game
@@ -349,8 +353,40 @@ export function GameDetailModal({
               </div>
             )}
 
+            {/* Screenshots */}
+            {game.steam_game?.screenshots && game.steam_game.screenshots.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3" style={{ fontFamily: 'Crimson Text, serif' }}>
+                  Screenshots
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {game.steam_game.screenshots.slice(0, 4).map((screenshot, index) => (
+                    <div 
+                      key={index}
+                      className="aspect-video rounded-lg overflow-hidden bg-gray-800/50 cursor-pointer hover:scale-105 transition-transform duration-200"
+                      onClick={() => window.open(screenshot, '_blank')}
+                    >
+                      <img
+                        src={screenshot}
+                        alt={`Screenshot ${index + 1}`}
+                        className="w-full h-full object-cover hover:opacity-90"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {game.steam_game.screenshots.length > 4 && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    +{game.steam_game.screenshots.length - 4} more screenshots
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Achievements */}
-            {game.steam_game.achievements_total && (
+            {game.steam_game?.achievements_total && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
                   Achievements
@@ -358,6 +394,69 @@ export function GameDetailModal({
                 <div className="flex items-center gap-2 text-gray-300">
                   <Trophy size={16} className="text-yellow-500" />
                   <span>{game.steam_game.achievements_total} total achievements</span>
+                </div>
+              </div>
+            )}
+
+            {/* Detailed Reviews Section */}
+            {reviewScore && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3" style={{ fontFamily: 'Crimson Text, serif' }}>
+                  Community Reviews
+                </h3>
+                <div className="bg-gray-900/30 rounded-lg p-4 border border-gray-700/20">
+                  {/* Review Score */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`text-2xl font-bold ${reviewScore.percentage >= 80 ? 'text-green-400' : reviewScore.percentage >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {reviewScore.percentage}%
+                      </div>
+                      <div className="text-gray-300">
+                        <div className="font-semibold">
+                          {reviewScore.percentage >= 80 ? 'Overwhelmingly Positive' : 
+                           reviewScore.percentage >= 70 ? 'Very Positive' :
+                           reviewScore.percentage >= 60 ? 'Mixed' : 'Negative'}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {reviewScore.total.toLocaleString()} user reviews
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Review Breakdown */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-green-400 flex items-center gap-2">
+                        👍 Positive
+                      </span>
+                      <span className="text-gray-300">
+                        {(game.steam_game?.positive_reviews || 0).toLocaleString()} 
+                        <span className="text-gray-500 ml-1">
+                          ({reviewScore.percentage}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-red-400 flex items-center gap-2">
+                        👎 Negative
+                      </span>
+                      <span className="text-gray-300">
+                        {(game.steam_game?.negative_reviews || 0).toLocaleString()} 
+                        <span className="text-gray-500 ml-1">
+                          ({100 - reviewScore.percentage}%)
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Review Bar */}
+                  <div className="mt-3 h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-500 ${reviewScore.percentage >= 80 ? 'bg-green-500' : reviewScore.percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                      style={{ width: `${reviewScore.percentage}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             )}

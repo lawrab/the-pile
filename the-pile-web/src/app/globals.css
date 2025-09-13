@@ -117,11 +117,14 @@ h1, h2, h3, h4, h5, h6 {
   backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
 }
 
 .tomb-hover:hover {
-  transform: translate3d(0, -4px, 0) scale3d(1.02, 1.02, 1);
+  transform: translate3d(0, -4px, 0) scale3d(1.02, 1.02, 1) translateZ(0);
   filter: brightness(1.1) saturate(1.2);
+  transform-style: preserve-3d;
 }
 
 @keyframes float-away {
@@ -225,13 +228,19 @@ h1, h2, h3, h4, h5, h6 {
   background: hsl(var(--mystical-gold-bright));
 }
 
-/* Crisp Scaling Utilities */
+/* Crisp Scaling Utilities - Fixed for blur compatibility */
 .scale-105 {
-  transform: scale3d(1.05, 1.05, 1) !important;
+  transform: scale3d(1.05, 1.05, 1) translateZ(0) !important;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 .hover\:scale-105:hover {
-  transform: scale3d(1.05, 1.05, 1) !important;
+  transform: scale3d(1.05, 1.05, 1) translateZ(0) !important;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* GPU-accelerated transforms for crisp text */
@@ -241,6 +250,16 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   will-change: transform;
+}
+
+/* Fix backdrop-blur scaling issues */
+.backdrop-blur-fix {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  will-change: backdrop-filter;
 }
 
 /* Sacred Relic specific scaling */

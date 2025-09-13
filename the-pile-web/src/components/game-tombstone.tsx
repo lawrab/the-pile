@@ -140,7 +140,7 @@ export function GameTombstone({
         <div className={`
           absolute top-2 right-2 
           p-1.5 rounded-full
-          bg-black/60 backdrop-blur-sm
+          bg-black/60 backdrop-blur-fix
           border border-white/10
         `}>
           <StatusIcon size={14} className={config.textClass} />
@@ -150,7 +150,7 @@ export function GameTombstone({
         <div className={`
           absolute bottom-2 left-2
           px-2 py-1 rounded-md text-xs
-          bg-black/80 backdrop-blur-sm
+          bg-black/80 backdrop-blur-fix
           border border-white/10
           ${config.textClass}
         `}>

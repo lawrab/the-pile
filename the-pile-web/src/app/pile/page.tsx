@@ -13,12 +13,13 @@ import { Button } from '@/components/ui/button'
 import { formatCurrency, calculateShameLevel } from '@/lib/utils'
 import { Download, Zap, Trophy, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
-import { usePile } from '@/lib/hooks'
+import { usePile, useGameStatusMutations } from '@/lib/hooks'
 import { ImportLibraryButton } from '@/components/import-library-button'
 
 export default function PilePage() {
   const { user } = useAuth()
   const { data: pile, isLoading } = usePile(!!user)
+  const { grantAmnesty, startPlaying, markCompleted } = useGameStatusMutations()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [selectedGame, setSelectedGame] = useState<any | null>(null)
 
@@ -111,12 +112,10 @@ export default function PilePage() {
               activeFilter={activeFilter}
               onGameClick={setSelectedGame}
               onGrantAmnesty={(gameId) => {
-                // TODO: Implement amnesty granting
-                console.log('Granting amnesty to:', gameId)
+                grantAmnesty.mutate({ gameId, reason: 'Granted peace from the pile' })
               }}
               onStartPlaying={(gameId) => {
-                // TODO: Implement start playing
-                console.log('Starting to play:', gameId)
+                startPlaying.mutate(gameId)
               }}
             />
           </div>
@@ -158,7 +157,14 @@ export default function PilePage() {
                   status: entry.status,
                   playtime_minutes: entry.playtime_minutes
                 }))}
-                onGameClick={setSelectedGame}
+                activeFilter={activeFilter}
+                onGameClick={(game) => {
+                  // Find the full game data from pile
+                  const fullGameData = pile.find(entry => entry.id === game.id)
+                  if (fullGameData) {
+                    setSelectedGame(fullGameData)
+                  }
+                }}
               />
             </div>
           </div>
@@ -171,18 +177,15 @@ export default function PilePage() {
             onClose={() => setSelectedGame(null)}
             game={selectedGame}
             onGrantAmnesty={(gameId) => {
-              // TODO: Implement amnesty granting
-              console.log('Granting amnesty to:', gameId)
+              grantAmnesty.mutate({ gameId, reason: 'Granted peace from the modal' })
               setSelectedGame(null)
             }}
             onStartPlaying={(gameId) => {
-              // TODO: Implement start playing
-              console.log('Starting to play:', gameId)
+              startPlaying.mutate(gameId)
               setSelectedGame(null)
             }}
             onMarkCompleted={(gameId) => {
-              // TODO: Implement mark completed
-              console.log('Marking completed:', gameId)
+              markCompleted.mutate(gameId)
               setSelectedGame(null)
             }}
           />

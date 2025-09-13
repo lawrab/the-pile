@@ -46,8 +46,18 @@ export const pileApi = {
   
   importSteamLibrary: () => api.post('/pile/import'),
   syncPlaytime: () => api.post('/pile/sync'),
-  grantAmnesty: (gameId: number, reason: string) => 
+  
+  // Game status change endpoints
+  grantAmnesty: (gameId: string | number, reason: string) => 
     api.post(`/pile/amnesty/${gameId}`, { reason }),
+  startPlaying: (gameId: string | number) => 
+    api.post(`/pile/start-playing/${gameId}`),
+  markCompleted: (gameId: string | number) => 
+    api.post(`/pile/complete/${gameId}`),
+  markAbandoned: (gameId: string | number, reason?: string) => 
+    api.post(`/pile/abandon/${gameId}`, { reason }),
+  updateStatus: (gameId: string | number, status: 'unplayed' | 'playing' | 'completed' | 'abandoned' | 'amnesty_granted') => 
+    api.post(`/pile/status/${gameId}`, { status }),
 }
 
 export const statsApi = {
