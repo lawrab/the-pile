@@ -112,10 +112,15 @@ h1, h2, h3, h4, h5, h6 {
 
 .tomb-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  will-change: transform, filter;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .tomb-hover:hover {
-  transform: translateY(-4px) scale(1.02);
+  transform: translate3d(0, -4px, 0) scale3d(1.02, 1.02, 1);
   filter: brightness(1.1) saturate(1.2);
 }
 
@@ -165,10 +170,12 @@ h1, h2, h3, h4, h5, h6 {
 /* Sacred Relic Icon Animations */
 .relic-icon {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  will-change: transform;
 }
 
 .relic-icon:hover {
-  transform: scale(1.1) rotate(5deg);
+  transform: scale3d(1.1, 1.1, 1) rotate(5deg);
 }
 
 /* Game Card Desaturation for Unplayed */
@@ -216,4 +223,40 @@ h1, h2, h3, h4, h5, h6 {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--mystical-gold-bright));
+}
+
+/* Crisp Scaling Utilities */
+.scale-105 {
+  transform: scale3d(1.05, 1.05, 1) !important;
+}
+
+.hover\:scale-105:hover {
+  transform: scale3d(1.05, 1.05, 1) !important;
+}
+
+/* GPU-accelerated transforms for crisp text */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  will-change: transform;
+}
+
+/* Sacred Relic specific scaling */
+.sacred-relic-hover {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  will-change: transform;
+}
+
+.sacred-relic-hover.active {
+  transform: scale3d(1.1, 1.1, 1) translateZ(0);
+}
+
+.sacred-relic-hover:hover:not(.active) {
+  transform: scale3d(1.05, 1.05, 1) translateZ(0);
 }

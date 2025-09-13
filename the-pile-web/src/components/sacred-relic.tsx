@@ -69,10 +69,9 @@ export function SacredRelic({ status, count, className = '', isActive = false, o
         bg-gradient-to-br ${config.bgClass}
         border ${config.borderClass}
         rounded-2xl p-6
-        transition-all duration-500 ease-out
-        hover:scale-105 hover:${config.glowClass}
+        sacred-relic-hover
         texture-overlay
-        ${isActive ? `scale-110 ${config.glowClass} ring-2 ring-yellow-400/50` : ''}
+        ${isActive ? `active ${config.glowClass} ring-2 ring-yellow-400/50` : ''}
         ${className}
       `}
       onClick={() => onClick?.(status)}

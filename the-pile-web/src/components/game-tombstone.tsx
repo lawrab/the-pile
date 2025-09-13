@@ -18,6 +18,7 @@ interface GameTombstoneProps {
   }
   onGrantAmnesty?: (gameId: string) => void
   onStartPlaying?: (gameId: string) => void
+  onGameClick?: (game: any) => void
 }
 
 const statusConfig = {
@@ -71,7 +72,8 @@ const statusConfig = {
 export function GameTombstone({ 
   entry, 
   onGrantAmnesty, 
-  onStartPlaying 
+  onStartPlaying,
+  onGameClick
 }: GameTombstoneProps) {
   const config = statusConfig[entry.status]
   const StatusIcon = config.icon
@@ -94,7 +96,7 @@ export function GameTombstone({
         bg-gradient-to-br ${config.bgClass}
         border ${config.borderClass}
         rounded-xl p-4
-        tomb-hover texture-overlay
+        tomb-hover texture-overlay transform-gpu
         transition-all duration-300
         ${config.filterClass}
       `}
@@ -116,7 +118,10 @@ export function GameTombstone({
       
       {/* Game Cover Art */}
       <div className="relative mb-3">
-        <div className="aspect-video rounded-lg overflow-hidden bg-gray-900/50">
+        <div 
+          className="aspect-video rounded-lg overflow-hidden bg-gray-900/50 cursor-pointer"
+          onClick={() => onGameClick?.(entry)}
+        >
           <img
             src={entry.steam_game.image_url || '/default-game.svg'}
             alt={entry.steam_game.name}
@@ -156,9 +161,10 @@ export function GameTombstone({
       {/* Game Information */}
       <div className="space-y-2">
         <h3 
-          className={`font-semibold text-sm leading-tight ${config.textClass} group-hover:text-white transition-colors`}
+          className={`font-semibold text-sm leading-tight ${config.textClass} group-hover:text-white transition-colors cursor-pointer`}
           style={{ fontFamily: 'Crimson Text, serif' }}
           title={entry.steam_game.name}
+          onClick={() => onGameClick?.(entry)}
         >
           {entry.steam_game.name}
         </h3>
@@ -248,6 +254,7 @@ interface GameGraveyardProps {
   pile: any[]
   onGrantAmnesty?: (gameId: string) => void
   onStartPlaying?: (gameId: string) => void
+  onGameClick?: (game: any) => void
   className?: string
   activeFilter?: string | null
 }
@@ -256,6 +263,7 @@ export function GameGraveyard({
   pile, 
   onGrantAmnesty, 
   onStartPlaying, 
+  onGameClick,
   className = '',
   activeFilter
 }: GameGraveyardProps) {
@@ -318,6 +326,7 @@ export function GameGraveyard({
             entry={entry}
             onGrantAmnesty={onGrantAmnesty}
             onStartPlaying={onStartPlaying}
+            onGameClick={onGameClick}
           />
         ))}
       </div>
