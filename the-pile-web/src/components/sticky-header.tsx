@@ -15,7 +15,10 @@ import {
   Zap,
   Trophy,
   Clock,
-  Target
+  Target,
+  LogOut,
+  ChevronDown,
+  User
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
@@ -40,6 +43,7 @@ export function StickyHeader({
   const pathname = usePathname()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   // Track scroll position
   useEffect(() => {
@@ -186,15 +190,79 @@ export function StickyHeader({
               </Button>
 
               {/* User Menu */}
-              <div className="flex items-center gap-2 ml-4 pl-4 border-l border-slate-700">
-                <img 
-                  src={user.avatar_url} 
-                  alt={user.username}
-                  className="w-8 h-8 rounded-full"
-                />
-                <span className="hidden lg:inline text-sm font-medium">
-                  {user.username}
-                </span>
+              <div className="relative ml-4 pl-4 border-l border-slate-700">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 hover:bg-slate-800"
+                >
+                  <img 
+                    src={user.avatar_url} 
+                    alt={user.username}
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <span className="hidden lg:inline text-sm font-medium">
+                    {user.username}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </Button>
+                
+                {/* Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <>
+                    {/* Backdrop to close on click outside */}
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setIsUserMenuOpen(false)}
+                    />
+                    
+                    {/* Dropdown */}
+                    <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50">
+                      <div className="p-3 border-b border-slate-800">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={user.avatar_url} 
+                            alt={user.username}
+                            className="w-10 h-10 rounded-full"
+                          />
+                          <div>
+                            <p className="font-medium">{user.username}</p>
+                            <p className="text-xs text-slate-400">Steam User</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-2">
+                        <Link href="/profile" onClick={() => setIsUserMenuOpen(false)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start gap-2 text-slate-300 hover:text-white"
+                          >
+                            <User className="h-4 w-4" />
+                            Profile Settings
+                          </Button>
+                        </Link>
+                        
+                        <div className="my-1 border-t border-slate-800" />
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            logout()
+                            setIsUserMenuOpen(false)
+                          }}
+                          className="w-full justify-start gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Sign Out
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </nav>
 
