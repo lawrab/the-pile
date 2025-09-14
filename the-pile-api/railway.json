@@ -1,6 +1,5 @@
 {
   "deploy": {
-    "preDeployCommand": "alembic upgrade head",
-    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    "preDeployCommand": "alembic upgrade head"
   }
 }
