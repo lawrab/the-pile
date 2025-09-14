@@ -8,7 +8,7 @@ from app.core.config import settings
 class SteamAuth:
     def __init__(self):
         self.steam_openid_url = "https://steamcommunity.com/openid/login"
-        self.return_url = f"http://localhost:8000/api/v1/auth/steam/callback"
+        self.return_url = f"{settings.BASE_URL}/api/v1/auth/steam/callback"
         
     def get_auth_url(self) -> str:
         """Generate Steam OpenID authentication URL"""
@@ -16,7 +16,7 @@ class SteamAuth:
             'openid.ns': 'http://specs.openid.net/auth/2.0',
             'openid.mode': 'checkid_setup',
             'openid.return_to': self.return_url,
-            'openid.realm': 'http://localhost:8000',
+            'openid.realm': settings.BASE_URL,
             'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
             'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
         }

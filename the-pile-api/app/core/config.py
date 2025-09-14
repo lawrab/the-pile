@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
     ENVIRONMENT: str = "development"
+    BASE_URL: str = "http://localhost:8000"
     
     class Config:
         env_file = ".env"
