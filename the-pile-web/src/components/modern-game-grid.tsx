@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PileEntry, GameStatus } from '@/types'
+import Image from 'next/image'
 import { 
   Play, 
   Trophy, 
@@ -274,10 +275,11 @@ export function ModernGameGrid({
               <CardContent className="p-4">
                 <div className="aspect-[460/215] relative mb-3 rounded-lg overflow-hidden bg-slate-700">
                   {game.steam_game.image_url ? (
-                    <img 
+                    <Image 
                       src={game.steam_game.image_url}
                       alt={game.steam_game.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-500">
@@ -333,10 +335,11 @@ export function ModernGameGrid({
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-12 rounded overflow-hidden bg-slate-700 flex-shrink-0">
                     {game.steam_game.image_url ? (
-                      <img 
+                      <Image 
                         src={game.steam_game.image_url}
                         alt={game.steam_game.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-500">

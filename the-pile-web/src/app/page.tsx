@@ -88,7 +88,7 @@ export default function HomePage() {
           
           <p className="text-lg text-slate-400 mb-8 max-w-2xl mx-auto">
             Join thousands of gamers finally confronting their digital hoarding habits. 
-            Import your Steam library, face the truth, and grant amnesty to games you'll never play.
+            Import your Steam library, face the truth, and grant amnesty to games you&apos;ll never play.
           </p>
           
           {/* Live stats ticker */}
@@ -99,7 +99,7 @@ export default function HomePage() {
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-400">${animatedStats.money}</div>
-              <div className="text-sm text-slate-400">Money "Invested"</div>
+              <div className="text-sm text-slate-400">Money &quot;Invested&quot;</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-yellow-400">{animatedStats.years}</div>
@@ -268,7 +268,7 @@ export default function HomePage() {
                   <Sparkles className="h-5 w-5 text-purple-400" />
                 </div>
                 <p className="text-sm text-slate-300 mb-3">
-                  17 games haven't been touched in over 2 years. Time to let them go?
+                  17 games haven&apos;t been touched in over 2 years. Time to let them go?
                 </p>
                 <Button size="sm" className="w-full bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300">
                   Grant Amnesty →
@@ -394,7 +394,7 @@ export default function HomePage() {
               { quote: "I can't unsee my 47-year completion time.", author: "@IndieAddict" }
             ].map((testimonial, i) => (
               <div key={i} className="text-center">
-                <p className="text-slate-300 italic mb-2">"{testimonial.quote}"</p>
+                <p className="text-slate-300 italic mb-2">&quot;{testimonial.quote}&quot;</p>
                 <p className="text-sm text-slate-500">{testimonial.author}</p>
               </div>
             ))}
@@ -409,7 +409,7 @@ export default function HomePage() {
             Your Pile Awaits
           </h2>
           <p className="text-xl text-slate-300 mb-8">
-            Stop lying to yourself about "getting to it someday." 
+            Stop lying to yourself about &quot;getting to it someday.&quot; 
             Join the confession booth of gaming shame.
           </p>
           

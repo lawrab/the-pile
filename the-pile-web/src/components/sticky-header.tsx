@@ -20,6 +20,7 @@ import {
   ChevronDown,
   User
 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 
@@ -197,9 +198,11 @@ export function StickyHeader({
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center gap-2 hover:bg-slate-800 min-w-0 max-w-48"
                 >
-                  <img 
-                    src={user.avatar_url} 
+                  <Image 
+                    src={user.avatar_url || '/default-avatar.png'} 
                     alt={user.username}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 rounded-full"
                   />
                   <span className="hidden lg:inline text-sm font-medium truncate flex-1 min-w-0">
@@ -221,9 +224,11 @@ export function StickyHeader({
                     <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50">
                       <div className="p-3 border-b border-slate-800">
                         <div className="flex items-center gap-3">
-                          <img 
-                            src={user.avatar_url} 
+                          <Image 
+                            src={user.avatar_url || '/default-avatar.png'} 
                             alt={user.username}
+                            width={40}
+                            height={40}
                             className="w-10 h-10 rounded-full"
                           />
                           <div>
@@ -391,9 +396,11 @@ export function StickyHeader({
                 {/* User Info */}
                 <div className="border-t border-slate-700 pt-4 mt-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <img 
-                      src={user.avatar_url} 
+                    <Image 
+                      src={user.avatar_url || '/default-avatar.png'} 
                       alt={user.username}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full"
                     />
                     <div>

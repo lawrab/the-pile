@@ -1,10 +1,31 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      'steamcdn-a.akamaihd.net',
-      'cdn.akamai.steamstatic.com',
-      'steam.com'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'steamcdn-a.akamaihd.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.akamai.steamstatic.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'steam.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.steamstatic.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   env: {

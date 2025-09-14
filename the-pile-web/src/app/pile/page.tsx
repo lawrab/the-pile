@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { pileApi, statsApi } from '@/lib/api'
 import { useAuth } from '@/lib/auth-provider'
@@ -16,7 +16,7 @@ import { useSearchParams } from 'next/navigation'
 import { usePile, useGameStatusMutations } from '@/lib/hooks'
 import { ImportLibraryButton } from '@/components/import-library-button'
 
-export default function PilePage() {
+function PilePageContent() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
@@ -215,5 +215,20 @@ export default function PilePage() {
         />
       </div>
     </div>
+  )
+}
+
+export default function PilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold mb-2">Loading your pile...</h1>
+          <p className="text-base text-slate-400">Getting ready to confront your backlog</p>
+        </div>
+      </div>
+    }>
+      <PilePageContent />
+    </Suspense>
   )
 }

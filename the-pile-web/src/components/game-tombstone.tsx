@@ -3,6 +3,7 @@
 import React from 'react'
 import { Button } from './ui/button'
 import { Clock, Zap, Crown, Feather, Play, X } from 'lucide-react'
+import Image from 'next/image'
 
 interface GameTombstoneProps {
   entry: {
@@ -122,11 +123,12 @@ export function GameTombstone({
           className="aspect-video rounded-lg overflow-hidden bg-gray-900/50 cursor-pointer"
           onClick={() => onGameClick?.(entry)}
         >
-          <img
+          <Image
             src={entry.steam_game.image_url || '/default-game.svg'}
             alt={entry.steam_game.name}
+            fill
             className={`
-              w-full h-full object-cover
+              object-cover
               transition-all duration-300 group-hover:scale-105
               ${entry.status === 'unplayed' ? 'grayscale-[0.6] group-hover:grayscale-[0.2]' : ''}
             `}

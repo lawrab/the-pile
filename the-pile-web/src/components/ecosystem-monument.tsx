@@ -112,6 +112,105 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
   const [hoveredGame, setHoveredGame] = useState<string | number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
+  // Move all hooks to the top before any early returns
+  // Adaptive container sizing based on pile size
+  const containerSize = useMemo(() => {
+    const gameCount = games?.length || 0
+    if (gameCount <= 10) return { width: 280, height: 280 }
+    if (gameCount <= 50) return { width: 320, height: 320 }
+    if (gameCount <= 100) return { width: 400, height: 400 }
+    return { width: 450, height: 450 } // Large collections
+  }, [games?.length])
+  
+  // Create game elements with consistent positioning and performance optimization
+  const gameElements = useMemo(() => {
+    if (!games || games.length === 0) return []
+    
+    // Apply active filter first
+    let filteredGames = games
+    if (activeFilter) {
+      filteredGames = games.filter(game => game.status === activeFilter)
+    }
+    
+    // Create elements for each game
+    return filteredGames.map((game, index) => {
+      const colors = getGameColors(game)
+      const type = getGameElementType(game)
+      
+      // Calculate position using golden spiral for organic placement
+      const angle = index * 0.618033988749895 * 2 * Math.PI // Golden angle
+      const radius = Math.sqrt(index) * 12 + 20 // Spiral outward
+      const centerX = containerSize.width / 2
+      const centerY = containerSize.height / 2
+      
+      const x = centerX + Math.cos(angle) * Math.min(radius, containerSize.width / 3)
+      const y = centerY + Math.sin(angle) * Math.min(radius, containerSize.height / 3)
+      
+      // Size based on playtime and type
+      let baseSize = 8
+      if (type === 'tree') baseSize = 16
+      else if (type === 'sprout') baseSize = 12
+      else if (type === 'flower') baseSize = 14
+      else if (type === 'withered') baseSize = 6
+      
+      const playtimeBonus = Math.min(game.playtime_minutes / 60, 10) // Max 10 hour bonus
+      const size = baseSize + playtimeBonus
+      
+      return {
+        id: game.id,
+        game,
+        x,
+        y,
+        size,
+        type,
+        color: colors.color,
+        glowColor: colors.glowColor
+      }
+    })
+  }, [games, activeFilter, containerSize.width, containerSize.height])
+
+  // Calculate ecosystem health metrics
+  const ecosystemStats = useMemo(() => {
+    if (!games || games.length === 0) {
+      return {
+        healthScore: 0,
+        unplayed: 0,
+        playing: 0,
+        completed: 0,
+        abandoned: 0,
+        amnesty: 0,
+        totalPlaytime: 0
+      }
+    }
+    
+    const stats = games.reduce((acc, game) => {
+      acc[game.status]++
+      acc.totalPlaytime += game.playtime_minutes
+      return acc
+    }, {
+      unplayed: 0,
+      playing: 0,
+      completed: 0,
+      abandoned: 0,
+      amnesty_granted: 0,
+      totalPlaytime: 0
+    })
+    
+    // Health score: completed + playing games vs total
+    const positiveGames = stats.completed + stats.playing
+    const healthScore = games.length > 0 ? (positiveGames / games.length) * 100 : 0
+    
+    return {
+      healthScore: Math.round(healthScore),
+      unplayed: stats.unplayed,
+      playing: stats.playing,
+      completed: stats.completed,
+      abandoned: stats.abandoned,
+      amnesty: stats.amnesty_granted,
+      totalPlaytime: stats.totalPlaytime
+    }
+  }, [games])
+
   // Export functions
   const exportAsImage = () => {
     if (!svgRef.current) return
@@ -217,70 +316,6 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
       </div>
     )
   }
-  
-  // Adaptive container sizing based on pile size
-  const containerSize = useMemo(() => {
-    const gameCount = games.length
-    if (gameCount <= 10) return { width: 280, height: 280 }
-    if (gameCount <= 50) return { width: 320, height: 320 }
-    if (gameCount <= 100) return { width: 400, height: 400 }
-    return { width: 450, height: 450 } // Large collections
-  }, [games.length])
-  
-  // Create game elements with consistent positioning and performance optimization
-  const gameElements = useMemo(() => {
-    // Apply active filter first
-    let filteredGames = games
-    if (activeFilter) {
-      // Map filter strings to status values  
-      const statusMap: { [key: string]: string } = {
-        'unplayed': 'unplayed',
-        'playing': 'playing', 
-        'completed': 'completed',
-        'amnesty_granted': 'amnesty_granted',
-        'amnesty': 'amnesty_granted' // Handle both variations
-      }
-      const targetStatus = statusMap[activeFilter]
-      if (targetStatus) {
-        filteredGames = games.filter(game => game.status === targetStatus)
-      }
-    }
-    
-    // For very large collections, implement level of detail (LOD)
-    const shouldOptimize = filteredGames.length > 200
-    const processedGames = shouldOptimize ? filteredGames.filter((_, index) => index % 2 === 0 || filteredGames[index].status !== 'unplayed') : filteredGames
-    
-    return processedGames.map((game, index) => {
-      const type = getGameElementType(game)
-      const colors = getGameColors(game)
-      const size = getGameSize(game, type, games.length)
-      const position = getGamePosition(game.id, index, processedGames.length, containerSize)
-      
-      return {
-        id: game.id,
-        game,
-        x: position.x,
-        y: position.y,
-        size,
-        type,
-        color: colors.color,
-        glowColor: colors.glowColor
-      }
-    })
-  }, [games, containerSize, activeFilter])
-
-  // Calculate ecosystem health
-  const ecosystemStats = useMemo(() => {
-    const total = games.length
-    const unplayed = games.filter(g => g.status === 'unplayed').length
-    const playing = games.filter(g => g.status === 'playing').length
-    const completed = games.filter(g => g.status === 'completed').length
-    const amnesty = games.filter(g => g.status === 'amnesty_granted').length
-    
-    const healthScore = total > 0 ? ((completed + playing * 0.5) / total) * 100 : 0
-    
-    return { total, unplayed, playing, completed, amnesty, healthScore }
-  }, [games])
 
   const formatPlaytime = (minutes: number) => {
     if (minutes === 0) return 'Never touched'
@@ -328,6 +363,7 @@ export function EcosystemMonument({ games, onGameClick, className = '', activeFi
       {children}
     </motion.g>
   ))
+  AnimatedGameElement.displayName = 'AnimatedGameElement'
 
   const renderGameElement = (element: GameElement) => {
     const isHovered = hoveredGame === element.id

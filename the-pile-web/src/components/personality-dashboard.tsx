@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PersonalityService, ActionPlan } from '@/lib/personality-service'
 import { PileEntry, GameStatus } from '@/types'
+import Image from 'next/image'
 import { 
   Target, 
   TrendingUp, 
@@ -115,7 +116,7 @@ export function PersonalityDashboard({
         <CardContent>
           <div className="bg-slate-900/50 p-4 rounded-lg mb-4">
             <p className="text-slate-300 italic">
-              "{PersonalityService.getRandomPartnerExcuse(pile).replace(/"/g, '')}"
+              &quot;{PersonalityService.getRandomPartnerExcuse(pile).replace(/"/g, '')}&quot;
             </p>
           </div>
           <div className="flex gap-2">
@@ -141,7 +142,7 @@ export function PersonalityDashboard({
             </Button>
           </div>
           <p className="text-xs text-slate-500 mt-2">
-            Based on your oldest unplayed game from {timeline.startDate.toLocaleDateString()}. That's {timeline.daysSince} days of waiting!
+            Based on your oldest unplayed game from {timeline.startDate.toLocaleDateString()}. That&apos;s {timeline.daysSince} days of waiting!
           </p>
         </CardContent>
       </Card>
@@ -208,9 +209,11 @@ export function PersonalityDashboard({
                 onClick={() => setSelectedRecommendation(rec)}
               >
                 {rec.game.steam_game?.image_url && (
-                  <img 
+                  <Image 
                     src={rec.game.steam_game.image_url} 
                     alt={rec.game.steam_game.name}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 rounded object-cover"
                   />
                 )}

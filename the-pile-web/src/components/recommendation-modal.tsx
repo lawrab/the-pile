@@ -18,6 +18,7 @@ import {
   Award,
   AlertTriangle
 } from 'lucide-react'
+import Image from 'next/image'
 
 interface GameRecommendation {
   game: PileEntry
@@ -173,9 +174,11 @@ export function RecommendationModal({
         <CardHeader>
           <div className="flex items-start gap-4 pr-12">
             {game.steam_game.image_url && (
-              <img 
+              <Image 
                 src={game.steam_game.image_url}
                 alt={game.steam_game.name}
+                width={96}
+                height={96}
                 className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
               />
             )}
@@ -248,7 +251,7 @@ export function RecommendationModal({
 
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-slate-400" />
-                <span>Purchased: {formatDate(game.purchase_date)}</span>
+                <span>Purchased: {formatDate(game.purchase_date || null)}</span>
               </div>
             </div>
 

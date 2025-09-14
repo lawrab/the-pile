@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar, Clock } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function CemeteryPage() {
   const { user } = useAuth()
@@ -42,7 +43,7 @@ export default function CemeteryPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">🪦 The Cemetery</h1>
           <p className="text-slate-400">
-            Games you've officially given up on - with honor and dignity
+            Games you&apos;ve officially given up on - with honor and dignity
           </p>
         </div>
 
@@ -107,10 +108,10 @@ export default function CemeteryPage() {
             <div className="text-6xl mb-4">🎮</div>
             <h3 className="text-xl font-semibold mb-2">Empty Cemetery</h3>
             <p className="text-slate-400 mb-4">
-              You haven't granted amnesty to any games yet.
+              You haven&apos;t granted amnesty to any games yet.
             </p>
             <p className="text-sm text-slate-500">
-              Sometimes it's okay to admit you'll never play that game you bought on sale.
+              Sometimes it&apos;s okay to admit you&apos;ll never play that game you bought on sale.
             </p>
           </div>
         ) : (
@@ -126,9 +127,11 @@ export default function CemeteryPage() {
                   className="opacity-75 hover:opacity-90 transition-opacity"
                 >
                   <CardContent className="p-4 flex items-center gap-4">
-                    <img
+                    <Image
                       src={entry.steam_game.image_url || '/default-game.png'}
                       alt={entry.steam_game.name}
+                      width={64}
+                      height={64}
                       className="w-16 h-16 rounded object-cover grayscale"
                     />
                     
@@ -141,7 +144,7 @@ export default function CemeteryPage() {
                       </p>
                       {entry.amnesty_reason && (
                         <p className="text-sm text-slate-400 italic">
-                          "{entry.amnesty_reason}"
+                          &quot;{entry.amnesty_reason}&quot;
                         </p>
                       )}
                     </div>

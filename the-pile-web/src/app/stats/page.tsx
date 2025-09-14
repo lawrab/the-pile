@@ -262,17 +262,16 @@ export default function StatsPage() {
         </div>
 
         {/* Insights Section */}
-        {insights && insights.length > 0 && (
+        {insights && insights.recommendations && insights.recommendations.length > 0 && (
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="text-xl">🔍 Behavioral Insights</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {insights.map((insight, index) => (
+                {insights.recommendations.map((recommendation, index) => (
                   <div key={index} className="p-3 bg-slate-700 rounded">
-                    <div className="text-base font-semibold mb-1">{insight.title}</div>
-                    <div className="text-sm text-slate-300">{insight.description}</div>
+                    <div className="text-base text-slate-300">{recommendation}</div>
                   </div>
                 ))}
               </div>
@@ -286,7 +285,7 @@ export default function StatsPage() {
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-2">Ready to Take Action?</h3>
               <p className="text-slate-400 mb-4">
-                Your pile won't shrink itself. Time to either play those games or grant them amnesty.
+                Your pile won&apos;t shrink itself. Time to either play those games or grant them amnesty.
               </p>
               <div className="flex gap-4 justify-center">
                 <Link href="/pile">

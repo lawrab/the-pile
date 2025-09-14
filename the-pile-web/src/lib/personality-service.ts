@@ -10,7 +10,7 @@ interface GameRecommendation {
   game: PileEntry
   reason: string
   confidence: 'high' | 'medium' | 'low'
-  category: 'quick-win' | 'redemption-arc' | 'mercy-kill' | 'weekend-project'
+  category: 'quick-win' | 'redemption-arc' | 'mercy-kill' | 'weekend-project' | 'hidden-gem'
 }
 
 export interface ActionPlan {
@@ -219,7 +219,7 @@ export class PersonalityService {
       const finalConfidence = Math.min(baseConfidence + ratingBoost, 1.0)
       
       const rating = game.steam_game?.steam_rating_percent
-      const ratingText = rating >= 90 ? " (Highly rated!)" : rating >= 85 ? " (Well reviewed)" : ""
+      const ratingText = rating && rating >= 90 ? " (Highly rated!)" : rating && rating >= 85 ? " (Well reviewed)" : ""
       
       recommendations.push({
         game,
@@ -240,7 +240,7 @@ export class PersonalityService {
       const finalConfidence = Math.min(baseConfidence + ratingBoost, 1.0)
       
       const rating = game.steam_game?.steam_rating_percent
-      const ratingText = rating >= 85 ? " Great reviews suggest it's worth the retry!" : ""
+      const ratingText = rating && rating >= 85 ? " Great reviews suggest it's worth the retry!" : ""
       
       recommendations.push({
         game,
@@ -259,7 +259,7 @@ export class PersonalityService {
         const purchaseDate = e.purchase_date ? new Date(e.purchase_date) : null
         const monthsOld = purchaseDate ? (Date.now() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24 * 30) : 0
         
-        return rating >= 85 && monthsOld >= 6 // Highly rated games older than 6 months
+        return rating && rating >= 85 && monthsOld >= 6 // Highly rated games older than 6 months
       })
       .sort((a, b) => (b.steam_game?.steam_rating_percent || 0) - (a.steam_game?.steam_rating_percent || 0))
       .slice(0, 2)

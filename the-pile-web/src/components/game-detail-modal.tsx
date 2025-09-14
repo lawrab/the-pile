@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react'
 import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink, Trophy } from 'lucide-react'
 import { Button } from './ui/button'
+import Image from 'next/image'
 
 interface GameDetailModalProps {
   isOpen: boolean
@@ -165,10 +166,11 @@ export function GameDetailModal({
           <div className="lg:w-1/2 p-6">
             {/* Game Image */}
             <div className="aspect-video rounded-xl overflow-hidden mb-6 bg-gray-900/50">
-              <img
+              <Image
                 src={game.steam_game?.image_url || '/default-game.svg'}
                 alt={game.steam_game?.name || 'Unknown Game'}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
                 onError={(e) => {
                   e.currentTarget.src = '/default-game.svg'
                 }}
@@ -366,10 +368,11 @@ export function GameDetailModal({
                       className="aspect-video rounded-lg overflow-hidden bg-gray-800/50 cursor-pointer hover:scale-105 transition-transform duration-200"
                       onClick={() => window.open(screenshot, '_blank')}
                     >
-                      <img
+                      <Image
                         src={screenshot}
                         alt={`Screenshot ${index + 1}`}
-                        className="w-full h-full object-cover hover:opacity-90"
+                        fill
+                        className="object-cover hover:opacity-90"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
                         }}

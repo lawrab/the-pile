@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { X, Target, Trophy, Sparkles, Zap, Flame, ThumbsUp } from 'lucide-react'
 import { ActionPlan } from '@/lib/personality-service'
+import Image from 'next/image'
 
 interface ActionPlanModalProps {
   isOpen: boolean
@@ -120,9 +121,11 @@ export function ActionPlanModal({
                       className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700"
                     >
                       {game.steam_game?.image_url && (
-                        <img 
+                        <Image 
                           src={game.steam_game.image_url} 
                           alt={game.steam_game.name}
+                          width={64}
+                          height={64}
                           className="w-16 h-16 rounded object-cover"
                         />
                       )}
@@ -215,7 +218,7 @@ export function ActionPlanModal({
                 <ul className="text-sm text-slate-400 space-y-1">
                   <li>• Set a 30-minute timer - small wins build momentum</li>
                   <li>• Pick the game that looks most appealing right now</li>
-                  <li>• Don't pressure yourself to finish - just start!</li>
+                  <li>• Don&apos;t pressure yourself to finish - just start!</li>
                 </ul>
               )}
               {actionPlan.type === 'complete' && (
@@ -227,9 +230,9 @@ export function ActionPlanModal({
               )}
               {actionPlan.type === 'amnesty' && (
                 <ul className="text-sm text-slate-400 space-y-1">
-                  <li>• Be honest about what you'll realistically play</li>
+                  <li>• Be honest about what you&apos;ll realistically play</li>
                   <li>• Consider games you bought impulsively</li>
-                  <li>• It's okay to let go - your pile will thank you</li>
+                  <li>• It&apos;s okay to let go - your pile will thank you</li>
                 </ul>
               )}
             </div>
