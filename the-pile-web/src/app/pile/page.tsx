@@ -1,23 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { pileApi, statsApi } from '@/lib/api'
 import { useAuth } from '@/lib/auth-provider'
 import { PersonalityDashboard } from '@/components/personality-dashboard'
 import { ModernGameGrid } from '@/components/modern-game-grid'
 import { GameDetailModal } from '@/components/game-detail-modal'
-import { StickyHeader } from '@/components/sticky-header'
 import { QuickAddModal } from '@/components/quick-add-modal'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, calculateShameLevel } from '@/lib/utils'
 import { Download, Zap, Trophy, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { usePile, useGameStatusMutations } from '@/lib/hooks'
 import { ImportLibraryButton } from '@/components/import-library-button'
 
 export default function PilePage() {
   const { user } = useAuth()
+  const searchParams = useSearchParams()
   const { data: pile, isLoading } = usePile(!!user)
   const { grantAmnesty, startPlaying, markCompleted } = useGameStatusMutations()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
@@ -41,6 +42,27 @@ export default function PilePage() {
       scrollToSection('games')
     }
   }
+
+  // Listen for global quick add events
+  useEffect(() => {
+    const handleGlobalQuickAdd = () => {
+      setShowQuickAdd(true)
+    }
+
+    window.addEventListener('open-quick-add', handleGlobalQuickAdd)
+    return () => {
+      window.removeEventListener('open-quick-add', handleGlobalQuickAdd)
+    }
+  }, [])
+
+  // Check for quickAdd query parameter
+  useEffect(() => {
+    if (searchParams.get('quickAdd') === 'true') {
+      setShowQuickAdd(true)
+      // Clean up URL by removing the query parameter
+      window.history.replaceState({}, '', '/pile')
+    }
+  }, [searchParams])
   
   // Fetch shame score for the personality dashboard
   const { data: shameScore } = useQuery({
@@ -103,18 +125,10 @@ export default function PilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Sticky Header */}
-      <StickyHeader
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
-        onSearchFocus={handleSearchFocus}
-        onQuickAdd={() => setShowQuickAdd(true)}
-        onScrollToSection={scrollToSection}
-      />
 
       <div className="container mx-auto px-4 py-8">
         {/* Personality Dashboard */}
-        <div id="dashboard" className="mb-8 scroll-mt-24">
+        <div id="dashboard" className="mb-12 scroll-mt-24">
           <PersonalityDashboard 
             pile={pile} 
             userName={user.username}

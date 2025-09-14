@@ -167,9 +167,13 @@ export function PersonalityDashboard({ pile, userName, shameScore }: Personality
                     }`}>
                       {rec.category.replace('-', ' ')}
                     </span>
-                    <span className="text-sm text-slate-500">
-                      {rec.confidence === 'high' ? '⭐⭐⭐' : 
-                       rec.confidence === 'medium' ? '⭐⭐' : '⭐'}
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      rec.confidence === 'high' ? 'bg-emerald-500/20 text-emerald-400' :
+                      rec.confidence === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                      'bg-slate-500/20 text-slate-400'
+                    }`}>
+                      {rec.confidence === 'high' ? 'Strong Pick' : 
+                       rec.confidence === 'medium' ? 'Good Bet' : 'Worth a Shot'}
                     </span>
                   </div>
                 </div>

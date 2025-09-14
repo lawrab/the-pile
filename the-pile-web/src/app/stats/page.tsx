@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { pileApi, statsApi } from '@/lib/api'
 import { useAuth } from '@/lib/auth-provider'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, TrendingDown, Trophy, Clock, DollarSign, Calendar, Gamepad2 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TrendingDown, Trophy, Clock, DollarSign, Calendar, Gamepad2 } from 'lucide-react'
 import Link from 'next/link'
 import { formatCurrency, calculateShameLevel } from '@/lib/utils'
 
@@ -78,101 +79,106 @@ export default function StatsPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/pile">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Pile
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold mb-2">📊 Reality Check</h1>
-            <p className="text-slate-400">
-              The brutal truth about your gaming habits
-            </p>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">📊 Reality Check</h1>
+          <p className="text-slate-400">
+            The brutal truth about your gaming habits
+          </p>
         </div>
 
         {/* Shame Score Highlight */}
         {shameScore && (
-          <div className="bg-gradient-to-r from-red-900/50 to-orange-900/50 p-6 rounded-lg mb-8 border border-red-500/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Your Shame Score</h2>
-                <div className="text-4xl font-bold text-red-400 mb-2">
-                  {shameScore.score.toFixed(0)}
-                </div>
-                {shameLevel && (
-                  <div className={`text-lg font-semibold ${shameLevel.color}`}>
-                    {shameLevel.level}
+          <Card className="bg-gradient-to-r from-red-900/50 to-orange-900/50 border-red-500/20 mb-8">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Your Shame Score</h2>
+                  <div className="text-4xl font-bold text-red-400 mb-2">
+                    {shameScore.score.toFixed(0)}
                   </div>
-                )}
+                  {shameLevel && (
+                    <div className={`text-lg font-semibold ${shameLevel.color}`}>
+                      {shameLevel.level}
+                    </div>
+                  )}
+                </div>
+                <Trophy className="h-16 w-16 text-red-400" />
               </div>
-              <Trophy className="h-16 w-16 text-red-400" />
-            </div>
-            <p className="text-slate-300 mt-4">
-              {shameLevel?.description || "Your pile has achieved concerning levels of structural integrity."}
-            </p>
-          </div>
+              <p className="text-slate-300 mt-4">
+                {shameLevel?.description || "Your pile has achieved concerning levels of structural integrity."}
+              </p>
+            </CardContent>
+          </Card>
         )}
 
         {/* Core Stats Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-slate-800 p-6 rounded-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Gamepad2 className="h-5 w-5 text-blue-400" />
-              <h3 className="font-semibold">Total Games</h3>
-            </div>
-            <div className="text-2xl font-bold">
-              {stats?.totalGames || 0}
-            </div>
-          </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Gamepad2 className="h-5 w-5 text-blue-400" />
+                <h3 className="text-base font-semibold">Total Games</h3>
+              </div>
+              <div className="text-2xl font-bold">
+                {stats?.totalGames || 0}
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-slate-800 p-6 rounded-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <TrendingDown className="h-5 w-5 text-red-500" />
-              <h3 className="font-semibold">Unplayed</h3>
-            </div>
-            <div className="text-2xl font-bold text-red-400">
-              {stats?.unplayedGames || 0}
-            </div>
-            <div className="text-sm text-slate-400">
-              {stats ? Math.round((stats.unplayedGames / stats.totalGames) * 100) : 0}% of library
-            </div>
-          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <TrendingDown className="h-5 w-5 text-red-500" />
+                <h3 className="text-base font-semibold">Unplayed</h3>
+              </div>
+              <div className="text-2xl font-bold text-red-400">
+                {stats?.unplayedGames || 0}
+              </div>
+              <div className="text-sm text-slate-400">
+                {stats ? Math.round((stats.unplayedGames / stats.totalGames) * 100) : 0}% of library
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-slate-800 p-6 rounded-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <DollarSign className="h-5 w-5 text-green-500" />
-              <h3 className="font-semibold">Money Wasted</h3>
-            </div>
-            <div className="text-2xl font-bold text-green-400">
-              {realityCheck ? formatCurrency(realityCheck.money_wasted) : '$0'}
-            </div>
-            <div className="text-sm text-slate-400">
-              on unplayed games
-            </div>
-          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <DollarSign className="h-5 w-5 text-green-500" />
+                <h3 className="text-base font-semibold">Money Wasted</h3>
+              </div>
+              <div className="text-2xl font-bold text-green-400">
+                {realityCheck ? formatCurrency(realityCheck.money_wasted) : '$0'}
+              </div>
+              <div className="text-sm text-slate-400">
+                on unplayed games
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-slate-800 p-6 rounded-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Clock className="h-5 w-5 text-yellow-500" />
-              <h3 className="font-semibold">Completion Time</h3>
-            </div>
-            <div className="text-2xl font-bold text-yellow-400">
-              {realityCheck?.completion_years.toFixed(1) || '∞'}
-            </div>
-            <div className="text-sm text-slate-400">
-              years at current pace
-            </div>
-          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Clock className="h-5 w-5 text-yellow-500" />
+                <h3 className="text-base font-semibold">Completion Time</h3>
+              </div>
+              <div className="text-2xl font-bold text-yellow-400">
+                {realityCheck?.completion_years.toFixed(1) || '∞'}
+              </div>
+              <div className="text-sm text-slate-400">
+                years at current pace
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Detailed Breakdown */}
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
           {/* Game Status Breakdown */}
-          <div className="bg-slate-800 p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-4">Game Status Breakdown</h3>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Game Status Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="flex items-center gap-2">
@@ -210,11 +216,15 @@ export default function StatsPage() {
                 <span className="font-semibold">{stats?.amnestyGames || 0}</span>
               </div>
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Harsh Truths */}
-          <div className="bg-slate-800 p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-4">Harsh Truths</h3>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Harsh Truths</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="space-y-4">
               <div className="p-3 bg-red-900/20 rounded border border-red-500/20">
                 <div className="font-semibold text-red-400">Never Touched</div>
@@ -247,40 +257,47 @@ export default function StatsPage() {
                 </div>
               </div>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Insights Section */}
         {insights && insights.length > 0 && (
-          <div className="bg-slate-800 p-6 rounded-lg mb-8">
-            <h3 className="text-xl font-semibold mb-4">🔍 Behavioral Insights</h3>
-            <div className="space-y-3">
-              {insights.map((insight, index) => (
-                <div key={index} className="p-3 bg-slate-700 rounded">
-                  <div className="font-semibold mb-1">{insight.title}</div>
-                  <div className="text-slate-300">{insight.description}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-xl">🔍 Behavioral Insights</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {insights.map((insight, index) => (
+                  <div key={index} className="p-3 bg-slate-700 rounded">
+                    <div className="text-base font-semibold mb-1">{insight.title}</div>
+                    <div className="text-sm text-slate-300">{insight.description}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Call to Action */}
         <div className="text-center">
-          <div className="bg-slate-800 p-6 rounded-lg max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold mb-2">Ready to Take Action?</h3>
-            <p className="text-slate-400 mb-4">
-              Your pile won't shrink itself. Time to either play those games or grant them amnesty.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/pile">
-                <Button>Return to Pile</Button>
-              </Link>
-              <Link href="/cemetery">
-                <Button variant="outline">Visit Cemetery</Button>
-              </Link>
-            </div>
-          </div>
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-2">Ready to Take Action?</h3>
+              <p className="text-slate-400 mb-4">
+                Your pile won't shrink itself. Time to either play those games or grant them amnesty.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Link href="/pile">
+                  <Button>Return to Pile</Button>
+                </Link>
+                <Link href="/cemetery">
+                  <Button variant="outline">Visit Cemetery</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

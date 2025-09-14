@@ -169,9 +169,6 @@ export function StickyHeader({
                     >
                       <Icon className="h-4 w-4" />
                       <span className="hidden lg:inline">{item.label}</span>
-                      <span className="hidden lg:inline text-xs text-slate-500">
-                        {item.key}
-                      </span>
                     </Button>
                   </Link>
                 )
@@ -186,7 +183,6 @@ export function StickyHeader({
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden lg:inline">Quick Add</span>
-                <span className="hidden lg:inline text-xs text-slate-500">N</span>
               </Button>
 
               {/* User Menu */}
@@ -228,7 +224,6 @@ export function StickyHeader({
                   >
                     <Icon className="h-3 w-3" />
                     {action.label}
-                    <span className="text-slate-500">{action.key}</span>
                   </Button>
                 )
               })}

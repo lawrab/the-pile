@@ -17,6 +17,9 @@ export interface Game {
   developer?: string
   publisher?: string
   release_date?: string
+  steam_rating_percent?: number      // 0-100 positive review percentage
+  steam_review_summary?: string      // "Very Positive", "Mixed", "Overwhelmingly Positive", etc.
+  steam_review_count?: number        // Total number of reviews
 }
 
 export enum GameStatus {

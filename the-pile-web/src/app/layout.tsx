@@ -3,9 +3,14 @@ import { Inter } from 'next/font/google'
 import { QueryProvider } from '@/lib/query-provider'
 import { AuthProvider } from '@/lib/auth-provider'
 import { AuthNotification } from '@/components/auth-notification'
+import { AppLayout } from '@/components/app-layout'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+})
 
 export const metadata: Metadata = {
   title: 'The Pile - Confront Your Gaming Backlog',
@@ -24,7 +29,9 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <AuthNotification />
-            {children}
+            <AppLayout>
+              {children}
+            </AppLayout>
           </AuthProvider>
         </QueryProvider>
       </body>

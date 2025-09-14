@@ -83,7 +83,7 @@ export function ModernGameGrid({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Controls Row */}
       <Card className="bg-slate-800/50 border-slate-700">
         <CardContent className="pt-6">
@@ -148,7 +148,7 @@ export function ModernGameGrid({
       </Card>
 
       {/* Results Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold">
           {filteredGames.length} {filteredGames.length === 1 ? 'game' : 'games'}
           {activeFilter && ` • ${getStatusLabel(activeFilter as GameStatus)}`}
@@ -158,7 +158,7 @@ export function ModernGameGrid({
 
       {/* Game Grid/List */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {filteredGames.map((game) => (
             <Card 
               key={game.id} 

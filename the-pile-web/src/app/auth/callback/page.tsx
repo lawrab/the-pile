@@ -27,7 +27,7 @@ export default function AuthCallbackPage() {
       <div className="text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
         <h1 className="text-xl font-semibold mb-2">Authenticating...</h1>
-        <p className="text-slate-400">Please wait while we set up your account</p>
+        <p className="text-base text-slate-400">Please wait while we set up your account</p>
       </div>
     </div>
   )

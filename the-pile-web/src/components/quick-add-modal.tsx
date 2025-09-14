@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { X, Search, Plus, Gamepad2 } from 'lucide-react'
@@ -15,6 +15,20 @@ interface QuickAddModalProps {
 export function QuickAddModal({ isOpen, onClose, onAddGame }: QuickAddModalProps) {
   const [gameName, setGameName] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<GameStatus>(GameStatus.UNPLAYED)
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen, onClose])
 
   if (!isOpen) return null
 
@@ -139,7 +153,7 @@ export function QuickAddModal({ isOpen, onClose, onAddGame }: QuickAddModalProps
           {/* Helper Text */}
           <div className="mt-4 p-3 bg-slate-900/30 rounded-lg">
             <p className="text-xs text-slate-400">
-              💡 <strong>Tip:</strong> Use keyboard shortcut <kbd className="px-1.5 py-0.5 bg-slate-700 rounded text-xs">N</kbd> to quickly open this dialog
+              💡 <strong>Tip:</strong> Use <kbd className="px-1.5 py-0.5 bg-slate-700 rounded text-xs">N</kbd> to open this dialog • <kbd className="px-1.5 py-0.5 bg-slate-700 rounded text-xs">Esc</kbd> to close
             </p>
           </div>
         </CardContent>

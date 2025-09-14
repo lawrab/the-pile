@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { PileVisualization } from '@/components/pile-visualization'
 import { Gamepad2, TrendingDown, Users, Trophy, ArrowRight } from 'lucide-react'
 import { useAuth } from '@/lib/auth-provider'
@@ -17,7 +18,7 @@ export default function HomePage() {
           <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
             The Pile
           </h1>
-          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-300 mb-8 max-w-2xl mx-auto">
             Your gaming backlog visualized as a towering pile of shame. 
             Finally confront those unplayed games with humor and brutal honesty.
           </p>
@@ -64,36 +65,42 @@ export default function HomePage() {
       {/* Features */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center p-6">
-            <TrendingDown className="h-12 w-12 mx-auto mb-4 text-pile-shame" />
-            <h3 className="text-xl font-semibold mb-2">Reality Check</h3>
-            <p className="text-slate-300">
-              "You'll finish your backlog in 47 years at your current pace."
-            </p>
-          </div>
+          <Card>
+            <CardContent className="text-center p-6">
+              <TrendingDown className="h-12 w-12 mx-auto mb-4 text-pile-shame" />
+              <h3 className="text-xl font-semibold mb-2">Reality Check</h3>
+              <p className="text-base text-slate-300">
+                "You'll finish your backlog in 47 years at your current pace."
+              </p>
+            </CardContent>
+          </Card>
           
-          <div className="text-center p-6">
-            <Trophy className="h-12 w-12 mx-auto mb-4 text-yellow-500" />
-            <h3 className="text-xl font-semibold mb-2">Shame Score</h3>
-            <p className="text-slate-300">
-              Gamified metrics that quantify your pile of shame with humor.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="text-center p-6">
+              <Trophy className="h-12 w-12 mx-auto mb-4 text-yellow-500" />
+              <h3 className="text-xl font-semibold mb-2">Shame Score</h3>
+              <p className="text-base text-slate-300">
+                Gamified metrics that quantify your pile of shame with humor.
+              </p>
+            </CardContent>
+          </Card>
           
-          <div className="text-center p-6">
-            <Users className="h-12 w-12 mx-auto mb-4 text-pile-amnesty" />
-            <h3 className="text-xl font-semibold mb-2">Amnesty Mode</h3>
-            <p className="text-slate-300">
-              Officially give up on games without guilt. Watch them float away.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="text-center p-6">
+              <Users className="h-12 w-12 mx-auto mb-4 text-pile-amnesty" />
+              <h3 className="text-xl font-semibold mb-2">Amnesty Mode</h3>
+              <p className="text-base text-slate-300">
+                Officially give up on games without guilt. Watch them float away.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
       
       {/* CTA */}
       <div className="container mx-auto px-4 py-16 text-center">
         <h2 className="text-3xl font-bold mb-6">Ready to face your pile?</h2>
-        <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
+        <p className="text-base text-slate-300 mb-8 max-w-2xl mx-auto">
           Import your Steam library and discover the brutal truth about your gaming habits.
           Finally understand why you buy games you'll never play.
         </p>
