@@ -398,14 +398,35 @@ class PileService:
             raise
     
     async def get_user_pile(self, user_id: int, filters: PileFilters, db: Session) -> List[PileEntry]:
-        """Get user's pile with filtering"""
+        """Get user's pile with filtering and sorting"""
         query = db.query(PileEntry).filter(PileEntry.user_id == user_id)
         
+        # Apply filters
         if filters.status:
             query = query.filter(PileEntry.status == filters.status)
         
         if filters.genre:
             query = query.join(SteamGame).filter(SteamGame.genres.contains([filters.genre]))
+        
+        # Apply sorting
+        if filters.sort_by:
+            if filters.sort_by == "playtime":
+                if filters.sort_direction == "asc":
+                    query = query.order_by(PileEntry.playtime_minutes.asc())
+                else:
+                    query = query.order_by(PileEntry.playtime_minutes.desc())
+            elif filters.sort_by == "rating":
+                # Join with SteamGame if not already joined
+                if not filters.genre:
+                    query = query.join(SteamGame)
+                
+                if filters.sort_direction == "asc":
+                    query = query.order_by(SteamGame.steam_rating_percent.asc().nulls_last())
+                else:
+                    query = query.order_by(SteamGame.steam_rating_percent.desc().nulls_last())
+        else:
+            # Default sorting by creation date (newest first)
+            query = query.order_by(PileEntry.created_at.desc())
         
         return query.offset(filters.offset).limit(filters.limit).all()
     

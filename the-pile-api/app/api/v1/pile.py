@@ -17,6 +17,8 @@ pile_service = PileService()
 async def get_pile(
     status: Optional[str] = None,
     genre: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    sort_direction: Optional[str] = "desc",
     limit: int = 100,
     offset: int = 0,
     current_user: dict = Depends(user_service.get_current_user),
@@ -26,6 +28,8 @@ async def get_pile(
     filters = PileFilters(
         status=status,
         genre=genre,
+        sort_by=sort_by,
+        sort_direction=sort_direction,
         limit=limit,
         offset=offset
     )

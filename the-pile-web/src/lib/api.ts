@@ -45,6 +45,8 @@ export const pileApi = {
   getPile: (params?: {
     status?: string
     genre?: string
+    sort_by?: string
+    sort_direction?: 'asc' | 'desc'
     limit?: number
     offset?: number
   }) => api.get<PileEntry[]>('/pile/', { params }),

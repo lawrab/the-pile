@@ -19,12 +19,23 @@ import { ImportLibraryButton } from '@/components/import-library-button'
 export default function PilePage() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
-  const { data: pile, isLoading } = usePile(!!user)
-  const { grantAmnesty, startPlaying, markCompleted } = useGameStatusMutations()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [selectedGame, setSelectedGame] = useState<any | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showQuickAdd, setShowQuickAdd] = useState(false)
+  const [sortBy, setSortBy] = useState<string | undefined>(undefined)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  
+  // Construct query parameters for the API
+  const queryParams = {
+    status: activeFilter || undefined,
+    sort_by: sortBy,
+    sort_direction: sortDirection,
+    limit: 1000 // Fetch enough games for now
+  }
+  
+  const { data: pile, isLoading } = usePile(!!user, queryParams)
+  const { grantAmnesty, startPlaying, markCompleted } = useGameStatusMutations()
   
   // Scroll to section functionality
   const scrollToSection = (section: 'dashboard' | 'games' | 'stats') => {
@@ -41,6 +52,12 @@ export default function PilePage() {
       searchInput.focus()
       scrollToSection('games')
     }
+  }
+
+  // Handle sort change
+  const handleSortChange = (newSortBy: string, newDirection: 'asc' | 'desc') => {
+    setSortBy(newSortBy)
+    setSortDirection(newDirection)
   }
 
   // Listen for global quick add events
@@ -158,6 +175,9 @@ export default function PilePage() {
             }}
             searchTerm={searchTerm}
             onSearchTermChange={setSearchTerm}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={handleSortChange}
           />
         </div>
 

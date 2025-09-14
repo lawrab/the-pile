@@ -7,11 +7,18 @@ const toast = {
   error: (message: string) => console.error('❌', message),
 }
 
-export const usePile = (enabled = true) => {
+export const usePile = (enabled = true, params?: {
+  status?: string
+  genre?: string
+  sort_by?: string
+  sort_direction?: 'asc' | 'desc'
+  limit?: number
+  offset?: number
+}) => {
   return useQuery({
-    queryKey: ['pile'],
+    queryKey: ['pile', params],
     queryFn: async () => {
-      const response = await pileApi.getPile()
+      const response = await pileApi.getPile(params)
       return response.data
     },
     enabled,

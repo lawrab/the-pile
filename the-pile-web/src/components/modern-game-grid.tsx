@@ -13,7 +13,10 @@ import {
   Grid3X3,
   List,
   Search,
-  ThumbsUp
+  ThumbsUp,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react'
 
 interface ModernGameGridProps {
@@ -25,6 +28,9 @@ interface ModernGameGridProps {
   onStartPlaying: (gameId: number) => void
   searchTerm?: string
   onSearchTermChange?: (term: string) => void
+  sortBy?: string
+  sortDirection?: 'asc' | 'desc'
+  onSortChange?: (sortBy: string, direction: 'asc' | 'desc') => void
 }
 
 export function ModernGameGrid({
@@ -35,7 +41,10 @@ export function ModernGameGrid({
   onGrantAmnesty,
   onStartPlaying,
   searchTerm: externalSearchTerm = '',
-  onSearchTermChange
+  onSearchTermChange,
+  sortBy,
+  sortDirection = 'desc',
+  onSortChange
 }: ModernGameGridProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [internalSearchTerm, setInternalSearchTerm] = useState('')
@@ -44,12 +53,11 @@ export function ModernGameGrid({
   const searchTerm = onSearchTermChange ? externalSearchTerm : internalSearchTerm
   const setSearchTerm = onSearchTermChange || setInternalSearchTerm
 
-  // Filter games based on active filter and search
+  // Apply client-side search filtering (server-side filtering for status already applied)
   const filteredGames = pile.filter(game => {
-    const matchesFilter = !activeFilter || game.status === activeFilter
     const matchesSearch = !searchTerm || 
       game.steam_game.name.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesFilter && matchesSearch
+    return matchesSearch
   })
 
   // Status counts for filter buttons
@@ -100,6 +108,48 @@ export function ModernGameGrid({
                 className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+
+            {/* Sorting Controls */}
+            {onSortChange && (
+              <div className="flex gap-2">
+                <Button
+                  variant={sortBy === 'playtime' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => {
+                    if (sortBy === 'playtime') {
+                      onSortChange('playtime', sortDirection === 'desc' ? 'asc' : 'desc')
+                    } else {
+                      onSortChange('playtime', 'desc')
+                    }
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Clock className="h-4 w-4" />
+                  <span className="hidden sm:inline">Playtime</span>
+                  {sortBy === 'playtime' && (
+                    sortDirection === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+                  )}
+                </Button>
+                <Button
+                  variant={sortBy === 'rating' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => {
+                    if (sortBy === 'rating') {
+                      onSortChange('rating', sortDirection === 'desc' ? 'asc' : 'desc')
+                    } else {
+                      onSortChange('rating', 'desc')
+                    }
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <ThumbsUp className="h-4 w-4" />
+                  <span className="hidden sm:inline">Rating</span>
+                  {sortBy === 'rating' && (
+                    sortDirection === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+            )}
 
             {/* View Mode Toggle */}
             <div className="flex gap-2">
