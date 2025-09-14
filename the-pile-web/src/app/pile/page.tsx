@@ -4,10 +4,8 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { pileApi, statsApi } from '@/lib/api'
 import { useAuth } from '@/lib/auth-provider'
-import { PileVisualization } from '@/components/pile-visualization'
-import { EcosystemMonument } from '@/components/ecosystem-monument'
-import { SacredAltar } from '@/components/sacred-relic'
-import { GameGraveyard } from '@/components/game-tombstone'
+import { PersonalityDashboard } from '@/components/personality-dashboard'
+import { ModernGameGrid } from '@/components/modern-game-grid'
 import { GameDetailModal } from '@/components/game-detail-modal'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, calculateShameLevel } from '@/lib/utils'
@@ -22,6 +20,16 @@ export default function PilePage() {
   const { grantAmnesty, startPlaying, markCompleted } = useGameStatusMutations()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [selectedGame, setSelectedGame] = useState<any | null>(null)
+  
+  // Fetch shame score for the personality dashboard
+  const { data: shameScore } = useQuery({
+    queryKey: ['shameScore'],
+    queryFn: async () => {
+      const response = await statsApi.getShameScore()
+      return response.data
+    },
+    enabled: !!user && !!pile && pile.length > 0,
+  })
 
   if (!user) {
     return (
@@ -37,11 +45,22 @@ export default function PilePage() {
   }
 
   if (isLoading) {
+    const loadingMessages = [
+      "Calculating your shame...",
+      "Counting unplayed games...",
+      "Measuring the pile height...",
+      "Summoning your backlog demons...",
+      "Dusting off forgotten purchases...",
+      "Tallying regrettable decisions..."
+    ]
+    const randomMessage = loadingMessages[Math.floor(Math.random() * loadingMessages.length)]
+    
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold">Loading your pile...</h1>
+          <h1 className="text-2xl font-bold mb-2">{randomMessage}</h1>
+          <p className="text-slate-400 text-sm">This might take a moment of reflection...</p>
         </div>
       </div>
     )
@@ -51,9 +70,9 @@ export default function PilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
         <div className="text-center max-w-md">
-          <h1 className="text-3xl font-bold mb-4">📚 Your Pile is Empty</h1>
-          <p className="text-slate-400 mb-6">
-            Import your Steam library to start tracking your games!
+          <h1 className="text-4xl font-bold mb-6">🎮 Your Pile is Empty</h1>
+          <p className="text-slate-300 text-lg mb-8">
+            Import your Steam library to start tracking your games and build your pile of shame!
           </p>
           <ImportLibraryButton />
         </div>
@@ -62,113 +81,45 @@ export default function PilePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="container mx-auto px-4 py-8">
-        {/* Atmospheric Header */}
-        <div className="text-center mb-12">
-          <div className="relative">
-            <h1 className="text-5xl font-bold mb-4 mystical-glow" style={{ fontFamily: 'Crimson Text, serif' }}>
-              ⚱️ The Pile of Regret
-            </h1>
-            <div className="absolute -inset-1 bg-gradient-to-r from-transparent via-yellow-600/20 to-transparent blur-sm -z-10" />
-          </div>
-          <p className="text-xl text-gray-300 mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
-            {pile.length} souls await redemption in the digital afterlife
-          </p>
-          <p className="text-sm text-gray-500 italic">
-            Each game a promise made, each unplayed title a weight upon the spirit
-          </p>
+        {/* Personality Dashboard - New engaging header */}
+        <div className="mb-8">
+          <PersonalityDashboard 
+            pile={pile} 
+            userName={user.username}
+            shameScore={shameScore?.score || 0}
+          />
         </div>
 
-        {/* Navigation Bar */}
-        <div className="flex items-center justify-center gap-4 mb-12">
+        {/* Clean Navigation */}
+        <div className="flex items-center justify-center gap-4 mb-8">
           <Link href="/stats">
-            <Button variant="outline" className="mystical-glow hover:glow-playing">
-              📊 Divine Reckoning
+            <Button variant="outline" className="text-base">
+              📊 My Stats
             </Button>
           </Link>
           <Link href="/cemetery">
-            <Button variant="outline" className="hover:glow-amnesty">
-              🪦 The Eternal Garden
+            <Button variant="outline" className="text-base">
+              🪦 Amnesty Archive
             </Button>
           </Link>
           <ImportLibraryButton />
         </div>
 
-        {/* Sacred Altar */}
-        <SacredAltar 
-          pile={pile} 
-          className="mb-12" 
+        {/* Modern Game Management */}
+        <ModernGameGrid
+          pile={pile}
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
+          onGameClick={setSelectedGame}
+          onGrantAmnesty={(gameId) => {
+            grantAmnesty.mutate({ gameId, reason: 'Strategic pile management' })
+          }}
+          onStartPlaying={(gameId) => {
+            startPlaying.mutate(gameId)
+          }}
         />
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Game Graveyard */}
-          <div className="lg:col-span-2">
-            <GameGraveyard 
-              pile={pile}
-              activeFilter={activeFilter}
-              onGameClick={setSelectedGame}
-              onGrantAmnesty={(gameId) => {
-                grantAmnesty.mutate({ gameId, reason: 'Granted peace from the pile' })
-              }}
-              onStartPlaying={(gameId) => {
-                startPlaying.mutate(gameId)
-              }}
-            />
-          </div>
-
-          {/* The Evolving Ecosystem */}
-          <div className="lg:col-span-1">
-            <div className="
-              bg-gradient-to-br from-green-950/20 to-purple-950/30
-              border border-green-800/20
-              rounded-2xl p-6
-              texture-overlay
-              transition-all duration-500
-            "
-            style={{
-              boxShadow: `
-                inset 0 1px 0 rgba(255, 255, 255, 0.05),
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                0 0 64px hsla(var(--status-completed), 0.1)
-              `
-            }}
-            >
-              <div className="text-center mb-6">
-                <h2 
-                  className="text-2xl font-bold mb-2 text-green-200" 
-                  style={{ fontFamily: 'Crimson Text, serif' }}
-                >
-                  🌱 The Digital Ecosystem
-                </h2>
-                <p className="text-gray-400 text-sm italic leading-relaxed">
-                  Watch your barren wasteland of regret transform into a flourishing 
-                  garden of achievement as you nurture each digital seed to life
-                </p>
-              </div>
-              
-              <EcosystemMonument
-                games={pile.map(entry => ({
-                  id: entry.id,
-                  name: entry.steam_game.name,
-                  status: entry.status,
-                  playtime_minutes: entry.playtime_minutes
-                }))}
-                activeFilter={activeFilter}
-                onGameClick={(game) => {
-                  // Find the full game data from pile
-                  const fullGameData = pile.find(entry => entry.id === game.id)
-                  if (fullGameData) {
-                    setSelectedGame(fullGameData)
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
 
         {/* Game Detail Modal */}
         {selectedGame && (

@@ -12,6 +12,11 @@ export interface Game {
   name: string
   image_url?: string
   genres?: string[]
+  price?: number
+  description?: string
+  developer?: string
+  publisher?: string
+  release_date?: string
 }
 
 export enum GameStatus {
