@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { PileVisualization } from '@/components/pile-visualization'
 import { 
   Gamepad2, 
   TrendingDown, 
@@ -165,13 +164,118 @@ export default function HomePage() {
           </div>
         </div>
         
-        {/* Demo Pile Visualization */}
-        <div id="demo" className="max-w-5xl mx-auto mb-16 relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-10 pointer-events-none" />
-          <div className="text-center mb-4">
-            <span className="text-sm text-slate-400 uppercase tracking-wider">Interactive 3D Visualization</span>
+        {/* Interactive Demo Section */}
+        <div id="demo" className="max-w-6xl mx-auto mb-16 relative">
+          <div className="text-center mb-8">
+            <span className="text-sm text-slate-400 uppercase tracking-wider mb-2 block">See it in action</span>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              Your Shame, Quantified
+            </h2>
           </div>
-          <PileVisualization demo={true} />
+          
+          {/* Mock dashboard preview */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Left: Mock game cards */}
+            <div className="space-y-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50">
+                <h3 className="text-lg font-semibold mb-3">Your Pile Snapshot</h3>
+                <div className="space-y-3">
+                  {[
+                    { name: "Elden Ring", status: "unplayed", time: "0h", price: "$59.99", color: "red" },
+                    { name: "Hades", status: "playing", time: "12h", price: "$24.99", color: "yellow" },
+                    { name: "Hollow Knight", status: "completed", time: "45h", price: "$14.99", color: "green" },
+                    { name: "Cyberpunk 2077", status: "amnesty", time: "2h", price: "$59.99", color: "purple" }
+                  ].map((game, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-slate-700/30">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded bg-gradient-to-br from-${game.color}-500/20 to-${game.color}-600/20 flex items-center justify-center`}>
+                          <Gamepad2 className={`h-6 w-6 text-${game.color}-400`} />
+                        </div>
+                        <div>
+                          <p className="font-medium">{game.name}</p>
+                          <p className="text-xs text-slate-400">{game.time} played • {game.price}</p>
+                        </div>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full bg-${game.color}-500/20 text-${game.color}-400 border border-${game.color}-500/30`}>
+                        {game.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Behavioral insight card */}
+              <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-sm rounded-xl p-4 border border-orange-500/20">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-orange-400 mt-1" />
+                  <div>
+                    <h4 className="font-semibold text-orange-300 mb-1">Pattern Detected</h4>
+                    <p className="text-sm text-slate-300">
+                      You buy RPGs during sales but only have 12% completion rate. 
+                      Your last 5 RPG purchases remain unplayed.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right: Stats and insights */}
+            <div className="space-y-4">
+              {/* Shame score card */}
+              <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Your Shame Score</h3>
+                  <Trophy className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-red-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                  842
+                </div>
+                <p className="text-sm text-slate-400 mb-4">Rank: Digital Hoarder</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Unplayed games</span>
+                    <span className="text-red-400">+420 pts</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Money wasted</span>
+                    <span className="text-orange-400">+280 pts</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Years to complete</span>
+                    <span className="text-yellow-400">+142 pts</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Quick stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                  <DollarSign className="h-5 w-5 text-green-400 mb-2" />
+                  <div className="text-2xl font-bold text-green-400">$4,821</div>
+                  <p className="text-xs text-slate-400">Unplayed value</p>
+                </div>
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                  <Clock className="h-5 w-5 text-blue-400 mb-2" />
+                  <div className="text-2xl font-bold text-blue-400">2,847h</div>
+                  <p className="text-xs text-slate-400">Time needed</p>
+                </div>
+              </div>
+              
+              {/* Amnesty preview */}
+              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold">Ready for Amnesty?</h4>
+                  <Sparkles className="h-5 w-5 text-purple-400" />
+                </div>
+                <p className="text-sm text-slate-300 mb-3">
+                  17 games haven't been touched in over 2 years. Time to let them go?
+                </p>
+                <Button size="sm" className="w-full bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300">
+                  Grant Amnesty →
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
