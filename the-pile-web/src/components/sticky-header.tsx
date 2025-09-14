@@ -190,19 +190,19 @@ export function StickyHeader({
               </Button>
 
               {/* User Menu */}
-              <div className="relative ml-4 pl-4 border-l border-slate-700">
+              <div className="relative ml-4 pl-4 border-l border-slate-700 min-w-0">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 hover:bg-slate-800"
+                  className="flex items-center gap-2 hover:bg-slate-800 min-w-0 max-w-48"
                 >
                   <img 
                     src={user.avatar_url} 
                     alt={user.username}
                     className="w-8 h-8 rounded-full"
                   />
-                  <span className="hidden lg:inline text-sm font-medium">
+                  <span className="hidden lg:inline text-sm font-medium truncate flex-1 min-w-0">
                     {user.username}
                   </span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />

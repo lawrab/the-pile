@@ -116,14 +116,20 @@ export function ModernGameGrid({
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setViewMode('grid')}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setViewMode('grid')
+                  }}
                 >
                   <Grid3X3 className="h-4 w-4" />
                 </Button>
                 <Button
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setViewMode('list')}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setViewMode('list')
+                  }}
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -218,7 +224,10 @@ export function ModernGameGrid({
             <Button
               variant={!activeFilter ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => onFilterChange(null)}
+              onClick={(e) => {
+                e.preventDefault()
+                onFilterChange(null)
+              }}
               className="text-sm"
             >
               All Games ({pile.length})
@@ -230,7 +239,10 @@ export function ModernGameGrid({
                   key={status}
                   variant={activeFilter === status ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => onFilterChange(activeFilter === status ? null : status)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onFilterChange(activeFilter === status ? null : status)
+                  }}
                   className="text-sm"
                 >
                   {getStatusLabel(status as GameStatus)} ({count})
