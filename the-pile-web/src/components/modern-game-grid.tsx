@@ -96,78 +96,103 @@ export function ModernGameGrid({
       {/* Controls Row */}
       <Card className="bg-slate-800/50 border-slate-700">
         <CardContent className="pt-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search your pile..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <div className="flex flex-col gap-4">
+            {/* Top Row: Search and View Toggle */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              {/* Search */}
+              <div className="relative w-full sm:max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search your pile..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
 
-            {/* Sorting Controls */}
-            {onSortChange && (
+              {/* View Mode Toggle */}
               <div className="flex gap-2">
                 <Button
-                  variant={sortBy === 'playtime' ? 'default' : 'ghost'}
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => {
-                    if (sortBy === 'playtime') {
-                      onSortChange('playtime', sortDirection === 'desc' ? 'asc' : 'desc')
-                    } else {
-                      onSortChange('playtime', 'desc')
-                    }
-                  }}
-                  className="flex items-center gap-1"
+                  onClick={() => setViewMode('grid')}
                 >
-                  <Clock className="h-4 w-4" />
-                  <span className="hidden sm:inline">Playtime</span>
-                  {sortBy === 'playtime' && (
-                    sortDirection === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
-                  )}
+                  <Grid3X3 className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant={sortBy === 'rating' ? 'default' : 'ghost'}
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => {
-                    if (sortBy === 'rating') {
-                      onSortChange('rating', sortDirection === 'desc' ? 'asc' : 'desc')
-                    } else {
-                      onSortChange('rating', 'desc')
-                    }
-                  }}
-                  className="flex items-center gap-1"
+                  onClick={() => setViewMode('list')}
                 >
-                  <ThumbsUp className="h-4 w-4" />
-                  <span className="hidden sm:inline">Rating</span>
-                  {sortBy === 'rating' && (
-                    sortDirection === 'desc' ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />
-                  )}
+                  <List className="h-4 w-4" />
                 </Button>
               </div>
-            )}
-
-            {/* View Mode Toggle */}
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="h-4 w-4" />
-              </Button>
             </div>
+
+            {/* Sorting Controls Row */}
+            {onSortChange && (
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm text-slate-400 font-medium">Sort by:</span>
+                <div className="flex gap-2">
+                  <Button
+                    variant={sortBy === 'playtime' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (sortBy === 'playtime') {
+                        onSortChange('playtime', sortDirection === 'desc' ? 'asc' : 'desc')
+                      } else {
+                        onSortChange('playtime', 'desc')
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3"
+                  >
+                    <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="text-xs font-medium">Playtime</span>
+                    {sortBy === 'playtime' && (
+                      sortDirection === 'desc' ? 
+                        <ArrowDown className="h-3 w-3 flex-shrink-0 ml-1" /> : 
+                        <ArrowUp className="h-3 w-3 flex-shrink-0 ml-1" />
+                    )}
+                  </Button>
+                  <Button
+                    variant={sortBy === 'rating' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      if (sortBy === 'rating') {
+                        onSortChange('rating', sortDirection === 'desc' ? 'asc' : 'desc')
+                      } else {
+                        onSortChange('rating', 'desc')
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3"
+                  >
+                    <ThumbsUp className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="text-xs font-medium">Rating</span>
+                    {sortBy === 'rating' && (
+                      sortDirection === 'desc' ? 
+                        <ArrowDown className="h-3 w-3 flex-shrink-0 ml-1" /> : 
+                        <ArrowUp className="h-3 w-3 flex-shrink-0 ml-1" />
+                    )}
+                  </Button>
+                  {sortBy && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        onSortChange('', 'desc')
+                      }}
+                      className="flex items-center gap-1 text-slate-400 hover:text-slate-300 px-2"
+                    >
+                      <span className="text-xs">Clear</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Status Filters */}
