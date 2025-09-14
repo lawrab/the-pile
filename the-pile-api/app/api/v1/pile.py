@@ -43,6 +43,20 @@ async def import_steam_library(
     db: Session = Depends(get_db)
 ):
     """Import user's Steam library"""
+    from datetime import datetime, timedelta
+    
+    # Check if user has imported in the last 24 hours
+    user = db.query(pile_service.User).filter(pile_service.User.id == current_user["id"]).first()
+    if user and user.last_sync_at:
+        time_since_last_sync = datetime.utcnow() - user.last_sync_at
+        if time_since_last_sync < timedelta(hours=24):
+            hours_remaining = 24 - time_since_last_sync.total_seconds() / 3600
+            return {
+                "error": "Rate limit exceeded", 
+                "message": f"You can only sync once per day. Try again in {hours_remaining:.1f} hours.",
+                "retry_after_hours": hours_remaining
+            }
+    
     # Add background task to import library
     background_tasks.add_task(
         pile_service.import_steam_library,
