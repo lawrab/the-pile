@@ -19,16 +19,26 @@ import {
   ThumbsUp
 } from 'lucide-react'
 import Link from 'next/link'
+import { RecommendationModal } from './recommendation-modal'
 
 interface PersonalityDashboardProps {
   pile: PileEntry[]
   userName?: string
   shameScore: number
+  onStartPlaying?: (gameId: number) => void
+  onGrantAmnesty?: (gameId: number) => void
 }
 
-export function PersonalityDashboard({ pile, userName, shameScore }: PersonalityDashboardProps) {
+export function PersonalityDashboard({ 
+  pile, 
+  userName, 
+  shameScore, 
+  onStartPlaying,
+  onGrantAmnesty 
+}: PersonalityDashboardProps) {
   const [greeting, setGreeting] = useState(PersonalityService.getGreeting(pile, userName))
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
+  const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null)
   
   const recommendations = PersonalityService.getRecommendations(pile)
   const actionPlans = PersonalityService.getActionPlan(pile)
@@ -147,7 +157,8 @@ export function PersonalityDashboard({ pile, userName, shameScore }: Personality
             {recommendations.slice(0, 4).map((rec, index) => (
               <div
                 key={index}
-                className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700 hover:border-green-500/50 transition-all"
+                className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700 hover:border-green-500/50 transition-all cursor-pointer"
+                onClick={() => setSelectedRecommendation(rec)}
               >
                 {rec.game.steam_game?.image_url && (
                   <img 
@@ -257,6 +268,21 @@ export function PersonalityDashboard({ pile, userName, shameScore }: Personality
           </CardContent>
         </Card>
       </div>
+
+      {/* Recommendation Modal */}
+      <RecommendationModal
+        isOpen={!!selectedRecommendation}
+        onClose={() => setSelectedRecommendation(null)}
+        recommendation={selectedRecommendation}
+        onStartPlaying={(gameId) => {
+          onStartPlaying?.(gameId)
+          setSelectedRecommendation(null)
+        }}
+        onGrantAmnesty={(gameId) => {
+          onGrantAmnesty?.(gameId)
+          setSelectedRecommendation(null)
+        }}
+      />
     </div>
   )
 }

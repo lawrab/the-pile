@@ -138,6 +138,8 @@ export default function PilePage() {
             pile={pile} 
             userName={user.username}
             shameScore={shameScore?.score || 0}
+            onStartPlaying={(gameId) => startPlaying.mutate(gameId)}
+            onGrantAmnesty={(gameId) => grantAmnesty.mutate({ gameId, reason: 'Granted from recommendation' })}
           />
         </div>
 
