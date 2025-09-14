@@ -2,7 +2,7 @@ import httpx
 import asyncio
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 from app.models.user import User
 from app.models.steam_game import SteamGame

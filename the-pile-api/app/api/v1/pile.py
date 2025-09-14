@@ -5,6 +5,7 @@ from app.db.base import get_db
 from app.services.user_service import UserService
 from app.services.pile_service import PileService
 from app.models.import_status import ImportStatus
+from app.models.user import User
 from app.schemas.pile import PileEntryResponse, PileFilters, AmnestyRequest
 
 router = APIRouter()
@@ -46,7 +47,7 @@ async def import_steam_library(
     from datetime import datetime, timedelta
     
     # Check if user has imported in the last 24 hours
-    user = db.query(pile_service.User).filter(pile_service.User.id == current_user["id"]).first()
+    user = db.query(User).filter(User.id == current_user["id"]).first()
     if user and user.last_sync_at:
         time_since_last_sync = datetime.utcnow() - user.last_sync_at
         if time_since_last_sync < timedelta(hours=24):
