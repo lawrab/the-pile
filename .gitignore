@@ -78,3 +78,6 @@ pids
 # Temporary files
 *.tmp
 *.temp
+
+# Screenshots
+Screenshots/
