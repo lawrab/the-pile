@@ -1,8 +1,8 @@
 """Initial schema with separated Steam data
 
-Revision ID: 6b4e585751f4
+Revision ID: ad5dcc5f774a
 Revises: 
-Create Date: 2025-09-14 11:16:57.208975
+Create Date: 2025-09-14 12:57:17.011498
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6b4e585751f4'
+revision = 'ad5dcc5f774a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -34,6 +34,21 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_games_id'), 'games', ['id'], unique=False)
     op.create_index(op.f('ix_games_steam_app_id'), 'games', ['steam_app_id'], unique=True)
+    op.create_table('import_status',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('operation_type', sa.String(), nullable=False),
+    sa.Column('status', sa.String(), nullable=False),
+    sa.Column('progress_current', sa.Integer(), nullable=True),
+    sa.Column('progress_total', sa.Integer(), nullable=True),
+    sa.Column('error_message', sa.String(), nullable=True),
+    sa.Column('started_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_import_status_id'), 'import_status', ['id'], unique=False)
+    op.create_index(op.f('ix_import_status_user_id'), 'import_status', ['user_id'], unique=False)
     op.create_table('steam_games',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('steam_app_id', sa.Integer(), nullable=False),
@@ -48,6 +63,7 @@ def upgrade() -> None:
     sa.Column('developer', sa.String(), nullable=True),
     sa.Column('publisher', sa.String(), nullable=True),
     sa.Column('screenshots', sa.JSON(), nullable=True),
+    sa.Column('steam_type', sa.String(), nullable=True),
     sa.Column('steam_rating_percent', sa.Integer(), nullable=True),
     sa.Column('steam_review_summary', sa.String(length=50), nullable=True),
     sa.Column('steam_review_count', sa.Integer(), nullable=True),
@@ -79,6 +95,9 @@ def upgrade() -> None:
     sa.Column('playtime_minutes', sa.Integer(), nullable=True),
     sa.Column('purchase_date', sa.DateTime(timezone=True), nullable=True),
     sa.Column('purchase_price', sa.Float(), nullable=True),
+    sa.Column('completion_date', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('abandon_date', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('abandon_reason', sa.String(), nullable=True),
     sa.Column('amnesty_date', sa.DateTime(timezone=True), nullable=True),
     sa.Column('amnesty_reason', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
@@ -119,6 +138,9 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_steam_games_steam_app_id'), table_name='steam_games')
     op.drop_index(op.f('ix_steam_games_id'), table_name='steam_games')
     op.drop_table('steam_games')
+    op.drop_index(op.f('ix_import_status_user_id'), table_name='import_status')
+    op.drop_index(op.f('ix_import_status_id'), table_name='import_status')
+    op.drop_table('import_status')
     op.drop_index(op.f('ix_games_steam_app_id'), table_name='games')
     op.drop_index(op.f('ix_games_id'), table_name='games')
     op.drop_table('games')

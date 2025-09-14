@@ -24,6 +24,7 @@ class SteamGame(Base):
     developer = Column(String)
     publisher = Column(String)
     screenshots = Column(JSON)  # List of screenshot URLs
+    steam_type = Column(String)  # 'game', 'dlc', 'demo', 'advertising', 'mod', 'video'
     
     # Steam review/rating data
     steam_rating_percent = Column(Integer)  # 0-100 positive review percentage

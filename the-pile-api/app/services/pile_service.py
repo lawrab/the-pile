@@ -5,6 +5,7 @@ from datetime import datetime
 from app.models.user import User
 from app.models.steam_game import SteamGame
 from app.models.pile_entry import PileEntry, GameStatus
+from app.models.import_status import ImportStatus
 from app.schemas.pile import PileFilters
 from app.core.config import settings
 
@@ -18,7 +19,8 @@ class PileService:
             "steamid": steam_id,
             "format": "json",
             "include_appinfo": True,
-            "include_played_free_games": True
+            "include_played_free_games": True,
+            "include_extended_appinfo": True
         }
         
         async with httpx.AsyncClient() as client:
@@ -30,7 +32,7 @@ class PileService:
     async def get_steam_app_details(self, app_id: int) -> dict:
         """Fetch game details from Steam Store API"""
         url = f"https://store.steampowered.com/api/appdetails"
-        params = {"appids": app_id, "filters": "basic,genres,categories,price_overview,screenshots"}
+        params = {"appids": app_id, "filters": "basic,genres,categories,price_overview,screenshots,release_date"}
         
         try:
             async with httpx.AsyncClient() as client:
@@ -84,12 +86,32 @@ class PileService:
     
     async def import_steam_library(self, steam_id: str, user_id: int, db: Session):
         """Import user's Steam library"""
+        # Create import status record
+        import_status = ImportStatus(
+            user_id=user_id,
+            operation_type='import',
+            status='running',
+            progress_current=0
+        )
+        db.add(import_status)
+        db.commit()
+        db.refresh(import_status)
+        
         try:
             # Fetch owned games from Steam
             owned_games = await self.get_steam_owned_games(steam_id)
             
-            for game_data in owned_games:
+            # Update progress with total count
+            import_status.progress_total = len(owned_games)
+            db.commit()
+            
+            for i, game_data in enumerate(owned_games):
                 app_id = game_data["appid"]
+                
+                # Update progress every 10 games or at the end
+                if i % 10 == 0 or i == len(owned_games) - 1:
+                    import_status.progress_current = i + 1
+                    db.commit()
                 
                 # Check if Steam game already exists in database
                 steam_game = db.query(SteamGame).filter(SteamGame.steam_app_id == app_id).first()
@@ -126,7 +148,8 @@ class PileService:
                         # Steam review/rating data
                         steam_rating_percent=reviews.get("rating_percent") if reviews.get("total_reviews", 0) > 0 else None,
                         steam_review_summary=reviews.get("review_score_desc") if reviews.get("total_reviews", 0) > 0 else None,
-                        steam_review_count=reviews.get("total_reviews") if reviews.get("total_reviews", 0) > 0 else None
+                        steam_review_count=reviews.get("total_reviews") if reviews.get("total_reviews", 0) > 0 else None,
+                        steam_type=details.get("type")
                     )
                     db.add(steam_game)
                     # Commit immediately to get the ID and release the lock
@@ -159,6 +182,10 @@ class PileService:
                         steam_game.steam_review_summary = reviews.get("review_score_desc")
                         steam_game.steam_review_count = reviews.get("total_reviews")
                     
+                    # Update Steam type
+                    if details.get("type"):
+                        steam_game.steam_type = details.get("type")
+                    
                     steam_game.last_updated = datetime.utcnow()
                     db.commit()
                 
@@ -185,9 +212,19 @@ class PileService:
             if user:
                 user.last_sync_at = datetime.utcnow()
                 db.commit()
+            
+            # Mark import as completed
+            import_status.status = 'completed'
+            import_status.completed_at = datetime.utcnow()
+            db.commit()
                 
         except Exception as e:
             db.rollback()
+            # Mark import as failed
+            import_status.status = 'failed'
+            import_status.error_message = str(e)
+            import_status.completed_at = datetime.utcnow()
+            db.commit()
             print(f"Error importing Steam library: {e}")
             raise
     

@@ -23,6 +23,8 @@ class GameBase(BaseModel):
     steam_rating_percent: Optional[int] = None
     steam_review_summary: Optional[str] = None
     steam_review_count: Optional[int] = None
+    steam_type: Optional[str] = None
+    categories: Optional[List[str]] = None
     
     class Config:
         from_attributes = True
@@ -34,8 +36,13 @@ class PileEntryResponse(BaseModel):
     playtime_minutes: int
     purchase_date: Optional[datetime]
     purchase_price: Optional[float]
+    completion_date: Optional[datetime]
+    abandon_date: Optional[datetime]
+    abandon_reason: Optional[str]
     amnesty_date: Optional[datetime]
     amnesty_reason: Optional[str]
+    created_at: datetime
+    updated_at: Optional[datetime]
     steam_game: GameBase
     
     class Config:

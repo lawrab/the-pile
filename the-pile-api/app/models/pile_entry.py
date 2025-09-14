@@ -24,6 +24,9 @@ class PileEntry(Base):
     playtime_minutes = Column(Integer, default=0)
     purchase_date = Column(DateTime(timezone=True))
     purchase_price = Column(Float)  # What they actually paid
+    completion_date = Column(DateTime(timezone=True))
+    abandon_date = Column(DateTime(timezone=True))
+    abandon_reason = Column(String)
     amnesty_date = Column(DateTime(timezone=True))
     amnesty_reason = Column(String)
     

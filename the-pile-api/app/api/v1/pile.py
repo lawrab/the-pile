@@ -4,6 +4,7 @@ from typing import List, Optional
 from app.db.base import get_db
 from app.services.user_service import UserService
 from app.services.pile_service import PileService
+from app.models.import_status import ImportStatus
 from app.schemas.pile import PileEntryResponse, PileFilters, AmnestyRequest
 
 router = APIRouter()
@@ -68,6 +69,30 @@ async def sync_playtime(
     )
     
     return {"message": "Playtime sync started", "status": "processing"}
+
+
+@router.get("/import/status")
+async def get_import_status(
+    current_user: dict = Depends(user_service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get the latest import/sync status for the user"""
+    latest_status = db.query(ImportStatus).filter(
+        ImportStatus.user_id == current_user["id"]
+    ).order_by(ImportStatus.created_at.desc()).first()
+    
+    if not latest_status:
+        return {"status": "none", "message": "No import operations found"}
+    
+    return {
+        "status": latest_status.status,
+        "operation_type": latest_status.operation_type,
+        "progress_current": latest_status.progress_current,
+        "progress_total": latest_status.progress_total,
+        "error_message": latest_status.error_message,
+        "started_at": latest_status.started_at,
+        "completed_at": latest_status.completed_at
+    }
 
 
 @router.post("/amnesty/{game_id}")
