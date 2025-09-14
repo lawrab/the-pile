@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { User, PileEntry, RealityCheck, ShameScore, BehavioralInsights, ShareableStats } from '@/types'
+import { authEvents } from './auth-events'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -24,8 +25,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Don't auto-redirect; emit an event instead
       localStorage.removeItem('auth_token')
-      window.location.href = '/auth/steam'
+      authEvents.emit('session-expired', { 
+        message: 'Your session has expired. Please log in again.',
+        error 
+      })
     }
     return Promise.reject(error)
   }

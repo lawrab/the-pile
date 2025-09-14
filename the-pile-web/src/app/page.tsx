@@ -1,9 +1,14 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { PileVisualization } from '@/components/pile-visualization'
-import { Gamepad2, TrendingDown, Users, Trophy } from 'lucide-react'
+import { Gamepad2, TrendingDown, Users, Trophy, ArrowRight } from 'lucide-react'
+import { useAuth } from '@/lib/auth-provider'
 
 export default function HomePage() {
+  const { user, isLoading } = useAuth()
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Hero Section */}
@@ -18,17 +23,35 @@ export default function HomePage() {
           </p>
           
           <div className="flex gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link href="/auth/steam">
-                <Gamepad2 className="mr-2 h-5 w-5" />
-                Login with Steam
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="#demo">
-                See Demo
-              </Link>
-            </Button>
+            {user ? (
+              <>
+                <Button size="lg" asChild>
+                  <Link href="/pile">
+                    <ArrowRight className="mr-2 h-5 w-5" />
+                    Continue to Dashboard
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" asChild>
+                  <Link href="/stats">
+                    View Your Stats
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="lg" asChild>
+                  <Link href="/auth/steam">
+                    <Gamepad2 className="mr-2 h-5 w-5" />
+                    Login with Steam
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" asChild>
+                  <Link href="#demo">
+                    See Demo
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
         

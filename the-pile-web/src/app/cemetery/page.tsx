@@ -166,20 +166,3 @@ export default function CemeteryPage() {
     </div>
   )
 }
-
-        {/* Philosophy */}
-        <div className="mt-12 text-center">
-          <div className="bg-slate-800 p-6 rounded-lg max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold mb-2">The Cemetery Philosophy</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Not every game needs to be completed. Some games enter our libraries during sales, 
-              bundles, or moments of optimism. The Cemetery is a place of honor for games that 
-              served their purpose simply by existing in your collection. Here, they rest in 
-              digital peace, free from the burden of your expectations.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}

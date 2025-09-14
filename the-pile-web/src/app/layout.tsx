@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { QueryProvider } from '@/lib/query-provider'
 import { AuthProvider } from '@/lib/auth-provider'
+import { AuthNotification } from '@/components/auth-notification'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <QueryProvider>
           <AuthProvider>
+            <AuthNotification />
             {children}
           </AuthProvider>
         </QueryProvider>
