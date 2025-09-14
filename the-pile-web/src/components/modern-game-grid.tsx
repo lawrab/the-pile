@@ -134,61 +134,79 @@ export function ModernGameGrid({
             {onSortChange && (
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-sm text-slate-400 font-medium">Sort by:</span>
-                <div className="flex gap-2">
-                  <Button
-                    variant={sortBy === 'playtime' ? 'default' : 'outline'}
-                    size="sm"
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.preventDefault()
+                      e.stopPropagation()
                       if (sortBy === 'playtime') {
                         onSortChange('playtime', sortDirection === 'desc' ? 'asc' : 'desc')
                       } else {
                         onSortChange('playtime', 'desc')
                       }
                     }}
-                    className="flex items-center gap-1.5 px-3"
+                    className={`
+                      inline-flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all
+                      ${sortBy === 'playtime' 
+                        ? 'bg-blue-600 text-white border border-blue-600 shadow-sm' 
+                        : 'bg-transparent text-slate-300 border border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                      }
+                    `}
                   >
-                    <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span className="text-xs font-medium">Playtime</span>
+                    <Clock className="h-4 w-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Playtime</span>
                     {sortBy === 'playtime' && (
-                      sortDirection === 'desc' ? 
-                        <ArrowDown className="h-3 w-3 flex-shrink-0 ml-1" /> : 
-                        <ArrowUp className="h-3 w-3 flex-shrink-0 ml-1" />
+                      <div className="flex-shrink-0">
+                        {sortDirection === 'desc' ? 
+                          <ArrowDown className="h-3 w-3" /> : 
+                          <ArrowUp className="h-3 w-3" />
+                        }
+                      </div>
                     )}
-                  </Button>
-                  <Button
-                    variant={sortBy === 'rating' ? 'default' : 'outline'}
-                    size="sm"
+                  </button>
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.preventDefault()
+                      e.stopPropagation()
                       if (sortBy === 'rating') {
                         onSortChange('rating', sortDirection === 'desc' ? 'asc' : 'desc')
                       } else {
                         onSortChange('rating', 'desc')
                       }
                     }}
-                    className="flex items-center gap-1.5 px-3"
+                    className={`
+                      inline-flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all
+                      ${sortBy === 'rating' 
+                        ? 'bg-blue-600 text-white border border-blue-600 shadow-sm' 
+                        : 'bg-transparent text-slate-300 border border-slate-600 hover:border-slate-500 hover:bg-slate-800/50'
+                      }
+                    `}
                   >
-                    <ThumbsUp className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span className="text-xs font-medium">Rating</span>
+                    <ThumbsUp className="h-4 w-4 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Rating</span>
                     {sortBy === 'rating' && (
-                      sortDirection === 'desc' ? 
-                        <ArrowDown className="h-3 w-3 flex-shrink-0 ml-1" /> : 
-                        <ArrowUp className="h-3 w-3 flex-shrink-0 ml-1" />
+                      <div className="flex-shrink-0">
+                        {sortDirection === 'desc' ? 
+                          <ArrowDown className="h-3 w-3" /> : 
+                          <ArrowUp className="h-3 w-3" />
+                        }
+                      </div>
                     )}
-                  </Button>
+                  </button>
                   {sortBy && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault()
+                        e.stopPropagation()
                         onSortChange('', 'desc')
                       }}
-                      className="flex items-center gap-1 text-slate-400 hover:text-slate-300 px-2"
+                      className="inline-flex items-center gap-1 px-2 py-2 rounded-md text-xs font-medium text-slate-400 hover:text-slate-300 hover:bg-slate-800/30 transition-all"
                     >
-                      <span className="text-xs">Clear</span>
-                    </Button>
+                      <span className="whitespace-nowrap">Clear</span>
+                    </button>
                   )}
                 </div>
               </div>
