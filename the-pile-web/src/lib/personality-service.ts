@@ -13,13 +13,21 @@ interface GameRecommendation {
   category: 'quick-win' | 'redemption-arc' | 'mercy-kill' | 'weekend-project'
 }
 
-interface ActionPlan {
+export interface ActionPlan {
   title: string
   description: string
   points: number
   difficulty: 'easy' | 'medium' | 'hard'
   type: 'play' | 'complete' | 'amnesty' | 'streak'
   targetGames?: PileEntry[]
+}
+
+interface PileTimeline {
+  startDate: Date
+  daysSince: number
+  totalSpent: number
+  monthlyAverage: number
+  excuses: string[]
 }
 
 export class PersonalityService {
@@ -45,6 +53,8 @@ export class PersonalityService {
     const unplayedCount = pile.filter(e => e.status === GameStatus.UNPLAYED).length
     const totalValue = pile.reduce((sum, e) => sum + (e.purchase_price || 0), 0)
     const neverTouchedCount = pile.filter(e => e.playtime_minutes === 0).length
+    const timeline = this.getPileTimeline(pile)
+    
     const oldestUnplayed = pile
       .filter(e => e.status === GameStatus.UNPLAYED)
       .sort((a, b) => new Date(a.purchase_date || 0).getTime() - new Date(b.purchase_date || 0).getTime())[0]
@@ -79,6 +89,16 @@ export class PersonalityService {
         greeting: `Plot twist: You actually played something recently!`,
         subtext: `Don't worry, we won't tell the other ${unplayedCount - 1} games.`,
         emoji: "🎉"
+      },
+      {
+        greeting: `Your oldest unplayed game is ${Math.floor(timeline.daysSince / 365)} years old!`,
+        subtext: `Released ${timeline.startDate.toLocaleDateString()} - it's practically vintage now.`,
+        emoji: "📈"
+      },
+      {
+        greeting: `Some games have been patiently waiting!`,
+        subtext: `Your oldest unplayed dates back to ${timeline.startDate.toLocaleDateString()}. ${timeline.daysSince >= 365 ? "It's aged like fine wine!" : "Still fresh though!"}`,
+        emoji: "🌱"
       }
     ]
 
@@ -138,6 +158,47 @@ export class PersonalityService {
     })
   }
 
+  private static isValidGame(entry: PileEntry): boolean {
+    const game = entry.steam_game
+    if (!game || !game.name) return false
+    
+    // Only include unplayed games - exclude amnesty, completed, abandoned games
+    if (entry.status !== GameStatus.UNPLAYED) {
+      return false
+    }
+    
+    // Filter by Steam type - only include actual games
+    if (game.steam_type && game.steam_type !== 'game') {
+      return false
+    }
+    
+    // Filter out non-game categories
+    const categories = game.categories || []
+    const nonGameCategories = [
+      'Software',
+      'Software Training', 
+      'Utilities',
+      'Video Production',
+      'Audio Production',
+      'Design & Illustration',
+      'Animation & Modeling',
+      'Web Publishing',
+      'Education',
+      'Game Development'
+    ]
+    
+    if (categories.some(cat => nonGameCategories.includes(cat))) {
+      return false
+    }
+    
+    // Filter out games with no meaningful description
+    if (!game.description || game.description.trim().length < 10) {
+      return false
+    }
+    
+    return true
+  }
+
   static getRecommendations(pile: PileEntry[]): GameRecommendation[] {
     const recommendations: GameRecommendation[] = []
     
@@ -145,6 +206,7 @@ export class PersonalityService {
     const shortGames = this.sortByRatingAndAge(
       pile
         .filter(e => e.status === GameStatus.UNPLAYED)
+        .filter(e => this.isValidGame(e))
         .filter(e => {
           const genres = e.steam_game?.genres || []
           return genres.some(g => ['Indie', 'Puzzle', 'Platformer', 'Arcade'].includes(g))
@@ -191,6 +253,7 @@ export class PersonalityService {
     // Highly rated old games that deserve attention
     const hiddenGems = pile
       .filter(e => e.status === GameStatus.UNPLAYED)
+      .filter(e => this.isValidGame(e))
       .filter(e => {
         const rating = e.steam_game?.steam_rating_percent
         const purchaseDate = e.purchase_date ? new Date(e.purchase_date) : null
@@ -214,6 +277,7 @@ export class PersonalityService {
     // Old games that need amnesty (lower rated or very old)
     const ancientGames = pile
       .filter(e => e.status === GameStatus.UNPLAYED)
+      .filter(e => this.isValidGame(e))
       .filter(e => !hiddenGems.includes(e)) // Exclude hidden gems we already recommended
       .filter(e => {
         if (!e.purchase_date) return false
@@ -235,6 +299,7 @@ export class PersonalityService {
     // Recently purchased - strike while interested
     const recentPurchases = pile
       .filter(e => e.status === GameStatus.UNPLAYED)
+      .filter(e => this.isValidGame(e))
       .filter(e => {
         if (!e.purchase_date) return false
         const daysSince = (Date.now() - new Date(e.purchase_date).getTime()) / (1000 * 60 * 60 * 24)
@@ -257,7 +322,7 @@ export class PersonalityService {
   static getActionPlan(pile: PileEntry[]): ActionPlan[] {
     const plans: ActionPlan[] = []
     const unplayedCount = pile.filter(e => e.status === GameStatus.UNPLAYED).length
-    const neverTouchedGames = pile.filter(e => e.playtime_minutes === 0)
+    const neverTouchedGames = pile.filter(e => e.playtime_minutes === 0 && this.isValidGame(e))
     
     // Daily quick win
     plans.push({
@@ -266,7 +331,7 @@ export class PersonalityService {
       points: 20,
       difficulty: 'easy',
       type: 'play',
-      targetGames: pile.filter(e => e.status === GameStatus.UNPLAYED).slice(0, 5)
+      targetGames: pile.filter(e => e.status === GameStatus.UNPLAYED).filter(e => this.isValidGame(e)).slice(0, 5)
     })
 
     // Weekend warrior
@@ -279,6 +344,7 @@ export class PersonalityService {
         type: 'complete',
         targetGames: pile
           .filter(e => e.status === GameStatus.UNPLAYED)
+          .filter(e => this.isValidGame(e))
           .filter(e => e.steam_game?.genres?.includes('Indie'))
           .slice(0, 3)
       })
@@ -294,6 +360,7 @@ export class PersonalityService {
         type: 'amnesty',
         targetGames: pile
           .filter(e => e.status === GameStatus.UNPLAYED)
+          .filter(e => this.isValidGame(e))
           .filter(e => {
             if (!e.purchase_date) return false
             const yearsSince = (Date.now() - new Date(e.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 365)
@@ -357,6 +424,157 @@ export class PersonalityService {
 
     const actionMessages = messages[action]
     return actionMessages[Math.floor(Math.random() * actionMessages.length)]
+  }
+
+  static getPileTimeline(pile: PileEntry[]): PileTimeline {
+    if (pile.length === 0) {
+      return {
+        startDate: new Date(),
+        daysSince: 0,
+        totalSpent: 0,
+        monthlyAverage: 0,
+        excuses: ["No pile yet - you're still innocent!"]
+      }
+    }
+
+    // Find the oldest unplayed game by release date to show how long games have been waiting
+    const oldestUnplayedGame = pile
+      .filter(entry => entry.status === 'unplayed' && entry.steam_game.release_date)
+      .map(entry => ({
+        ...entry,
+        parsedReleaseDate: this.parseReleaseDate(entry.steam_game.release_date!)
+      }))
+      .filter(entry => entry.parsedReleaseDate)
+      .sort((a, b) => a.parsedReleaseDate!.getTime() - b.parsedReleaseDate!.getTime())[0]
+
+    // Use the oldest game's release date as the "pile age" - how long games have been accumulating
+    const startDate = oldestUnplayedGame?.parsedReleaseDate || new Date()
+    const daysSince = Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    const totalSpent = pile.reduce((sum, entry) => sum + (entry.purchase_price || 0), 0)
+    
+    // Calculate "acquisition span" - time between oldest and newest game releases
+    const newestGame = pile
+      .map(entry => ({
+        ...entry,
+        parsedReleaseDate: this.parseReleaseDate(entry.steam_game.release_date || '')
+      }))
+      .filter(entry => entry.parsedReleaseDate)
+      .sort((a, b) => b.parsedReleaseDate!.getTime() - a.parsedReleaseDate!.getTime())[0]
+    
+    const acquisitionSpanDays = newestGame && oldestUnplayedGame 
+      ? Math.floor((newestGame.parsedReleaseDate!.getTime() - oldestUnplayedGame.parsedReleaseDate!.getTime()) / (1000 * 60 * 60 * 24))
+      : daysSince
+    
+    const monthlyAverage = totalSpent / Math.max(acquisitionSpanDays / 30, 1)
+
+    return {
+      startDate,
+      daysSince,
+      totalSpent,
+      monthlyAverage,
+      excuses: this.generatePartnerExcuses(daysSince, totalSpent, pile.length, oldestUnplayedGame?.steam_game.name, acquisitionSpanDays)
+    }
+  }
+
+  private static parseReleaseDate(releaseDate: string): Date | null {
+    if (!releaseDate) return null
+    
+    // Steam release dates can be in various formats:
+    // "Dec 1, 2023", "2023", "Coming soon", "To be announced", etc.
+    
+    // Handle "Coming soon" and similar
+    if (releaseDate.toLowerCase().includes('coming soon') || 
+        releaseDate.toLowerCase().includes('to be announced') ||
+        releaseDate.toLowerCase().includes('tba')) {
+      return null
+    }
+    
+    // Try to parse common formats
+    try {
+      // Handle year-only format like "2023"
+      if (/^\d{4}$/.test(releaseDate.trim())) {
+        return new Date(parseInt(releaseDate), 0, 1) // January 1st of that year
+      }
+      
+      // Handle full date formats
+      const parsed = new Date(releaseDate)
+      return isNaN(parsed.getTime()) ? null : parsed
+    } catch {
+      return null
+    }
+  }
+
+  private static generatePartnerExcuses(
+    daysSince: number, 
+    totalSpent: number, 
+    gameCount: number, 
+    oldestGameName?: string,
+    acquisitionSpanDays?: number
+  ): string[] {
+    const excuses: string[] = []
+    const years = Math.floor(daysSince / 365)
+    const months = Math.floor(daysSince / 30)
+
+    // Timeline-based excuses (based on oldest unplayed game's release date)
+    if (oldestGameName && years >= 5) {
+      excuses.push(`"${oldestGameName} came out ${years} years ago - it's practically retro gaming now!"`)
+      excuses.push(`"I've been preserving ${years}-year-old games like a digital museum curator!"`)
+    } else if (oldestGameName && years >= 2) {
+      excuses.push(`"${oldestGameName} is ${years} years old - I'm letting it age like fine wine!"`)
+    } else if (months >= 12) {
+      excuses.push(`"These games span ${Math.floor((acquisitionSpanDays || daysSince) / 365)} years of gaming history - it's a timeline of my interests!"`)
+    } else if (daysSince >= 30) {
+      excuses.push(`"I'm building a collection that represents ${Math.floor(daysSince / 30)} months of gaming evolution!"`)
+    } else {
+      excuses.push(`"This represents the best games from recent releases - I'm staying current!"`)
+    }
+
+    // Financial excuses
+    if (totalSpent > 1000) {
+      excuses.push(`"That $${totalSpent.toFixed(0)} has appreciated in value - some of these are vintage now!"`)
+      excuses.push(`"It's not spending, it's diversifying into the entertainment asset class."`)
+    } else if (totalSpent > 500) {
+      excuses.push(`"$${totalSpent.toFixed(0)} over ${Math.max(months, 1)} months? That's just $${(totalSpent/Math.max(months, 1)).toFixed(0)} per month - less than a gym membership!"`)
+    } else {
+      excuses.push(`"Only $${totalSpent.toFixed(0)} total - that's incredibly reasonable for a hobby!"`)
+    }
+
+    // Volume excuses
+    if (gameCount > 100) {
+      excuses.push(`"${gameCount} games gives me OPTIONS - I'm prepared for any mood or genre craving."`)
+      excuses.push(`"Think of it as a personal Netflix for games - you pay for choice and convenience."`)
+    } else if (gameCount > 50) {
+      excuses.push(`"${gameCount} games ensures I'll never be bored - it's preventive entertainment."`)
+    } else {
+      excuses.push(`"${gameCount} games is actually quite modest - some people collect shoes!"`)
+    }
+
+    // Game age and curation excuses
+    excuses.push(`"Most of these were on sale - I SAVED money on each purchase!"`)
+    excuses.push(`"I'm supporting independent developers across multiple gaming eras."`)
+    excuses.push(`"Gaming is my stress relief - it's cheaper than therapy!"`)
+    excuses.push(`"At least I'm not spending money on microtransactions in one game."`)
+    excuses.push(`"This collection represents ${Math.floor((acquisitionSpanDays || daysSince) / 365)} years of gaming evolution!"`)
+    
+    if (oldestGameName) {
+      excuses.push(`"${oldestGameName} is like a vintage collectible now - I'm basically investing!"`)
+    }
+    
+    if (years >= 3) {
+      excuses.push(`"Some of these games are old enough to have their own sequels - it's gaming archaeology!"`)
+    }
+    
+    if (daysSince >= 365) {
+      excuses.push(`"This represents a curated timeline of gaming history - it's educational!"`)
+    }
+
+    return excuses
+  }
+
+  static getRandomPartnerExcuse(pile: PileEntry[]): string {
+    const timeline = this.getPileTimeline(pile)
+    return timeline.excuses[Math.floor(Math.random() * timeline.excuses.length)]
   }
 
   static getPileAnalysis(pile: PileEntry[]): string[] {

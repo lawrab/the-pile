@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from './ui/button'
 import { Download, Loader2, CheckCircle, AlertCircle, X, RefreshCw } from 'lucide-react'
 import { pileApi } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
+import { ImportStatus } from '@/types'
 
 type NotificationType = 'success' | 'error' | null
 
@@ -16,32 +17,74 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
   const [isImporting, setIsImporting] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [notification, setNotification] = useState<{ type: NotificationType; message: string } | null>(null)
+  const [importProgress, setImportProgress] = useState<ImportStatus | null>(null)
   const queryClient = useQueryClient()
+  
+  // Poll for import status when an operation is running
+  useEffect(() => {
+    let pollInterval: NodeJS.Timeout | null = null
+    
+    if (isImporting || isSyncing) {
+      pollInterval = setInterval(async () => {
+        try {
+          const response = await pileApi.getImportStatus()
+          const status = response.data as ImportStatus
+          setImportProgress(status)
+          
+          if (status.status === 'completed') {
+            // Import completed successfully
+            setNotification({
+              type: 'success',
+              message: `${status.operation_type === 'import' ? 'Steam library imported' : 'Steam data synced'} successfully!`
+            })
+            
+            // Refresh pile data
+            await queryClient.invalidateQueries({ queryKey: ['pile'] })
+            await queryClient.refetchQueries({ queryKey: ['pile'] })
+            
+            setIsImporting(false)
+            setIsSyncing(false)
+            setImportProgress(null)
+            
+            // Auto-hide success notification after 3 seconds
+            setTimeout(() => setNotification(null), 3000)
+          } else if (status.status === 'failed') {
+            // Import failed
+            setNotification({
+              type: 'error',
+              message: status.error_message || 'Import failed. Please try again.'
+            })
+            
+            setIsImporting(false)
+            setIsSyncing(false)
+            setImportProgress(null)
+          }
+        } catch (error) {
+          console.error('Failed to check import status:', error)
+          // Continue polling on error - might be temporary
+        }
+      }, 2000) // Poll every 2 seconds
+    }
+    
+    return () => {
+      if (pollInterval) clearInterval(pollInterval)
+    }
+  }, [isImporting, isSyncing, queryClient])
 
   const handleImport = async () => {
     setIsImporting(true)
     setNotification(null)
+    setImportProgress(null)
     
     try {
       await pileApi.importSteamLibrary()
-      // Invalidate and refetch pile data immediately
-      await queryClient.invalidateQueries({ queryKey: ['pile'] })
-      await queryClient.refetchQueries({ queryKey: ['pile'] })
-      
-      setNotification({
-        type: 'success',
-        message: 'Steam library imported successfully!'
-      })
-      
-      // Auto-hide success notification after 3 seconds
-      setTimeout(() => setNotification(null), 3000)
+      // Don't set isImporting to false here - polling will handle it
     } catch (error) {
-      console.error('Failed to import Steam library:', error)
+      console.error('Failed to start Steam library import:', error)
       setNotification({
         type: 'error',
-        message: 'Failed to import Steam library. Please try again.'
+        message: 'Failed to start import. Please try again.'
       })
-    } finally {
       setIsImporting(false)
     }
   }
@@ -49,31 +92,20 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
   const handleSync = async () => {
     setIsSyncing(true)
     setNotification(null)
+    setImportProgress(null)
     
     try {
       // Use the import endpoint to get fresh Steam data including ratings
       await pileApi.importSteamLibrary()
       // Also sync playtime data
       await pileApi.syncPlaytime()
-      
-      // Invalidate and refetch pile data immediately
-      await queryClient.invalidateQueries({ queryKey: ['pile'] })
-      await queryClient.refetchQueries({ queryKey: ['pile'] })
-      
-      setNotification({
-        type: 'success',
-        message: 'Steam data synced successfully!'
-      })
-      
-      // Auto-hide success notification after 3 seconds
-      setTimeout(() => setNotification(null), 3000)
+      // Don't set isSyncing to false here - polling will handle it
     } catch (error) {
-      console.error('Failed to sync Steam data:', error)
+      console.error('Failed to start Steam data sync:', error)
       setNotification({
         type: 'error',
-        message: 'Failed to sync Steam data. Please try again.'
+        message: 'Failed to start sync. Please try again.'
       })
-    } finally {
       setIsSyncing(false)
     }
   }
@@ -94,7 +126,9 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            {isImporting ? 'Importing Steam Library...' : 'Import Steam Library'}
+            {isImporting 
+              ? `Importing... ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
+              : 'Import Steam Library'}
           </Button>
         ) : (
           <>
@@ -109,7 +143,9 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
               ) : (
                 <Download className="mr-2 h-4 w-4" />
               )}
-              {isImporting ? 'Re-importing...' : 'Re-import Library'}
+              {isImporting 
+                ? `Re-importing... ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
+                : 'Re-import Library'}
             </Button>
             <Button 
               onClick={handleSync}
@@ -121,7 +157,9 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
               ) : (
                 <RefreshCw className="mr-2 h-4 w-4" />
               )}
-              {isSyncing ? 'Syncing Steam Data...' : 'Sync Steam Data'}
+              {isSyncing 
+                ? `Syncing... ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
+                : 'Sync Steam Data'}
             </Button>
           </>
         )}

@@ -51,6 +51,7 @@ export const pileApi = {
   
   importSteamLibrary: () => api.post('/pile/import'),
   syncPlaytime: () => api.post('/pile/sync'),
+  getImportStatus: () => api.get('/pile/import/status'),
   
   // Game status change endpoints
   grantAmnesty: (gameId: string | number, reason: string) => 

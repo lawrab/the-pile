@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PersonalityService } from '@/lib/personality-service'
+import { PersonalityService, ActionPlan } from '@/lib/personality-service'
 import { PileEntry, GameStatus } from '@/types'
 import { 
   Target, 
@@ -16,10 +16,12 @@ import {
   Sparkles,
   Trophy,
   Flame,
-  ThumbsUp
+  ThumbsUp,
+  Heart
 } from 'lucide-react'
 import Link from 'next/link'
 import { RecommendationModal } from './recommendation-modal'
+import { ActionPlanModal } from './action-plan-modal'
 
 interface PersonalityDashboardProps {
   pile: PileEntry[]
@@ -39,10 +41,12 @@ export function PersonalityDashboard({
   const [greeting, setGreeting] = useState(PersonalityService.getGreeting(pile, userName))
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
   const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null)
+  const [selectedActionPlan, setSelectedActionPlan] = useState<ActionPlan | null>(null)
   
   const recommendations = PersonalityService.getRecommendations(pile)
   const actionPlans = PersonalityService.getActionPlan(pile)
   const insights = PersonalityService.getPileAnalysis(pile)
+  const timeline = PersonalityService.getPileTimeline(pile)
 
   // Rotate through different greetings periodically
   useEffect(() => {
@@ -100,6 +104,48 @@ export function PersonalityDashboard({
         </CardContent>
       </Card>
 
+      {/* Partner Excuse Generator */}
+      <Card className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-purple-700/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Heart className="h-6 w-6 text-purple-400" />
+            Emergency Partner Excuse
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-slate-900/50 p-4 rounded-lg mb-4">
+            <p className="text-slate-300 italic">
+              "{PersonalityService.getRandomPartnerExcuse(pile).replace(/"/g, '')}"
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                const excuse = PersonalityService.getRandomPartnerExcuse(pile).replace(/"/g, '')
+                navigator.clipboard.writeText(excuse)
+              }}
+            >
+              Copy Excuse
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                // This will trigger a re-render and get a new excuse
+                setCurrentMessageIndex(prev => prev + 1)
+              }}
+            >
+              New Excuse
+            </Button>
+          </div>
+          <p className="text-xs text-slate-500 mt-2">
+            Based on your oldest unplayed game from {timeline.startDate.toLocaleDateString()}. That's {timeline.daysSince} days of waiting!
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Action Plans - Your Redemption Arc */}
       <Card className="bg-slate-800/50 border-slate-700">
         <CardHeader>
@@ -114,6 +160,7 @@ export function PersonalityDashboard({
               <div
                 key={index}
                 className="group flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-slate-700 hover:border-blue-500/50 transition-all cursor-pointer"
+                onClick={() => setSelectedActionPlan(plan)}
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
@@ -220,7 +267,7 @@ export function PersonalityDashboard({
       </Card>
 
       {/* Quick Stats with Personality */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-slate-800/50 border-slate-700">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -267,6 +314,33 @@ export function PersonalityDashboard({
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-slate-800/50 border-slate-700 cursor-pointer hover:bg-slate-800/70 transition-colors" 
+              onClick={() => {
+                const excuse = PersonalityService.getRandomPartnerExcuse(pile)
+                navigator.clipboard.writeText(excuse.replace(/"/g, ''))
+                // Could add a toast notification here
+              }}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500 uppercase tracking-wide font-medium">Oldest Unplayed</p>
+                <p className="text-2xl font-bold mt-2">
+                  {timeline.daysSince < 30 
+                    ? `${timeline.daysSince} days`
+                    : timeline.daysSince < 365 
+                    ? `${Math.floor(timeline.daysSince / 30)} months`
+                    : `${Math.floor(timeline.daysSince / 365)} years`
+                  }
+                </p>
+                <p className="text-sm text-slate-400 mt-1">
+                  ${timeline.totalSpent.toFixed(0)} total • Click for excuse
+                </p>
+              </div>
+              <Heart className="h-8 w-8 text-purple-400 opacity-50" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recommendation Modal */}
@@ -281,6 +355,21 @@ export function PersonalityDashboard({
         onGrantAmnesty={(gameId) => {
           onGrantAmnesty?.(gameId)
           setSelectedRecommendation(null)
+        }}
+      />
+
+      {/* Action Plan Modal */}
+      <ActionPlanModal
+        isOpen={!!selectedActionPlan}
+        onClose={() => setSelectedActionPlan(null)}
+        actionPlan={selectedActionPlan}
+        onStartPlaying={(gameId) => {
+          onStartPlaying?.(gameId)
+          setSelectedActionPlan(null)
+        }}
+        onGrantAmnesty={(gameId) => {
+          onGrantAmnesty?.(gameId)
+          setSelectedActionPlan(null)
         }}
       />
     </div>

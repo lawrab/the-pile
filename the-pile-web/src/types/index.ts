@@ -12,6 +12,7 @@ export interface Game {
   name: string
   image_url?: string
   genres?: string[]
+  categories?: string[]
   price?: number
   description?: string
   developer?: string
@@ -20,6 +21,7 @@ export interface Game {
   steam_rating_percent?: number      // 0-100 positive review percentage
   steam_review_summary?: string      // "Very Positive", "Mixed", "Overwhelmingly Positive", etc.
   steam_review_count?: number        // Total number of reviews
+  steam_type?: string               // 'game', 'dlc', 'demo', 'advertising', 'mod', 'video'
 }
 
 export enum GameStatus {
@@ -36,8 +38,13 @@ export interface PileEntry {
   playtime_minutes: number
   purchase_date?: string
   purchase_price?: number
+  completion_date?: string
+  abandon_date?: string
+  abandon_reason?: string
   amnesty_date?: string
   amnesty_reason?: string
+  created_at: string
+  updated_at?: string
   steam_game: Game
 }
 
@@ -73,4 +80,15 @@ export interface ShareableStats {
   money_wasted: number
   completion_years: number
   fun_fact: string
+}
+
+export interface ImportStatus {
+  status: 'none' | 'running' | 'completed' | 'failed'
+  operation_type?: 'import' | 'sync'
+  progress_current: number
+  progress_total: number
+  error_message?: string
+  started_at?: string
+  completed_at?: string
+  message?: string
 }
