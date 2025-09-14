@@ -3,7 +3,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "alembic upgrade head && python -c 'from app.main import app; print(\"App imported successfully\")' && uvicorn app.main:app --host 0.0.0.0 --port $PORT --log-level debug",
+    "startCommand": "echo 'Starting...' && alembic upgrade head && echo 'Migrations done' && python test_start.py && echo 'Test completed successfully'",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
