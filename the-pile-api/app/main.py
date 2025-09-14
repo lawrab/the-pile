@@ -4,12 +4,27 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.api.v1 import auth, pile, stats, share
 import time
+import subprocess
+import os
 
 app = FastAPI(
     title="The Pile API",
     description="Gaming backlog tracker that helps confront your pile of shame",
     version="0.1.0-alpha",
 )
+
+# Run migrations on startup (for Railway memory constraints)
+@app.on_event("startup")
+async def run_migrations():
+    try:
+        # Only run migrations in production
+        if os.getenv("ENVIRONMENT") != "development":
+            subprocess.run(["alembic", "upgrade", "head"], check=True)
+            print("Database migrations completed successfully")
+    except Exception as e:
+        print(f"Migration error: {e}")
+        # Don't crash the app if migrations fail
+        pass
 
 # Security headers middleware
 @app.middleware("http")
