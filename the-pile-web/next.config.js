@@ -1,10 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    // Reduce memory usage during build
+    // Reduce memory usage during build for Railway 1GB limit
     workerThreads: false,
     cpus: 1,
   },
+  // Minimize build output for low memory environments
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Disable static generation for memory-constrained builds
+  output: 'standalone',
+  trailingSlash: false,
   images: {
     remotePatterns: [
       {
