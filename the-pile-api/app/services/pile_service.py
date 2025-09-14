@@ -45,6 +45,43 @@ class PileService:
             print(f"Error fetching Steam app details for {app_id}: {e}")
             return {}
     
+    async def get_steam_reviews(self, app_id: int) -> dict:
+        """Fetch review summary from Steam Reviews API"""
+        url = f"https://store.steampowered.com/appreviews/{app_id}"
+        params = {
+            "json": 1,
+            "num_per_page": 0,  # We only want the query summary, not actual reviews
+            "language": "english"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, params=params)
+                data = response.json()
+                
+                if data.get("success") == 1 and "query_summary" in data:
+                    query_summary = data["query_summary"]
+                    return {
+                        "total_reviews": query_summary.get("total_reviews", 0),
+                        "total_positive": query_summary.get("total_positive", 0),
+                        "total_negative": query_summary.get("total_negative", 0),
+                        "review_score_desc": query_summary.get("review_score_desc", "No user reviews"),
+                        "rating_percent": self._calculate_rating_percentage(
+                            query_summary.get("total_positive", 0),
+                            query_summary.get("total_reviews", 0)
+                        )
+                    }
+                return {}
+        except Exception as e:
+            print(f"Error fetching Steam reviews for {app_id}: {e}")
+            return {}
+    
+    def _calculate_rating_percentage(self, positive: int, total: int) -> int:
+        """Calculate positive review percentage"""
+        if total == 0:
+            return 0
+        return int((positive / total) * 100)
+    
     async def import_steam_library(self, steam_id: str, user_id: int, db: Session):
         """Import user's Steam library"""
         try:
@@ -59,6 +96,9 @@ class PileService:
                 
                 # Always fetch fresh details to keep Steam data up to date
                 details = await self.get_steam_app_details(app_id)
+                
+                # Fetch review data (with rate limiting consideration)
+                reviews = await self.get_steam_reviews(app_id)
                 
                 # Extract game information
                 price_overview = details.get("price_overview", {})
@@ -82,7 +122,11 @@ class PileService:
                         release_date=details.get("release_date", {}).get("date", "") if details.get("release_date") else "",
                         developer=", ".join(details.get("developers", [])) if details.get("developers") else "",
                         publisher=", ".join(details.get("publishers", [])) if details.get("publishers") else "",
-                        screenshots=[s["path_full"] for s in details.get("screenshots", [])] if details.get("screenshots") else []
+                        screenshots=[s["path_full"] for s in details.get("screenshots", [])] if details.get("screenshots") else [],
+                        # Steam review/rating data
+                        steam_rating_percent=reviews.get("rating_percent") if reviews.get("total_reviews", 0) > 0 else None,
+                        steam_review_summary=reviews.get("review_score_desc") if reviews.get("total_reviews", 0) > 0 else None,
+                        steam_review_count=reviews.get("total_reviews") if reviews.get("total_reviews", 0) > 0 else None
                     )
                     db.add(steam_game)
                     # Commit immediately to get the ID and release the lock
@@ -108,6 +152,13 @@ class PileService:
                         steam_game.publisher = ", ".join(details.get("publishers", []))
                     if details.get("screenshots"):
                         steam_game.screenshots = [s["path_full"] for s in details.get("screenshots", [])]
+                    
+                    # Update Steam review/rating data if available
+                    if reviews.get("total_reviews", 0) > 0:
+                        steam_game.steam_rating_percent = reviews.get("rating_percent")
+                        steam_game.steam_review_summary = reviews.get("review_score_desc")
+                        steam_game.steam_review_count = reviews.get("total_reviews")
+                    
                     steam_game.last_updated = datetime.utcnow()
                     db.commit()
                 

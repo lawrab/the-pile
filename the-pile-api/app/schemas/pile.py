@@ -20,6 +20,9 @@ class GameBase(BaseModel):
     metacritic_score: Optional[int] = None
     positive_reviews: Optional[int] = None
     negative_reviews: Optional[int] = None
+    steam_rating_percent: Optional[int] = None
+    steam_review_summary: Optional[str] = None
+    steam_review_count: Optional[int] = None
     
     class Config:
         from_attributes = True

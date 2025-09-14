@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Sparkles,
   Trophy,
-  Flame
+  Flame,
+  ThumbsUp
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -158,10 +159,25 @@ export function PersonalityDashboard({ pile, userName, shameScore }: Personality
                 <div className="flex-1">
                   <h4 className="font-semibold text-base">{rec.game.steam_game?.name}</h4>
                   <p className="text-sm text-slate-400 mt-1">{rec.reason}</p>
+                  
+                  {/* Steam Rating */}
+                  {rec.game.steam_game?.steam_rating_percent && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <ThumbsUp className="h-3 w-3 text-slate-400" />
+                      <span className="text-xs text-slate-400">
+                        {rec.game.steam_game.steam_rating_percent}%
+                        {rec.game.steam_game.steam_review_summary && (
+                          <span className="ml-1">({rec.game.steam_game.steam_review_summary})</span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center gap-2 mt-3">
                     <span className={`text-sm px-3 py-1 rounded-full font-medium ${
                       rec.category === 'quick-win' ? 'bg-green-500/20 text-green-400' :
                       rec.category === 'redemption-arc' ? 'bg-blue-500/20 text-blue-400' :
+                      rec.category === 'hidden-gem' ? 'bg-amber-500/20 text-amber-400' :
                       rec.category === 'mercy-kill' ? 'bg-purple-500/20 text-purple-400' :
                       'bg-yellow-500/20 text-yellow-400'
                     }`}>

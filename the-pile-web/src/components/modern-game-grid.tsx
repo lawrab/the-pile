@@ -12,7 +12,8 @@ import {
   Filter,
   Grid3X3,
   List,
-  Search
+  Search,
+  ThumbsUp
 } from 'lucide-react'
 
 interface ModernGameGridProps {
@@ -200,6 +201,16 @@ export function ModernGameGrid({
                       <span>${game.purchase_price.toFixed(2)}</span>
                     </div>
                   )}
+                  
+                  {game.steam_game.steam_rating_percent && (
+                    <div className="flex items-center gap-2">
+                      <ThumbsUp className="h-3 w-3" />
+                      <span>{game.steam_game.steam_rating_percent}%</span>
+                      {game.steam_game.steam_review_summary && (
+                        <span className="text-xs text-slate-500">({game.steam_game.steam_review_summary})</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -239,6 +250,12 @@ export function ModernGameGrid({
                       </div>
                       <span>{Math.floor((game.playtime_minutes || 0) / 60)}h {(game.playtime_minutes || 0) % 60}m played</span>
                       {game.purchase_price && <span>${game.purchase_price.toFixed(2)}</span>}
+                      {game.steam_game.steam_rating_percent && (
+                        <span className="flex items-center gap-1">
+                          <ThumbsUp className="h-3 w-3" />
+                          {game.steam_game.steam_rating_percent}%
+                        </span>
+                      )}
                     </div>
                   </div>
 

@@ -111,44 +111,110 @@ export class PersonalityService {
     return greetings[Math.floor(Math.random() * greetings.length)]
   }
 
+  // Helper function to calculate rating boost for recommendations
+  private static getRatingBoost(game: PileEntry): number {
+    const rating = game.steam_game?.steam_rating_percent
+    if (!rating) return 0
+    
+    // Give slight boost to highly rated games (85%+), moderate boost to very highly rated (90%+)
+    if (rating >= 90) return 0.3  // Strong boost for exceptional games
+    if (rating >= 85) return 0.2  // Moderate boost for great games  
+    if (rating >= 70) return 0.1  // Small boost for good games
+    return 0 // No boost for mixed/negative games, but don't penalize
+  }
+
+  // Helper function to sort games by rating (for tie-breaking)
+  private static sortByRatingAndAge(games: PileEntry[]): PileEntry[] {
+    return games.sort((a, b) => {
+      // First priority: Steam rating (higher is better)
+      const ratingA = a.steam_game?.steam_rating_percent || 0
+      const ratingB = b.steam_game?.steam_rating_percent || 0
+      if (ratingA !== ratingB) return ratingB - ratingA
+      
+      // Second priority: Purchase date (older games get slight preference)
+      const dateA = new Date(a.purchase_date || '').getTime()
+      const dateB = new Date(b.purchase_date || '').getTime()
+      return dateA - dateB
+    })
+  }
+
   static getRecommendations(pile: PileEntry[]): GameRecommendation[] {
     const recommendations: GameRecommendation[] = []
     
     // Quick wins - short games or games with < 2 hours to complete
-    const shortGames = pile
-      .filter(e => e.status === GameStatus.UNPLAYED)
-      .filter(e => {
-        const genres = e.steam_game?.genres || []
-        return genres.some(g => ['Indie', 'Puzzle', 'Platformer', 'Arcade'].includes(g))
-      })
-      .slice(0, 3)
+    const shortGames = this.sortByRatingAndAge(
+      pile
+        .filter(e => e.status === GameStatus.UNPLAYED)
+        .filter(e => {
+          const genres = e.steam_game?.genres || []
+          return genres.some(g => ['Indie', 'Puzzle', 'Platformer', 'Arcade'].includes(g))
+        })
+    ).slice(0, 3)
 
     shortGames.forEach(game => {
+      const ratingBoost = this.getRatingBoost(game)
+      const baseConfidence = 0.7 // Base confidence for quick wins
+      const finalConfidence = Math.min(baseConfidence + ratingBoost, 1.0)
+      
+      const rating = game.steam_game?.steam_rating_percent
+      const ratingText = rating >= 90 ? " (Highly rated!)" : rating >= 85 ? " (Well reviewed)" : ""
+      
       recommendations.push({
         game,
-        reason: "Short game you could actually finish today",
-        confidence: 'high',
+        reason: `Short game you could actually finish today${ratingText}`,
+        confidence: finalConfidence >= 0.85 ? 'high' : finalConfidence >= 0.6 ? 'medium' : 'low',
         category: 'quick-win'
       })
     })
 
-    // Games you started but abandoned
-    const abandonedGames = pile
-      .filter(e => e.status === GameStatus.ABANDONED || (e.playtime_minutes > 0 && e.playtime_minutes < 120))
-      .slice(0, 2)
+    // Games you started but abandoned - sort by rating to prioritize well-reviewed games
+    const abandonedGames = this.sortByRatingAndAge(
+      pile.filter(e => e.status === GameStatus.ABANDONED || (e.playtime_minutes > 0 && e.playtime_minutes < 120))
+    ).slice(0, 2)
 
     abandonedGames.forEach(game => {
+      const ratingBoost = this.getRatingBoost(game)
+      const baseConfidence = 0.5 // Lower base confidence for abandoned games
+      const finalConfidence = Math.min(baseConfidence + ratingBoost, 1.0)
+      
+      const rating = game.steam_game?.steam_rating_percent
+      const ratingText = rating >= 85 ? " Great reviews suggest it's worth the retry!" : ""
+      
       recommendations.push({
         game,
-        reason: `You played ${game.playtime_minutes} minutes. Maybe give it another shot?`,
-        confidence: 'medium',
+        reason: `You played ${game.playtime_minutes} minutes. Maybe give it another shot?${ratingText}`,
+        confidence: finalConfidence >= 0.75 ? 'high' : finalConfidence >= 0.5 ? 'medium' : 'low',
         category: 'redemption-arc'
       })
     })
 
-    // Old games that need amnesty
+    // Highly rated old games that deserve attention
+    const hiddenGems = pile
+      .filter(e => e.status === GameStatus.UNPLAYED)
+      .filter(e => {
+        const rating = e.steam_game?.steam_rating_percent
+        const purchaseDate = e.purchase_date ? new Date(e.purchase_date) : null
+        const monthsOld = purchaseDate ? (Date.now() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24 * 30) : 0
+        
+        return rating >= 85 && monthsOld >= 6 // Highly rated games older than 6 months
+      })
+      .sort((a, b) => (b.steam_game?.steam_rating_percent || 0) - (a.steam_game?.steam_rating_percent || 0))
+      .slice(0, 2)
+
+    hiddenGems.forEach(game => {
+      const rating = game.steam_game?.steam_rating_percent || 0
+      recommendations.push({
+        game,
+        reason: `${rating}% Steam rating - this hidden gem has been waiting too long!`,
+        confidence: 'high',
+        category: 'hidden-gem'
+      })
+    })
+
+    // Old games that need amnesty (lower rated or very old)
     const ancientGames = pile
       .filter(e => e.status === GameStatus.UNPLAYED)
+      .filter(e => !hiddenGems.includes(e)) // Exclude hidden gems we already recommended
       .filter(e => {
         if (!e.purchase_date) return false
         const yearsSince = (Date.now() - new Date(e.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 365)

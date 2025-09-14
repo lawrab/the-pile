@@ -25,6 +25,11 @@ class SteamGame(Base):
     publisher = Column(String)
     screenshots = Column(JSON)  # List of screenshot URLs
     
+    # Steam review/rating data
+    steam_rating_percent = Column(Integer)  # 0-100 positive review percentage
+    steam_review_summary = Column(String(50))  # "Very Positive", "Mixed", etc.
+    steam_review_count = Column(Integer)  # Total number of reviews
+    
     # Tracking
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
