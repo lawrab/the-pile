@@ -10,9 +10,6 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Disable static generation for memory-constrained builds
-  output: 'standalone',
-  trailingSlash: false,
   images: {
     remotePatterns: [
       {
