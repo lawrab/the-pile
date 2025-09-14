@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/lib/api'
+import { authEvents } from '@/lib/auth-events'
 import type { User } from '@/types'
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   // Check for token in localStorage on mount
   useEffect(() => {
@@ -24,6 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(savedToken)
     }
   }, [])
+
+  // Listen for session expired events and clear everything
+  useEffect(() => {
+    const unsubscribe = authEvents.on('session-expired', () => {
+      setToken(null)
+      // Clear all query cache to prevent stale user data
+      queryClient.clear()
+    })
+
+    return unsubscribe
+  }, [queryClient])
 
   // Fetch current user if we have a token
   // Using staleTime and cacheTime to prevent unnecessary re-fetches
