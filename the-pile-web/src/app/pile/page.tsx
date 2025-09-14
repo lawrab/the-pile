@@ -7,6 +7,8 @@ import { useAuth } from '@/lib/auth-provider'
 import { PersonalityDashboard } from '@/components/personality-dashboard'
 import { ModernGameGrid } from '@/components/modern-game-grid'
 import { GameDetailModal } from '@/components/game-detail-modal'
+import { StickyHeader } from '@/components/sticky-header'
+import { QuickAddModal } from '@/components/quick-add-modal'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, calculateShameLevel } from '@/lib/utils'
 import { Download, Zap, Trophy, TrendingDown } from 'lucide-react'
@@ -20,6 +22,25 @@ export default function PilePage() {
   const { grantAmnesty, startPlaying, markCompleted } = useGameStatusMutations()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [selectedGame, setSelectedGame] = useState<any | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showQuickAdd, setShowQuickAdd] = useState(false)
+  
+  // Scroll to section functionality
+  const scrollToSection = (section: 'dashboard' | 'games' | 'stats') => {
+    const element = document.getElementById(section)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  // Focus search handler
+  const handleSearchFocus = () => {
+    const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement
+    if (searchInput) {
+      searchInput.focus()
+      scrollToSection('games')
+    }
+  }
   
   // Fetch shame score for the personality dashboard
   const { data: shameScore } = useQuery({
@@ -82,9 +103,18 @@ export default function PilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Sticky Header */}
+      <StickyHeader
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        onSearchFocus={handleSearchFocus}
+        onQuickAdd={() => setShowQuickAdd(true)}
+        onScrollToSection={scrollToSection}
+      />
+
       <div className="container mx-auto px-4 py-8">
-        {/* Personality Dashboard - New engaging header */}
-        <div className="mb-8">
+        {/* Personality Dashboard */}
+        <div id="dashboard" className="mb-8 scroll-mt-24">
           <PersonalityDashboard 
             pile={pile} 
             userName={user.username}
@@ -92,34 +122,23 @@ export default function PilePage() {
           />
         </div>
 
-        {/* Clean Navigation */}
-        <div className="flex items-center justify-center gap-4 mb-8">
-          <Link href="/stats">
-            <Button variant="outline" className="text-base">
-              📊 My Stats
-            </Button>
-          </Link>
-          <Link href="/cemetery">
-            <Button variant="outline" className="text-base">
-              🪦 Amnesty Archive
-            </Button>
-          </Link>
-          <ImportLibraryButton />
-        </div>
-
         {/* Modern Game Management */}
-        <ModernGameGrid
-          pile={pile}
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          onGameClick={setSelectedGame}
-          onGrantAmnesty={(gameId) => {
-            grantAmnesty.mutate({ gameId, reason: 'Strategic pile management' })
-          }}
-          onStartPlaying={(gameId) => {
-            startPlaying.mutate(gameId)
-          }}
-        />
+        <div id="games" className="scroll-mt-24">
+          <ModernGameGrid
+            pile={pile}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            onGameClick={setSelectedGame}
+            onGrantAmnesty={(gameId) => {
+              grantAmnesty.mutate({ gameId, reason: 'Strategic pile management' })
+            }}
+            onStartPlaying={(gameId) => {
+              startPlaying.mutate(gameId)
+            }}
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
+          />
+        </div>
 
         {/* Game Detail Modal */}
         {selectedGame && (
@@ -141,6 +160,18 @@ export default function PilePage() {
             }}
           />
         )}
+
+        {/* Quick Add Modal */}
+        <QuickAddModal
+          isOpen={showQuickAdd}
+          onClose={() => setShowQuickAdd(false)}
+          onAddGame={(gameName, status) => {
+            // TODO: Implement actual game addition API call
+            console.log('Adding game:', gameName, 'with status:', status)
+            // For now just show a toast or something
+            alert(`Game "${gameName}" would be added with status "${status}"`)
+          }}
+        />
       </div>
     </div>
   )

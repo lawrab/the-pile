@@ -22,6 +22,8 @@ interface ModernGameGridProps {
   onGameClick: (game: PileEntry) => void
   onGrantAmnesty: (gameId: number) => void
   onStartPlaying: (gameId: number) => void
+  searchTerm?: string
+  onSearchTermChange?: (term: string) => void
 }
 
 export function ModernGameGrid({
@@ -30,10 +32,16 @@ export function ModernGameGrid({
   onFilterChange,
   onGameClick,
   onGrantAmnesty,
-  onStartPlaying
+  onStartPlaying,
+  searchTerm: externalSearchTerm = '',
+  onSearchTermChange
 }: ModernGameGridProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [internalSearchTerm, setInternalSearchTerm] = useState('')
+  
+  // Use external search term if provided, otherwise internal
+  const searchTerm = onSearchTermChange ? externalSearchTerm : internalSearchTerm
+  const setSearchTerm = onSearchTermChange || setInternalSearchTerm
 
   // Filter games based on active filter and search
   const filteredGames = pile.filter(game => {
