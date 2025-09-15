@@ -25,8 +25,17 @@ import { TAGLINES, getRandomItem, CTA_TEXTS } from '@/lib/humor-constants'
 export default function HomePage() {
   const { user, isLoading } = useAuth()
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
-  const [tagline] = useState(() => getRandomItem(TAGLINES))
-  const [ctaText] = useState(() => getRandomItem(CTA_TEXTS.login))
+  
+  // Use useEffect to set random values after mount to avoid SSR issues
+  const [tagline, setTagline] = useState(TAGLINES[0]) // Default to first item
+  const [ctaText, setCtaText] = useState(CTA_TEXTS.login[0]) // Default to first item
+  
+  useEffect(() => {
+    // Set random values on client side after mount
+    setTagline(getRandomItem(TAGLINES))
+    setCtaText(getRandomItem(CTA_TEXTS.login))
+  }, []) // Empty dependency array means this runs once after mount
+  
   const [animatedStats, setAnimatedStats] = useState({
     games: 0,
     money: 0,
@@ -409,17 +418,6 @@ export default function HomePage() {
         </div>
       </div>
       
-      {/* Add CSS animation */}
-      <style jsx>{`
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 3s ease infinite;
-        }
-      `}</style>
     </div>
   )
 }
