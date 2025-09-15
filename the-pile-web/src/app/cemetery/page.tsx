@@ -50,11 +50,12 @@ export default function CemeteryPage() {
 
         {/* Amnesty Humor */}
         {amnestyGames.length > 0 && (
-          <div className="mb-8 max-w-2xl">
+          <div className="mb-8 max-w-lg">
             <PileHumorDisplay 
               showAmnestyReasons={true}
               unplayedCount={0}
               shameScore={0}
+              variant="full"
             />
           </div>
         )}

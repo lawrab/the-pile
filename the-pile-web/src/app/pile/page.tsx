@@ -170,15 +170,17 @@ function PilePageContent() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Steam Sync Controls and Humor */}
-        <div className="mb-8 flex justify-between items-start gap-4">
-          <div className="flex-1 max-w-md">
-            <PileHumorDisplay 
-              unplayedCount={pile.filter((g: any) => g.status === 'unplayed').length}
-              shameScore={shameScore?.score || 0}
-              showBehavioralInsights={true}
-            />
+        <div className="mb-8 space-y-4">
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex-1 max-w-2xl">
+              <PileHumorDisplay 
+                unplayedCount={pile.filter((g: any) => g.status === 'unplayed').length}
+                shameScore={shameScore?.score || 0}
+                variant="compact"
+              />
+            </div>
+            <ImportLibraryButton hasPile={true} />
           </div>
-          <ImportLibraryButton hasPile={true} />
         </div>
 
         {/* Personality Dashboard */}
