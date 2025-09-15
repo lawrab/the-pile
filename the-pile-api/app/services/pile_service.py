@@ -2,7 +2,7 @@ import httpx
 import asyncio
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 from app.models.user import User
 from app.models.steam_game import SteamGame
@@ -130,7 +130,7 @@ class PileService:
         
         if db:
             # Consider games fresh if updated within the last 7 days
-            cache_cutoff = datetime.utcnow() - timedelta(days=7)
+            cache_cutoff = datetime.now(timezone.utc) - timedelta(days=7)
             
             # Query existing games that are still fresh
             cached_games = db.query(SteamGame).filter(
@@ -252,12 +252,12 @@ class PileService:
             # Update user's last sync time
             user = db.query(User).filter(User.id == user_id).first()
             if user:
-                user.last_sync_at = datetime.utcnow()
+                user.last_sync_at = datetime.now(timezone.utc)
                 db.commit()
             
             # Mark import as completed
             import_status.status = 'completed'
-            import_status.completed_at = datetime.utcnow()
+            import_status.completed_at = datetime.now(timezone.utc)
             db.commit()
                 
         except Exception as e:
@@ -265,7 +265,7 @@ class PileService:
             # Mark import as failed
             import_status.status = 'failed'
             import_status.error_message = str(e)
-            import_status.completed_at = datetime.utcnow()
+            import_status.completed_at = datetime.now(timezone.utc)
             db.commit()
             print(f"Error importing Steam library: {e}")
             raise
@@ -344,7 +344,7 @@ class PileService:
                 if details.get("type"):
                     steam_game.steam_type = details.get("type")
                 
-                steam_game.last_updated = datetime.utcnow()
+                steam_game.last_updated = datetime.now(timezone.utc)
             
             # Check if pile entry already exists
             existing_entry = db.query(PileEntry).filter(
@@ -439,7 +439,7 @@ class PileService:
         
         if pile_entry:
             pile_entry.status = GameStatus.AMNESTY_GRANTED
-            pile_entry.amnesty_date = datetime.utcnow()
+            pile_entry.amnesty_date = datetime.now(timezone.utc)
             pile_entry.amnesty_reason = reason
             db.commit()
             return True
@@ -469,7 +469,7 @@ class PileService:
         
         if pile_entry:
             pile_entry.status = GameStatus.COMPLETED
-            pile_entry.completion_date = datetime.utcnow()
+            pile_entry.completion_date = datetime.now(timezone.utc)
             db.commit()
             return True
         
@@ -484,7 +484,7 @@ class PileService:
         
         if pile_entry:
             pile_entry.status = GameStatus.ABANDONED
-            pile_entry.abandon_date = datetime.utcnow()
+            pile_entry.abandon_date = datetime.now(timezone.utc)
             pile_entry.abandon_reason = reason
             db.commit()
             return True
@@ -513,11 +513,11 @@ class PileService:
                 
                 # Set appropriate timestamps
                 if status == 'completed':
-                    pile_entry.completion_date = datetime.utcnow()
+                    pile_entry.completion_date = datetime.now(timezone.utc)
                 elif status == 'amnesty_granted':
-                    pile_entry.amnesty_date = datetime.utcnow()
+                    pile_entry.amnesty_date = datetime.now(timezone.utc)
                 elif status == 'abandoned':
-                    pile_entry.abandon_date = datetime.utcnow()
+                    pile_entry.abandon_date = datetime.now(timezone.utc)
                 
                 db.commit()
                 return True

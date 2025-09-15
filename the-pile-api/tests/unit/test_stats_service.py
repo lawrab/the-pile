@@ -3,7 +3,7 @@ Unit tests for StatsService - Shame score calculation and behavioral insights.
 """
 import pytest
 from unittest.mock import MagicMock
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.services.stats_service import StatsService
 from app.models.pile_entry import GameStatus
@@ -50,7 +50,7 @@ class TestStatsService:
             db_session.refresh(steam_game)
             
             # Create pile entry
-            purchase_date = datetime.utcnow() - timedelta(days=game_data["purchase_days_ago"])
+            purchase_date = datetime.now(timezone.utc) - timedelta(days=game_data["purchase_days_ago"])
             pile_entry = PileEntry(
                 user_id=sample_user.id,
                 steam_game_id=steam_game.id,
@@ -62,11 +62,11 @@ class TestStatsService:
             
             # Set status-specific dates
             if game_data["status"] == GameStatus.COMPLETED:
-                pile_entry.completion_date = datetime.utcnow() - timedelta(days=30)
+                pile_entry.completion_date = datetime.now(timezone.utc) - timedelta(days=30)
             elif game_data["status"] == GameStatus.ABANDONED:
-                pile_entry.abandon_date = datetime.utcnow() - timedelta(days=50)
+                pile_entry.abandon_date = datetime.now(timezone.utc) - timedelta(days=50)
             elif game_data["status"] == GameStatus.AMNESTY_GRANTED:
-                pile_entry.amnesty_date = datetime.utcnow() - timedelta(days=10)
+                pile_entry.amnesty_date = datetime.now(timezone.utc) - timedelta(days=10)
             
             db_session.add(pile_entry)
             pile_entries.append(pile_entry)

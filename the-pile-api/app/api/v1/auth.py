@@ -5,6 +5,7 @@ from app.db.base import get_db
 from app.services.steam_auth import SteamAuth
 from app.services.user_service import UserService
 from app.core.security import create_access_token
+from app.core.rate_limiter import limiter
 from datetime import timedelta
 from app.core.config import settings
 
@@ -14,13 +15,15 @@ user_service = UserService()
 
 
 @router.get("/steam/login")
-async def steam_login():
+@limiter.limit("10 per minute")
+async def steam_login(request: Request):
     """Initiate Steam OpenID authentication"""
     auth_url = steam_auth.get_auth_url()
     return RedirectResponse(auth_url)
 
 
 @router.get("/steam/callback")
+@limiter.limit("20 per minute")
 async def steam_callback(
     request: Request,
     db: Session = Depends(get_db)
@@ -61,9 +64,23 @@ async def steam_callback(
         data={"sub": steam_id}, expires_delta=access_token_expires
     )
     
-    # Redirect to frontend with token
+    # Create redirect response with httpOnly cookie
     frontend_url = settings.CORS_ORIGINS[0] if settings.CORS_ORIGINS else "http://localhost:3000"
-    return RedirectResponse(f"{frontend_url}/auth/callback?token={access_token}")
+    response = RedirectResponse(f"{frontend_url}/auth/callback?success=true")
+    
+    # Set secure httpOnly cookie
+    response.set_cookie(
+        key="auth_token",
+        value=access_token,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
+        httponly=True,
+        secure=settings.ENVIRONMENT == "production",  # HTTPS only in production
+        samesite="lax",
+        domain=None,  # Will be set to current domain
+        path="/",
+    )
+    
+    return response
 
 
 @router.get("/me")
@@ -72,3 +89,21 @@ async def get_current_user(
 ):
     """Get current authenticated user"""
     return current_user
+
+@router.post("/logout")
+@limiter.limit("30 per minute")
+async def logout(request: Request):
+    """Logout user by clearing the auth cookie"""
+    frontend_url = settings.CORS_ORIGINS[0] if settings.CORS_ORIGINS else "http://localhost:3000"
+    response = RedirectResponse(frontend_url)
+    
+    # Clear the auth cookie
+    response.delete_cookie(
+        key="auth_token",
+        path="/",
+        domain=None,
+        secure=settings.ENVIRONMENT == "production",
+        samesite="lax"
+    )
+    
+    return response

@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.api.v1 import auth, pile, stats, share
+from app.core.rate_limiter import limiter, RateLimitExceeded, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 import time
 
 app = FastAPI(
@@ -10,6 +13,10 @@ app = FastAPI(
     description="Gaming backlog tracker that helps confront your pile of shame",
     version="0.1.0-alpha",
 )
+
+# Add rate limiting state and exception handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Security headers middleware
 @app.middleware("http")
@@ -29,13 +36,15 @@ async def add_security_headers(request: Request, call_next):
     
     return response
 
-# CORS middleware
+# CORS middleware with restricted configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
+    expose_headers=["X-Process-Time"],
+    max_age=3600,
 )
 
 # Include routers

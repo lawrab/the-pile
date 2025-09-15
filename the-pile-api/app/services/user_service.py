@@ -1,14 +1,11 @@
 import httpx
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.core.security import verify_token
 from app.core.config import settings
 from app.db.base import get_db
 from typing import Optional
-
-security = HTTPBearer()
 
 
 class UserService:
@@ -49,11 +46,27 @@ class UserService:
     
     async def get_current_user(
         self,
-        credentials: HTTPAuthorizationCredentials = Depends(security),
+        request: Request,
         db: Session = Depends(get_db)
     ) -> dict:
-        """Get current authenticated user from JWT token"""
-        steam_id = verify_token(credentials.credentials)
+        """Get current authenticated user from JWT token in httpOnly cookie"""
+        # Try to get token from cookie first
+        token = request.cookies.get("auth_token")
+        
+        # Fallback to Authorization header for backward compatibility during migration
+        if not token:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+        
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        steam_id = verify_token(token)
         
         if not steam_id:
             raise HTTPException(

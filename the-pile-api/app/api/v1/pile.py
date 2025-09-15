@@ -48,12 +48,12 @@ async def import_steam_library(
     db: Session = Depends(get_db)
 ):
     """Import user's Steam library"""
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
     
     # Check if user has imported in the last 24 hours
     user = db.query(User).filter(User.id == current_user["id"]).first()
     if user and user.last_sync_at:
-        time_since_last_sync = datetime.utcnow() - user.last_sync_at
+        time_since_last_sync = datetime.now(timezone.utc) - user.last_sync_at
         if time_since_last_sync < timedelta(hours=24):
             hours_remaining = 24 - time_since_last_sync.total_seconds() / 3600
             return {
