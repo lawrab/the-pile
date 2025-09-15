@@ -371,32 +371,20 @@ class PileService:
         db.commit()
     
     async def sync_playtime(self, steam_id: str, user_id: int, db: Session):
-        """Sync playtime data from Steam"""
+        """Sync playtime data from Steam using repository pattern"""
+        from app.repositories.pile_repository import PileRepository
+        
         try:
             owned_games = await self.get_steam_owned_games(steam_id)
             
             # Build a map of app_id -> playtime for efficient lookup
             playtime_map = {game_data["appid"]: game_data.get("playtime_forever", 0) for game_data in owned_games}
             
-            # Single query with eager loading to get all pile entries
-            pile_entries = db.query(PileEntry).options(
-                joinedload(PileEntry.steam_game)
-            ).filter(PileEntry.user_id == user_id).all()
+            # Use repository's bulk update method
+            pile_repo = PileRepository(db)
+            updated_count = pile_repo.bulk_update_playtime(user_id, playtime_map)
             
-            # Update playtime for existing entries
-            for pile_entry in pile_entries:
-                app_id = pile_entry.steam_game.steam_app_id
-                if app_id in playtime_map:
-                    playtime = playtime_map[app_id]
-                    pile_entry.playtime_minutes = playtime
-                    
-                    # Update status based on playtime
-                    if playtime == 0 and pile_entry.status not in [GameStatus.AMNESTY_GRANTED, GameStatus.COMPLETED]:
-                        pile_entry.status = GameStatus.UNPLAYED
-                    elif playtime > 0 and pile_entry.status == GameStatus.UNPLAYED:
-                        pile_entry.status = GameStatus.PLAYING
-            
-            db.commit()
+            print(f"Updated playtime for {updated_count} games")
             
         except Exception as e:
             db.rollback()
@@ -404,118 +392,85 @@ class PileService:
             raise
     
     async def get_user_pile(self, user_id: int, filters: PileFilters, db: Session) -> List[PileEntry]:
-        """Get user's pile with filtering and sorting"""
-        # Start with base query including eager loading to prevent N+1
-        query = db.query(PileEntry).options(
-            joinedload(PileEntry.steam_game)
-        ).filter(PileEntry.user_id == user_id)
+        """Get user's pile with filtering and sorting using repository pattern"""
+        from app.repositories.pile_repository import PileRepository
         
-        # Apply filters
-        if filters.status:
-            query = query.filter(PileEntry.status == filters.status)
-        
-        if filters.genre:
-            query = query.join(SteamGame).filter(SteamGame.genres.contains([filters.genre]))
-        
-        # Apply sorting
-        if filters.sort_by:
-            if filters.sort_by == "playtime":
-                if filters.sort_direction == "asc":
-                    query = query.order_by(PileEntry.playtime_minutes.asc())
-                else:
-                    query = query.order_by(PileEntry.playtime_minutes.desc())
-            elif filters.sort_by == "rating":
-                # Join with SteamGame if not already joined
-                if not filters.genre:
-                    query = query.join(SteamGame)
-                
-                if filters.sort_direction == "asc":
-                    query = query.order_by(SteamGame.steam_rating_percent.asc().nulls_last())
-                else:
-                    query = query.order_by(SteamGame.steam_rating_percent.desc().nulls_last())
-        else:
-            # Default sorting by creation date (newest first)
-            query = query.order_by(PileEntry.created_at.desc())
-        
-        return query.offset(filters.offset).limit(filters.limit).all()
+        pile_repo = PileRepository(db)
+        return pile_repo.get_filtered_pile(user_id, filters)
     
     async def grant_amnesty(self, user_id: int, steam_game_id: int, reason: str, db: Session) -> bool:
-        """Grant amnesty to a game"""
-        pile_entry = db.query(PileEntry).filter(
-            PileEntry.user_id == user_id,
-            PileEntry.steam_game_id == steam_game_id
-        ).first()
+        """Grant amnesty to a game using repository pattern"""
+        from app.repositories.pile_repository import PileRepository
         
-        if pile_entry:
-            pile_entry.status = GameStatus.AMNESTY_GRANTED
-            pile_entry.amnesty_date = datetime.now(timezone.utc)
-            pile_entry.amnesty_reason = reason
-            db.commit()
-            
+        pile_repo = PileRepository(db)
+        entry = pile_repo.update_status(
+            user_id, 
+            steam_game_id, 
+            GameStatus.AMNESTY_GRANTED,
+            amnesty_date=datetime.now(timezone.utc),
+            amnesty_reason=reason
+        )
+        
+        if entry:
             # Invalidate user-specific caches
             invalidate_cache_pattern(f"reality_check:*{user_id}*")
             invalidate_cache_pattern(f"behavioral_insights:*{user_id}*")
-            
             return True
         
         return False
 
     async def start_playing(self, user_id: int, steam_game_id: int, db: Session) -> bool:
-        """Mark a game as currently being played"""
-        pile_entry = db.query(PileEntry).filter(
-            PileEntry.user_id == user_id,
-            PileEntry.steam_game_id == steam_game_id
-        ).first()
+        """Mark a game as currently being played using repository pattern"""
+        from app.repositories.pile_repository import PileRepository
         
-        if pile_entry:
-            pile_entry.status = GameStatus.PLAYING
-            db.commit()
-            
+        pile_repo = PileRepository(db)
+        entry = pile_repo.update_status(user_id, steam_game_id, GameStatus.PLAYING)
+        
+        if entry:
             # Invalidate user-specific caches
             invalidate_cache_pattern(f"reality_check:*{user_id}*")
             invalidate_cache_pattern(f"behavioral_insights:*{user_id}*")
-            
             return True
         
         return False
     
     async def mark_completed(self, user_id: int, steam_game_id: int, db: Session) -> bool:
-        """Mark a game as completed"""
-        pile_entry = db.query(PileEntry).filter(
-            PileEntry.user_id == user_id,
-            PileEntry.steam_game_id == steam_game_id
-        ).first()
+        """Mark a game as completed using repository pattern"""
+        from app.repositories.pile_repository import PileRepository
         
-        if pile_entry:
-            pile_entry.status = GameStatus.COMPLETED
-            pile_entry.completion_date = datetime.now(timezone.utc)
-            db.commit()
-            
+        pile_repo = PileRepository(db)
+        entry = pile_repo.update_status(
+            user_id, 
+            steam_game_id, 
+            GameStatus.COMPLETED,
+            completion_date=datetime.now(timezone.utc)
+        )
+        
+        if entry:
             # Invalidate user-specific caches
             invalidate_cache_pattern(f"reality_check:*{user_id}*")
             invalidate_cache_pattern(f"behavioral_insights:*{user_id}*")
-            
             return True
         
         return False
     
     async def mark_abandoned(self, user_id: int, steam_game_id: int, reason: str, db: Session) -> bool:
-        """Mark a game as abandoned"""
-        pile_entry = db.query(PileEntry).filter(
-            PileEntry.user_id == user_id,
-            PileEntry.steam_game_id == steam_game_id
-        ).first()
+        """Mark a game as abandoned using repository pattern"""
+        from app.repositories.pile_repository import PileRepository
         
-        if pile_entry:
-            pile_entry.status = GameStatus.ABANDONED
-            pile_entry.abandon_date = datetime.now(timezone.utc)
-            pile_entry.abandon_reason = reason
-            db.commit()
-            
+        pile_repo = PileRepository(db)
+        entry = pile_repo.update_status(
+            user_id, 
+            steam_game_id, 
+            GameStatus.ABANDONED,
+            abandon_date=datetime.now(timezone.utc),
+            abandon_reason=reason
+        )
+        
+        if entry:
             # Invalidate user-specific caches
             invalidate_cache_pattern(f"reality_check:*{user_id}*")
             invalidate_cache_pattern(f"behavioral_insights:*{user_id}*")
-            
             return True
         
         return False
