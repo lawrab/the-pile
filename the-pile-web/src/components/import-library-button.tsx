@@ -6,6 +6,7 @@ import { Download, Loader2, CheckCircle, AlertCircle, X, RefreshCw } from 'lucid
 import { pileApi } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
 import { ImportStatus } from '@/types'
+import { LOADING_MESSAGES, getRandomItem } from '@/lib/humor-constants'
 
 type NotificationType = 'success' | 'error' | null
 
@@ -18,6 +19,7 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
   const [isSyncing, setIsSyncing] = useState(false)
   const [notification, setNotification] = useState<{ type: NotificationType; message: string } | null>(null)
   const [importProgress, setImportProgress] = useState<ImportStatus | null>(null)
+  const [loadingMessage, setLoadingMessage] = useState('')
   const queryClient = useQueryClient()
   
   // Poll for import status when an operation is running
@@ -73,6 +75,7 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
 
   const handleImport = async () => {
     setIsImporting(true)
+    setLoadingMessage(getRandomItem(LOADING_MESSAGES))
     setNotification(null)
     setImportProgress(null)
     
@@ -127,7 +130,7 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
               <Download className="mr-2 h-4 w-4" />
             )}
             {isImporting 
-              ? `Importing... ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
+              ? `${loadingMessage || 'Importing...'} ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
               : 'Import Steam Library'}
           </Button>
         ) : (
@@ -144,7 +147,7 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
                 <Download className="mr-2 h-4 w-4" />
               )}
               {isImporting 
-                ? `Re-importing... ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
+                ? `${loadingMessage || 'Re-importing...'} ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
                 : 'Re-import Library'}
             </Button>
             <Button 

@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { usePile, useGameStatusMutations } from '@/lib/hooks'
 import { ImportLibraryButton } from '@/components/import-library-button'
+import { PileHumorDisplay } from '@/components/pile-humor-display'
 
 // Dynamic imports for heavy components
 const PersonalityDashboard = dynamic(
@@ -168,9 +169,18 @@ function PilePageContent() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
 
       <div className="container mx-auto px-4 py-8">
-        {/* Steam Sync Controls */}
-        <div className="mb-8 flex justify-end">
-          <ImportLibraryButton hasPile={true} />
+        {/* Steam Sync Controls and Humor */}
+        <div className="mb-8 space-y-4">
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex-1 max-w-2xl">
+              <PileHumorDisplay 
+                unplayedCount={pile.filter((g: any) => g.status === 'unplayed').length}
+                shameScore={shameScore?.score || 0}
+                variant="compact"
+              />
+            </div>
+            <ImportLibraryButton hasPile={true} />
+          </div>
         </div>
 
         {/* Personality Dashboard */}

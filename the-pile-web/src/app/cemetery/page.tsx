@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar, Clock } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { PileHumorDisplay } from '@/components/pile-humor-display'
 
 export default function CemeteryPage() {
   const { user } = useAuth()
@@ -46,6 +47,18 @@ export default function CemeteryPage() {
             Games you&apos;ve officially given up on - with honor and dignity
           </p>
         </div>
+
+        {/* Amnesty Humor */}
+        {amnestyGames.length > 0 && (
+          <div className="mb-8 max-w-lg">
+            <PileHumorDisplay 
+              showAmnestyReasons={true}
+              unplayedCount={0}
+              shameScore={0}
+              variant="full"
+            />
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
