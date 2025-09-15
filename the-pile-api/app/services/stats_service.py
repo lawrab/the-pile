@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from typing import Dict, List
 from collections import Counter
@@ -6,10 +6,12 @@ from app.models.user import User
 from app.models.steam_game import SteamGame
 from app.models.pile_entry import PileEntry, GameStatus
 from app.schemas.stats import RealityCheck, ShameScore, BehavioralInsights
+from app.services.cache_service import cache_result, invalidate_cache_pattern
 import random
 
 
 class StatsService:
+    @cache_result(expiration=1800, key_prefix="reality_check")  # 30 minutes
     async def calculate_reality_check(self, user_id: int, db: Session) -> RealityCheck:
         """Calculate brutal reality check statistics"""
         # Get pile stats
@@ -19,8 +21,10 @@ class StatsService:
             PileEntry.status == GameStatus.UNPLAYED
         ).count()
         
-        # Calculate money wasted on unplayed games
-        unplayed_entries = db.query(PileEntry).join(SteamGame).filter(
+        # Calculate money wasted on unplayed games with eager loading
+        unplayed_entries = db.query(PileEntry).options(
+            joinedload(PileEntry.steam_game)
+        ).filter(
             PileEntry.user_id == user_id,
             PileEntry.status == GameStatus.UNPLAYED
         ).all()
@@ -41,8 +45,10 @@ class StatsService:
         
         most_expensive_unplayed = {most_expensive: max_price} if most_expensive else {}
         
-        # Find oldest unplayed game
-        oldest_entry = db.query(PileEntry).join(SteamGame).filter(
+        # Find oldest unplayed game with eager loading
+        oldest_entry = db.query(PileEntry).options(
+            joinedload(PileEntry.steam_game)
+        ).filter(
             PileEntry.user_id == user_id,
             PileEntry.status == GameStatus.UNPLAYED,
             PileEntry.purchase_date.isnot(None)
@@ -76,10 +82,12 @@ class StatsService:
         money_penalty = reality_check.money_wasted * 0.5     # 0.5 points per dollar wasted
         time_penalty = min(reality_check.completion_years * 10, 100)  # Max 100 points for time
         
-        # Bonus penalties
-        pile_entries = db.query(PileEntry).filter(PileEntry.user_id == user_id).all()
-        zero_playtime_games = sum(1 for entry in pile_entries if entry.playtime_minutes == 0)
-        zero_playtime_penalty = zero_playtime_games * 3  # Extra penalty for never played
+        # Bonus penalties - optimized query with no N+1
+        zero_playtime_count = db.query(PileEntry).filter(
+            PileEntry.user_id == user_id,
+            PileEntry.playtime_minutes == 0
+        ).count()
+        zero_playtime_penalty = zero_playtime_count * 3  # Extra penalty for never played
         
         total_score = unplayed_penalty + money_penalty + time_penalty + zero_playtime_penalty
         
@@ -120,9 +128,13 @@ class StatsService:
             message=message
         )
     
+    @cache_result(expiration=3600, key_prefix="behavioral_insights")  # 1 hour
     async def generate_insights(self, user_id: int, db: Session) -> BehavioralInsights:
         """Generate behavioral insights and patterns"""
-        pile_entries = db.query(PileEntry).join(SteamGame).filter(PileEntry.user_id == user_id).all()
+        # Single query with eager loading to avoid N+1
+        pile_entries = db.query(PileEntry).options(
+            joinedload(PileEntry.steam_game)
+        ).filter(PileEntry.user_id == user_id).all()
         
         if not pile_entries:
             return BehavioralInsights(

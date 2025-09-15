@@ -1,6 +1,6 @@
 import httpx
 import asyncio
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 import time
@@ -10,6 +10,7 @@ from app.models.pile_entry import PileEntry, GameStatus
 from app.models.import_status import ImportStatus
 from app.schemas.pile import PileFilters
 from app.core.config import settings
+from app.services.cache_service import cache_result, invalidate_cache_pattern
 
 
 class RateLimiter:
@@ -47,6 +48,7 @@ class PileService:
             requests_per_second=10,  # Conservative rate limit
             burst_size=20           # Allow small bursts
         )
+    @cache_result(expiration=900, key_prefix="steam_owned_games")  # 15 minutes
     async def get_steam_owned_games(self, steam_id: str) -> List[dict]:
         """Fetch owned games from Steam Web API"""
         url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
@@ -65,6 +67,7 @@ class PileService:
             
             return data.get("response", {}).get("games", [])
     
+    @cache_result(expiration=86400, key_prefix="steam_app_details")  # 24 hours
     async def get_steam_app_details(self, app_id: int) -> dict:
         """Fetch game details from Steam Store API"""
         url = f"https://store.steampowered.com/api/appdetails"
@@ -83,6 +86,7 @@ class PileService:
             print(f"Error fetching Steam app details for {app_id}: {e}")
             return {}
     
+    @cache_result(expiration=86400, key_prefix="steam_reviews")  # 24 hours
     async def get_steam_reviews(self, app_id: int) -> dict:
         """Fetch review summary from Steam Reviews API"""
         url = f"https://store.steampowered.com/appreviews/{app_id}"
@@ -371,17 +375,19 @@ class PileService:
         try:
             owned_games = await self.get_steam_owned_games(steam_id)
             
-            for game_data in owned_games:
-                app_id = game_data["appid"]
-                playtime = game_data.get("playtime_forever", 0)
-                
-                # Find existing pile entry
-                pile_entry = db.query(PileEntry).join(SteamGame).filter(
-                    PileEntry.user_id == user_id,
-                    SteamGame.steam_app_id == app_id
-                ).first()
-                
-                if pile_entry:
+            # Build a map of app_id -> playtime for efficient lookup
+            playtime_map = {game_data["appid"]: game_data.get("playtime_forever", 0) for game_data in owned_games}
+            
+            # Single query with eager loading to get all pile entries
+            pile_entries = db.query(PileEntry).options(
+                joinedload(PileEntry.steam_game)
+            ).filter(PileEntry.user_id == user_id).all()
+            
+            # Update playtime for existing entries
+            for pile_entry in pile_entries:
+                app_id = pile_entry.steam_game.steam_app_id
+                if app_id in playtime_map:
+                    playtime = playtime_map[app_id]
                     pile_entry.playtime_minutes = playtime
                     
                     # Update status based on playtime
@@ -399,7 +405,10 @@ class PileService:
     
     async def get_user_pile(self, user_id: int, filters: PileFilters, db: Session) -> List[PileEntry]:
         """Get user's pile with filtering and sorting"""
-        query = db.query(PileEntry).filter(PileEntry.user_id == user_id)
+        # Start with base query including eager loading to prevent N+1
+        query = db.query(PileEntry).options(
+            joinedload(PileEntry.steam_game)
+        ).filter(PileEntry.user_id == user_id)
         
         # Apply filters
         if filters.status:
@@ -442,6 +451,11 @@ class PileService:
             pile_entry.amnesty_date = datetime.now(timezone.utc)
             pile_entry.amnesty_reason = reason
             db.commit()
+            
+            # Invalidate user-specific caches
+            invalidate_cache_pattern(f"reality_check:*{user_id}*")
+            invalidate_cache_pattern(f"behavioral_insights:*{user_id}*")
+            
             return True
         
         return False
@@ -456,6 +470,11 @@ class PileService:
         if pile_entry:
             pile_entry.status = GameStatus.PLAYING
             db.commit()
+            
+            # Invalidate user-specific caches
+            invalidate_cache_pattern(f"reality_check:*{user_id}*")
+            invalidate_cache_pattern(f"behavioral_insights:*{user_id}*")
+            
             return True
         
         return False
@@ -471,6 +490,11 @@ class PileService:
             pile_entry.status = GameStatus.COMPLETED
             pile_entry.completion_date = datetime.now(timezone.utc)
             db.commit()
+            
+            # Invalidate user-specific caches
+            invalidate_cache_pattern(f"reality_check:*{user_id}*")
+            invalidate_cache_pattern(f"behavioral_insights:*{user_id}*")
+            
             return True
         
         return False
@@ -487,6 +511,11 @@ class PileService:
             pile_entry.abandon_date = datetime.now(timezone.utc)
             pile_entry.abandon_reason = reason
             db.commit()
+            
+            # Invalidate user-specific caches
+            invalidate_cache_pattern(f"reality_check:*{user_id}*")
+            invalidate_cache_pattern(f"behavioral_insights:*{user_id}*")
+            
             return True
         
         return False
