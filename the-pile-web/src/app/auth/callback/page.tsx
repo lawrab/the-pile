@@ -9,15 +9,14 @@ function AuthCallbackContent() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const token = searchParams.get('token')
+    const success = searchParams.get('success')
     
-    if (token) {
-      // Save token to localStorage
-      localStorage.setItem('auth_token', token)
+    if (success === 'true') {
+      // Authentication successful, cookie is already set by backend
       // Redirect to pile dashboard
       router.push('/pile')
     } else {
-      // If no token, redirect to login
+      // If no success param, redirect to login
       router.push('/auth/steam')
     }
   }, [router, searchParams])

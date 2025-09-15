@@ -2,19 +2,43 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import dynamic from 'next/dynamic'
 import { pileApi, statsApi } from '@/lib/api'
 import { useAuth } from '@/lib/auth-provider'
-import { PersonalityDashboard } from '@/components/personality-dashboard'
-import { ModernGameGrid } from '@/components/modern-game-grid'
-import { GameDetailModal } from '@/components/game-detail-modal'
-import { QuickAddModal } from '@/components/quick-add-modal'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, calculateShameLevel } from '@/lib/utils'
-import { Download, Zap, Trophy, TrendingDown } from 'lucide-react'
+import { Download, Zap, Trophy, TrendingDown, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { usePile, useGameStatusMutations } from '@/lib/hooks'
 import { ImportLibraryButton } from '@/components/import-library-button'
+
+// Dynamic imports for heavy components
+const PersonalityDashboard = dynamic(
+  () => import('@/components/personality-dashboard').then(mod => ({ default: mod.PersonalityDashboard })),
+  { 
+    ssr: false,
+    loading: () => <div className="flex items-center justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+  }
+)
+
+const ModernGameGrid = dynamic(
+  () => import('@/components/modern-game-grid').then(mod => ({ default: mod.ModernGameGrid })),
+  { 
+    ssr: false,
+    loading: () => <div className="flex items-center justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+  }
+)
+
+const GameDetailModal = dynamic(
+  () => import('@/components/game-detail-modal').then(mod => ({ default: mod.GameDetailModal })),
+  { ssr: false }
+)
+
+const QuickAddModal = dynamic(
+  () => import('@/components/quick-add-modal').then(mod => ({ default: mod.QuickAddModal })),
+  { ssr: false }
+)
 
 function PilePageContent() {
   const { user } = useAuth()
