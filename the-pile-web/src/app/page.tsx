@@ -20,10 +20,13 @@ import {
   Shield
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-provider'
+import { TAGLINES, getRandomItem, CTA_TEXTS } from '@/lib/humor-constants'
 
 export default function HomePage() {
   const { user, isLoading } = useAuth()
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
+  const [tagline] = useState(() => getRandomItem(TAGLINES))
+  const [ctaText] = useState(() => getRandomItem(CTA_TEXTS.login))
   const [animatedStats, setAnimatedStats] = useState({
     games: 0,
     money: 0,
@@ -83,11 +86,10 @@ export default function HomePage() {
           </div>
           
           <p className="text-xl text-slate-300 mb-4 max-w-3xl mx-auto font-medium">
-            The brutally honest Steam backlog tracker that turns your shame into insights
+            {tagline}
           </p>
           
           <p className="text-lg text-slate-400 mb-8 max-w-2xl mx-auto">
-            Join thousands of gamers finally confronting their digital hoarding habits. 
             Import your Steam library, face the truth, and grant amnesty to games you&apos;ll never play.
           </p>
           
@@ -155,7 +157,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
-              <span>10,000+ Users</span>
+              <span>Open Source</span>
             </div>
             <div className="flex items-center gap-1">
               <Heart className="h-4 w-4" />
@@ -230,7 +232,7 @@ export default function HomePage() {
                 <div className="text-5xl font-bold bg-gradient-to-r from-red-400 to-purple-400 bg-clip-text text-transparent mb-2">
                   842
                 </div>
-                <p className="text-sm text-slate-400 mb-4">Rank: Digital Hoarder</p>
+                <p className="text-sm text-slate-400 mb-4">Rank: <span className="text-purple-400">Digital Hoarder</span></p>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-400">Unplayed games</span>
@@ -333,7 +335,7 @@ export default function HomePage() {
               title: "Amnesty System",
               desc: "Grant official forgiveness to games. Watch them float away in a satisfying animation. No guilt.",
               color: "from-purple-500 to-pink-500",
-              stat: "1.2M games forgiven"
+              stat: "Guilt-free abandonment"
             },
             {
               icon: Clock,
@@ -387,17 +389,13 @@ export default function HomePage() {
         <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-8">What Gamers Are Saying</h2>
           
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { quote: "Finally, a tracker that gets my shame.", author: "@SteamHoarder" },
-              { quote: "The amnesty feature changed my life.", author: "@BacklogBoss" },
-              { quote: "I can't unsee my 47-year completion time.", author: "@IndieAddict" }
-            ].map((testimonial, i) => (
-              <div key={i} className="text-center">
-                <p className="text-slate-300 italic mb-2">&quot;{testimonial.quote}&quot;</p>
-                <p className="text-sm text-slate-500">{testimonial.author}</p>
-              </div>
-            ))}
+          <div className="text-center">
+            <p className="text-slate-300 text-lg mb-4">
+              Built by gamers who understand the struggle.
+            </p>
+            <p className="text-sm text-slate-400">
+              An open-source project for the Steam community.
+            </p>
           </div>
         </div>
       </div>
@@ -416,7 +414,7 @@ export default function HomePage() {
           <div className="flex gap-4 justify-center items-center">
             <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-xl text-lg px-8 py-6">
               <Gamepad2 className="mr-2 h-6 w-6" />
-              Start Your Confession
+              {ctaText}
               <Link href="/auth/steam" className="absolute inset-0" />
             </Button>
           </div>
