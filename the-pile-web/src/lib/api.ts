@@ -9,15 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-})
-
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
+  withCredentials: true, // Send cookies with requests
 })
 
 // Handle auth errors
@@ -26,7 +18,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Don't auto-redirect; emit an event instead
-      localStorage.removeItem('auth_token')
       authEvents.emit('session-expired', { 
         message: 'Your session has expired. Please log in again.',
         error 

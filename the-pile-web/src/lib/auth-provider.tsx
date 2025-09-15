@@ -16,21 +16,20 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const queryClient = useQueryClient()
 
-  // Check for token in localStorage on mount
+  // Check authentication status on mount
   useEffect(() => {
-    const savedToken = localStorage.getItem('auth_token')
-    if (savedToken) {
-      setToken(savedToken)
-    }
+    // Since we're using httpOnly cookies, we can't directly check them
+    // We'll rely on the API call to determine auth status
+    setIsAuthenticated(true) // Let the query determine actual auth status
   }, [])
 
   // Listen for session expired events and clear everything
   useEffect(() => {
     const unsubscribe = authEvents.on('session-expired', () => {
-      setToken(null)
+      setIsAuthenticated(false)
       // Clear all query cache to prevent stale user data
       queryClient.clear()
     })
@@ -38,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe
   }, [queryClient])
 
-  // Fetch current user if we have a token
+  // Fetch current user - cookies will be sent automatically
   // Using staleTime and cacheTime to prevent unnecessary re-fetches
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['currentUser'],
@@ -46,19 +45,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await authApi.getCurrentUser()
       return response.data
     },
-    enabled: !!token,
+    enabled: isAuthenticated,
     retry: false,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   })
 
-  // Clear token if user fetch fails (invalid token)
+  // Handle authentication errors
   useEffect(() => {
-    if (error && token) {
-      localStorage.removeItem('auth_token')
-      setToken(null)
+    if (error) {
+      setIsAuthenticated(false)
+    } else if (user) {
+      setIsAuthenticated(true)
     }
-  }, [error, token])
+  }, [error, user])
 
   const login = async () => {
     try {
@@ -70,21 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    localStorage.removeItem('auth_token')
-    setToken(null)
-    window.location.href = '/'
+    // Call backend logout endpoint to clear httpOnly cookie
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/logout`
   }
-
-  // Save token to localStorage when it changes
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('auth_token', token)
-    }
-  }, [token])
 
   const value: AuthContextType = {
     user: user || null,
-    isLoading: isLoading && !!token,
+    isLoading: isLoading && isAuthenticated,
     login,
     logout,
   }

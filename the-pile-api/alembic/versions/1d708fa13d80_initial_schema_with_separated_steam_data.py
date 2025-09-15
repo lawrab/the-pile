@@ -1,8 +1,8 @@
 """Initial schema with separated Steam data
 
-Revision ID: 652cab81527a
+Revision ID: 1d708fa13d80
 Revises: 
-Create Date: 2025-09-14 13:17:30.233879
+Create Date: 2025-09-15 11:50:59.311754
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '652cab81527a'
+revision = '1d708fa13d80'
 down_revision = None
 branch_labels = None
 depends_on = None
