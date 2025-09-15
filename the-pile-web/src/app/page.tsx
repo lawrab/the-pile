@@ -384,22 +384,6 @@ export default function HomePage() {
         </div>
       </div>
       
-      {/* Social Proof */}
-      <div className="container mx-auto px-4 py-16 relative z-10">
-        <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8">What Gamers Are Saying</h2>
-          
-          <div className="text-center">
-            <p className="text-slate-300 text-lg mb-4">
-              Built by gamers who understand the struggle.
-            </p>
-            <p className="text-sm text-slate-400">
-              An open-source project for the Steam community.
-            </p>
-          </div>
-        </div>
-      </div>
-      
       {/* Final CTA */}
       <div className="container mx-auto px-4 py-20 text-center relative z-10">
         <div className="max-w-3xl mx-auto">
