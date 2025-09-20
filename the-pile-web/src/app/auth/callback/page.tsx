@@ -2,24 +2,43 @@
 
 import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useAuth } from '@/lib/auth-provider'
 import { Loader2 } from 'lucide-react'
 
 function AuthCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { checkAuth } = useAuth()
 
   useEffect(() => {
     const success = searchParams.get('success')
     
     if (success === 'true') {
       // Authentication successful, cookie is already set by backend
-      // Redirect to pile dashboard
-      router.push('/pile')
+      // Force a re-check of auth status and then redirect
+      const handleSuccessfulAuth = async () => {
+        // Re-check auth to update the provider state
+        await checkAuth()
+        
+        // Check if we have a stored return URL
+        const returnUrl = localStorage.getItem('auth_return_url')
+        
+        if (returnUrl) {
+          localStorage.removeItem('auth_return_url')
+          router.push(returnUrl)
+        } else {
+          // Default to pile dashboard
+          router.push('/pile')
+        }
+      }
+      
+      // Small delay to ensure cookie is properly set
+      setTimeout(handleSuccessfulAuth, 100)
     } else {
       // If no success param, redirect to login
       router.push('/auth/steam')
     }
-  }, [router, searchParams])
+  }, [router, searchParams, checkAuth])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">

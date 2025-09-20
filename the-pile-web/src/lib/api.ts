@@ -12,17 +12,15 @@ const api = axios.create({
   withCredentials: true, // Send cookies with requests
 })
 
-// Handle auth errors
+// Simple response interceptor for logging
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Log authentication errors for debugging
     if (error.response?.status === 401) {
-      // Don't auto-redirect; emit an event instead
-      authEvents.emit('session-expired', { 
-        message: 'Your session has expired. Please log in again.',
-        error 
-      })
+      console.log('API call failed: 401 Unauthorized')
     }
+    
     return Promise.reject(error)
   }
 )
@@ -44,6 +42,7 @@ export const pileApi = {
   
   importSteamLibrary: () => api.post('/pile/import'),
   syncPlaytime: () => api.post('/pile/sync'),
+  clearPile: () => api.delete('/pile/clear'),
   getImportStatus: () => api.get('/pile/import/status'),
   
   // Game status change endpoints

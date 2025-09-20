@@ -1,13 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import RedirectResponse
+"""
+Secure authentication endpoints following FastAPI best practices.
+"""
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
+
 from app.db.base import get_db
 from app.services.steam_auth import SteamAuth
 from app.services.user_service import UserService
-from app.core.security import create_access_token
+from app.core.security import (
+    create_access_token, 
+    Token,
+    create_secure_cookie_params,
+    credentials_exception
+)
 from app.core.rate_limiter import limiter
-from datetime import timedelta
 from app.core.config import settings
+from datetime import timedelta
 
 router = APIRouter()
 steam_auth = SteamAuth()
@@ -17,22 +28,33 @@ user_service = UserService()
 @router.get("/steam/login")
 @limiter.limit("10 per minute")
 async def steam_login(request: Request):
-    """Initiate Steam OpenID authentication"""
-    auth_url = steam_auth.get_auth_url()
-    return RedirectResponse(auth_url)
+    """
+    Initiate Steam OpenID authentication.
+    Redirects user to Steam's authentication page.
+    """
+    try:
+        auth_url = steam_auth.get_auth_url()
+        return RedirectResponse(auth_url, status_code=status.HTTP_302_FOUND)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Steam authentication service unavailable"
+        )
 
 
 @router.get("/steam/callback")
 @limiter.limit("20 per minute")
 async def steam_callback(
     request: Request,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
-    """Handle Steam OpenID callback and create/update user"""
+    """
+    Handle Steam OpenID callback with secure parameter validation.
+    """
     # Extract OpenID parameters from query string
     query_params = dict(request.query_params)
     
-    # Check if we have the required OpenID parameters
+    # Validate required OpenID parameters
     required_params = [
         "openid.mode", "openid.signed", "openid.sig", "openid.ns",
         "openid.op_endpoint", "openid.claimed_id", "openid.identity",
@@ -41,13 +63,23 @@ async def steam_callback(
     
     missing_params = [param for param in required_params if param not in query_params]
     if missing_params:
+        # Log security event
+        print(f"Missing OpenID parameters in callback: {missing_params}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Missing OpenID parameters: {', '.join(missing_params)}"
+            detail="Invalid authentication response"
         )
     
-    # Verify Steam authentication
-    steam_id = steam_auth.verify_authentication(query_params)
+    # Verify Steam authentication securely
+    try:
+        steam_id = steam_auth.verify_authentication(query_params)
+    except Exception as e:
+        # Log security event
+        print(f"Steam authentication verification failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication verification failed"
+        )
     
     if not steam_id:
         raise HTTPException(
@@ -55,29 +87,43 @@ async def steam_callback(
             detail="Steam authentication failed"
         )
     
-    # Get or create user
-    user = await user_service.get_or_create_user(steam_id, db)
+    # Get or create user securely
+    try:
+        user = await user_service.get_or_create_user(steam_id, db)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="User creation failed"
+        )
     
-    # Create access token
+    # Create secure access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": steam_id}, expires_delta=access_token_expires
+        data={"sub": steam_id}, 
+        expires_delta=access_token_expires
     )
     
-    # Create redirect response with httpOnly cookie
+    # Prepare secure redirect
     frontend_url = settings.CORS_ORIGINS[0] if settings.CORS_ORIGINS else "http://localhost:3000"
-    response = RedirectResponse(f"{frontend_url}/auth/callback?success=true")
     
-    # Set secure httpOnly cookie
+    # Validate frontend URL for security
+    if not frontend_url.startswith(("http://localhost", "https://")):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Invalid redirect configuration"
+        )
+    
+    response = RedirectResponse(
+        f"{frontend_url}/auth/callback?success=true",
+        status_code=status.HTTP_302_FOUND
+    )
+    
+    # Set secure cookie with all security headers
+    cookie_params = create_secure_cookie_params()
     response.set_cookie(
         key="auth_token",
         value=access_token,
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
-        httponly=True,
-        secure=settings.ENVIRONMENT == "production",  # HTTPS only in production
-        samesite="lax",
-        domain=None,  # Will be set to current domain
-        path="/",
+        **cookie_params
     )
     
     return response
@@ -85,25 +131,81 @@ async def steam_callback(
 
 @router.get("/me")
 async def get_current_user(
-    current_user: dict = Depends(user_service.get_current_user)
+    current_user: Annotated[dict, Depends(user_service.get_current_user)]
 ):
-    """Get current authenticated user"""
+    """Get current authenticated user with secure validation"""
     return current_user
 
+
+@router.post("/token")
+@limiter.limit("30 per minute")
+async def get_access_token(
+    request: Request,
+    current_user: Annotated[dict, Depends(user_service.get_current_user)]
+) -> Token:
+    """
+    Get access token for API clients (alternative to cookie auth).
+    Useful for programmatic access.
+    """
+    # Create new token
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": current_user["steam_id"]}, 
+        expires_delta=access_token_expires
+    )
+    
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+
+
+@router.get("/logout")
 @router.post("/logout")
 @limiter.limit("30 per minute")
-async def logout(request: Request):
-    """Logout user by clearing the auth cookie"""
+async def logout(request: Request, response: Response):
+    """
+    Secure logout with proper cookie clearing.
+    Supports both GET and POST for flexibility.
+    """
+    # Determine redirect URL
     frontend_url = settings.CORS_ORIGINS[0] if settings.CORS_ORIGINS else "http://localhost:3000"
-    response = RedirectResponse(frontend_url)
     
-    # Clear the auth cookie
+    # Clear authentication cookie securely
+    cookie_params = create_secure_cookie_params()
+    cookie_params["max_age"] = 0  # Immediately expire
+    
+    # For GET requests, redirect to frontend
+    if request.method == "GET":
+        redirect_response = RedirectResponse(frontend_url, status_code=status.HTTP_302_FOUND)
+        redirect_response.delete_cookie(
+            key="auth_token",
+            path="/",
+            domain=None,
+            secure=cookie_params["secure"],
+            samesite=cookie_params["samesite"]
+        )
+        return redirect_response
+    
+    # For POST requests, return JSON response
     response.delete_cookie(
         key="auth_token",
         path="/",
-        domain=None,
-        secure=settings.ENVIRONMENT == "production",
-        samesite="lax"
+        domain=None, 
+        secure=cookie_params["secure"],
+        samesite=cookie_params["samesite"]
     )
     
-    return response
+    return {"message": "Successfully logged out"}
+
+
+@router.get("/verify")
+async def verify_authentication(
+    current_user: Annotated[dict, Depends(user_service.get_current_user_optional)]
+):
+    """
+    Verify if current request is authenticated.
+    Returns user info if authenticated, null otherwise.
+    """
+    return {"authenticated": current_user is not None, "user": current_user}

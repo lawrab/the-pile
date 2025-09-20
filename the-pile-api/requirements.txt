@@ -11,3 +11,4 @@ python-dotenv==1.0.0
 pydantic-settings==2.1.0
 celery==5.3.4
 slowapi==0.1.9
+passlib[bcrypt]==1.7.4
