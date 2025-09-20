@@ -705,15 +705,30 @@ export function ModernGameGrid({
                         )}
                         
                         {/* Steam App ID for the tech-savvy shame */}
-                        <div className="text-[10px] text-slate-500 text-center pt-1">
-                          Steam ID: {game.steam_game.steam_app_id} • 
-                          <span className="hover:text-blue-400 cursor-pointer" 
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
-                                }}>
-                            View in Steam
-                          </span>
+                        <div className="flex justify-between items-center pt-2">
+                          <div className="text-[10px] text-slate-500">
+                            Steam ID: {game.steam_game.steam_app_id}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 bg-blue-500/10 rounded"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
+                              }}
+                            >
+                              Steam
+                            </button>
+                            <button
+                              className="text-[10px] text-green-400 hover:text-green-300 transition-colors px-2 py-1 bg-green-500/10 rounded"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onGameClick(game)
+                              }}
+                            >
+                              Details
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -857,15 +872,26 @@ export function ModernGameGrid({
                                   }
                                 </div>
                               </div>
-                              <button
-                                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
-                                }}
-                              >
-                                View in Steam
-                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 bg-blue-500/10 rounded"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
+                                  }}
+                                >
+                                  Steam
+                                </button>
+                                <button
+                                  className="text-xs text-green-400 hover:text-green-300 transition-colors px-2 py-1 bg-green-500/10 rounded"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onGameClick(game)
+                                  }}
+                                >
+                                  Details
+                                </button>
+                              </div>
                             </div>
                           </div>
                         )}
