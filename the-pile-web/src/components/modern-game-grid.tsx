@@ -53,6 +53,10 @@ export function ModernGameGrid({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [internalSearchTerm, setInternalSearchTerm] = useState('')
   const [expandedCard, setExpandedCard] = useState<number | null>(null)
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+  const [lastTapTime, setLastTapTime] = useState<number>(0)
+  const [tapTimeout, setTapTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [popoverPosition, setPopoverPosition] = useState<{x: number, y: number} | null>(null)
   
   // Use external search term if provided, otherwise internal
   const searchTerm = onSearchTermChange ? externalSearchTerm : internalSearchTerm
@@ -456,8 +460,67 @@ export function ModernGameGrid({
     }
   }
 
+  // Smart interaction handler for mobile and desktop
+  const handleCardInteraction = (game: PileEntry, event: React.MouseEvent | React.TouchEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    
+    // On desktop, always open modal on click (since we have hover for quick shame)
+    // On mobile, toggle expansion on first tap, modal on second tap
+    if (window.innerWidth >= 640) { // sm breakpoint
+      // Desktop: click always opens modal
+      onGameClick(game)
+    } else {
+      // Mobile: tap to expand, second tap to open modal
+      const now = Date.now()
+      const timeSinceLastTap = now - lastTapTime
+      
+      if (timeSinceLastTap < 300 && expandedCard === game.id) {
+        // Double tap or expanded - open modal
+        onGameClick(game)
+        setExpandedCard(null)
+      } else {
+        // Single tap - toggle expansion
+        setExpandedCard(expandedCard === game.id ? null : game.id)
+      }
+      
+      setLastTapTime(now)
+    }
+  }
+
+  // Handle hover for desktop with position tracking
+  const handleMouseEnter = (game: PileEntry, event: React.MouseEvent) => {
+    setHoveredCard(game.id)
+    
+    // Calculate popover position
+    const rect = event.currentTarget.getBoundingClientRect()
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    
+    // Position to the right if there's space, otherwise to the left
+    let x = rect.right + 10
+    if (x + 320 > viewportWidth) { // 320px is popover width
+      x = rect.left - 330
+    }
+    
+    // Position vertically centered, but adjust if it would go off-screen
+    let y = rect.top + (rect.height / 2) - 150 // 150px is half popover height
+    if (y < 10) y = 10
+    if (y + 300 > viewportHeight) y = viewportHeight - 310
+    
+    setPopoverPosition({ x, y })
+  }
+
+  const handleMouseLeave = () => {
+    setHoveredCard(null)
+    setPopoverPosition(null)
+  }
+
+  // Get the currently hovered game for popover
+  const hoveredGame = hoveredCard ? pile.find(g => g.id === hoveredCard) : null
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
       {/* Controls Row */}
       <Card className="bg-slate-800/50 border-slate-700">
         <CardContent className="pt-6">
@@ -627,6 +690,9 @@ export function ModernGameGrid({
           {activeFilter && ` • ${getStatusLabel(activeFilter as GameStatus)}`}
           {searchTerm && ` • "${searchTerm}"`}
         </h2>
+        <div className="text-xs text-slate-500 hidden sm:block">
+          Hover for instant shame • Click for details
+        </div>
       </div>
 
       {/* Game Grid/List */}
@@ -636,16 +702,11 @@ export function ModernGameGrid({
             <Card 
               key={game.id} 
               className={`bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-all cursor-pointer group ${
-                expandedCard === game.id ? 'ring-2 ring-blue-500/50 border-blue-500/50' : ''
+                expandedCard === game.id || hoveredCard === game.id ? 'ring-2 ring-blue-500/50 border-blue-500/50' : ''
               }`}
-              onClick={(e) => {
-                e.stopPropagation()
-                if (expandedCard === game.id) {
-                  setExpandedCard(null)
-                } else {
-                  setExpandedCard(game.id)
-                }
-              }}
+              onClick={(e) => handleCardInteraction(game, e)}
+              onMouseEnter={(e) => handleMouseEnter(game, e)}
+              onMouseLeave={handleMouseLeave}
             >
               <CardContent className="p-4">
                 <div className="aspect-[460/215] relative mb-3 rounded-lg overflow-hidden bg-slate-700">
@@ -759,9 +820,9 @@ export function ModernGameGrid({
                     </div>
                   )}
                   
-                  {/* Expanded Content */}
+                  {/* Mobile tap expansion */}
                   {expandedCard === game.id && (
-                    <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-3">
+                    <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-3 sm:hidden">
                       <div className="text-xs space-y-2">
                         {/* Brutal Ownership Truth */}
                         {getSarcasticOwnership(game) && (
@@ -833,16 +894,11 @@ export function ModernGameGrid({
             <Card 
               key={game.id}
               className={`bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-all cursor-pointer ${
-                expandedCard === game.id ? 'ring-2 ring-blue-500/50 border-blue-500/50' : ''
+                expandedCard === game.id || hoveredCard === game.id ? 'ring-2 ring-blue-500/50 border-blue-500/50' : ''
               }`}
-              onClick={(e) => {
-                e.stopPropagation()
-                if (expandedCard === game.id) {
-                  setExpandedCard(null)
-                } else {
-                  setExpandedCard(game.id)
-                }
-              }}
+              onClick={(e) => handleCardInteraction(game, e)}
+              onMouseEnter={(e) => handleMouseEnter(game, e)}
+              onMouseLeave={handleMouseLeave}
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
@@ -926,59 +982,37 @@ export function ModernGameGrid({
                       )}
                     </div>
                     
-                    {/* Expanded Content for List View */}
+                    {/* Mobile tap expansion for list view */}
                     {expandedCard === game.id && (
-                      <div className="mt-3 pt-3 border-t border-slate-700/50 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {/* Ownership Shame */}
-                        {getSarcasticOwnership(game) && (
-                          <div className="bg-slate-900/50 p-3 rounded border border-red-500/20">
-                            <div className="text-red-300 font-medium text-sm mb-1">Ownership Truth</div>
-                            <div className="text-slate-300 text-sm">{getSarcasticOwnership(game)}</div>
-                          </div>
-                        )}
-                        
-                        {/* Genre Analysis */}
-                        <div className="bg-slate-900/50 p-3 rounded border border-yellow-500/20">
-                          <div className="text-yellow-300 font-medium text-sm mb-1">Genre Psychology</div>
-                          <div className="text-slate-300 text-sm">{getGenreShame(game.steam_game.genres, game.steam_game.name)}</div>
-                        </div>
-                        
-                        {/* Developer Guilt - Full Width */}
-                        <div className="md:col-span-2 bg-slate-900/50 p-3 rounded border border-purple-500/20">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="text-purple-300 font-medium text-sm mb-1">Developer Support Status</div>
-                              <div className="text-slate-300 text-sm">{game.steam_game.developer || 'Unknown (even more shameful)'}</div>
-                              <div className="text-slate-400 text-xs mt-1">
-                                {game.status === GameStatus.UNPLAYED ? 
-                                  'They worked hard, you bought it, now actually play it!' :
-                                  game.status === GameStatus.ABANDONED ?
-                                  'They put their heart into this, you gave up. How does that feel?' :
-                                  game.status === GameStatus.COMPLETED ?
-                                  'Finally, someone who appreciates good work!' :
-                                  'At least you\'re making progress.'
-                                }
-                              </div>
+                      <div className="mt-3 pt-3 border-t border-slate-700/50 space-y-3 sm:hidden">
+                        <div className="text-xs space-y-2">
+                          {/* Brutal Ownership Truth */}
+                          {getSarcasticOwnership(game) && (
+                            <div className="bg-slate-900/50 p-2 rounded border border-red-500/20">
+                              <span className="text-red-300 font-medium">Ownership Shame: </span>
+                              <span className="text-slate-300">{getSarcasticOwnership(game)}</span>
                             </div>
-                            <div className="flex gap-2">
-                              <button
-                                className="text-xs text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 bg-blue-500/10 rounded"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
-                                }}
-                              >
-                                Steam
-                              </button>
-                              <button
-                                className="text-xs text-green-400 hover:text-green-300 transition-colors px-2 py-1 bg-green-500/10 rounded"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  onGameClick(game)
-                                }}
-                              >
-                                Details
-                              </button>
+                          )}
+                          
+                          {/* Genre Mockery */}
+                          <div className="bg-slate-900/50 p-2 rounded border border-yellow-500/20">
+                            <span className="text-yellow-300 font-medium">Genre Analysis: </span>
+                            <span className="text-slate-300">{getGenreShame(game.steam_game.genres, game.steam_game.name)}</span>
+                          </div>
+                          
+                          {/* Developer Support Guilt */}
+                          <div className="bg-slate-900/50 p-2 rounded border border-purple-500/20">
+                            <span className="text-purple-300 font-medium">Developer: </span>
+                            <span className="text-slate-300">{game.steam_game.developer || 'Unknown (even more shameful)'}</span>
+                            <div className="text-slate-400 text-[10px] mt-1">
+                              {game.status === GameStatus.UNPLAYED ? 
+                                'They worked hard, you bought it, now play it!' :
+                                game.status === GameStatus.ABANDONED ?
+                                'They put effort in, you gave up. Classic.' :
+                                game.status === GameStatus.COMPLETED ?
+                                'Finally, someone who appreciates good work!' :
+                                'At least you\'re making progress.'
+                              }
                             </div>
                           </div>
                         </div>
@@ -1016,6 +1050,88 @@ export function ModernGameGrid({
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Floating Shame Popover (Desktop only) */}
+      {hoveredGame && popoverPosition && (
+        <div 
+          className="fixed z-50 hidden sm:block pointer-events-none"
+          style={{
+            left: `${popoverPosition.x}px`,
+            top: `${popoverPosition.y}px`
+          }}
+        >
+          <div className="bg-slate-800 border border-slate-600 rounded-lg shadow-2xl p-4 w-80 max-w-sm transform transition-all duration-200 animate-in">
+            {/* Game Header */}
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-16 h-9 rounded overflow-hidden bg-slate-700 flex-shrink-0 relative">
+                {hoveredGame.steam_game.image_url ? (
+                  <Image 
+                    src={hoveredGame.steam_game.image_url}
+                    alt={hoveredGame.steam_game.name}
+                    width={64}
+                    height={36}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-500">
+                    <Play className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm text-white line-clamp-2 mb-1">
+                  {hoveredGame.steam_game.name}
+                </h3>
+                <div className={`inline-block px-2 py-1 rounded border text-xs font-medium ${
+                  getStatusColor(hoveredGame.status)
+                }`}>
+                  {getStatusLabel(hoveredGame.status, hoveredGame)}
+                </div>
+              </div>
+            </div>
+
+            {/* Shame Content */}
+            <div className="space-y-3 text-xs">
+              {/* Brutal Ownership Truth */}
+              {getSarcasticOwnership(hoveredGame) && (
+                <div className="bg-slate-900/50 p-2 rounded border border-red-500/20">
+                  <div className="text-red-300 font-medium mb-1">Ownership Shame</div>
+                  <div className="text-slate-300 leading-relaxed">{getSarcasticOwnership(hoveredGame)}</div>
+                </div>
+              )}
+              
+              {/* Genre Mockery */}
+              <div className="bg-slate-900/50 p-2 rounded border border-yellow-500/20">
+                <div className="text-yellow-300 font-medium mb-1">Genre Psychology</div>
+                <div className="text-slate-300 leading-relaxed">{getGenreShame(hoveredGame.steam_game.genres, hoveredGame.steam_game.name)}</div>
+              </div>
+              
+              {/* Developer Support Guilt */}
+              <div className="bg-slate-900/50 p-2 rounded border border-purple-500/20">
+                <div className="text-purple-300 font-medium mb-1">Developer Support</div>
+                <div className="text-slate-300 mb-1">{hoveredGame.steam_game.developer || 'Unknown (even more shameful)'}</div>
+                <div className="text-slate-400 text-[10px] leading-relaxed">
+                  {hoveredGame.status === GameStatus.UNPLAYED ? 
+                    'They worked hard, you bought it, now play it!' :
+                    hoveredGame.status === GameStatus.ABANDONED ?
+                    'They put effort in, you gave up. Classic.' :
+                    hoveredGame.status === GameStatus.COMPLETED ?
+                    'Finally, someone who appreciates good work!' :
+                    'At least you\'re making progress.'
+                  }
+                </div>
+              </div>
+
+              {/* Click hint */}
+              <div className="text-center pt-2 border-t border-slate-700/50">
+                <div className="text-xs text-slate-500">
+                  Click for full details & actions
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
