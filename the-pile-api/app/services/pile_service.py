@@ -130,6 +130,7 @@ class PileService:
             "key": api_key,
             "steamid": steam_id,
             "include_appinfo": 1,
+            "include_played_free_games": 1,  # Include free games they've played
             "format": "json",
         }
 
@@ -484,9 +485,19 @@ class PileService:
                 
                 if not is_public:
                     if visibility_state == "private":
-                        error_msg = "Your Steam profile is set to Private. Please set your profile to Public in Steam Privacy Settings to import your games."
+                        error_msg = (
+                            "Your Steam profile is set to Private. Due to Steam API limitations, "
+                            "we can only access game libraries from public profiles. "
+                            "Please temporarily set your profile to Public in Steam > Edit Profile > Privacy Settings, "
+                            "import your games, then you can set it back to Private."
+                        )
                     elif visibility_state == "friendsonly":
-                        error_msg = "Your Steam profile is set to Friends Only. Please set your profile to Public in Steam Privacy Settings to import your games."
+                        error_msg = (
+                            "Your Steam profile is set to Friends Only. Due to Steam API limitations, "
+                            "we can only access game libraries from public profiles. "
+                            "Please temporarily set your profile to Public in Steam > Edit Profile > Privacy Settings, "
+                            "import your games, then you can set it back to Friends Only."
+                        )
                     else:
                         error_msg = "Unable to access your Steam profile. Please ensure your profile is set to Public in Steam Privacy Settings."
                     
