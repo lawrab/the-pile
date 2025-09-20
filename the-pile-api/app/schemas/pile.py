@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, Field, validator
 
 from app.models.pile_entry import GameStatus
 from app.services.validation_service import InputValidationService
