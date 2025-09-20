@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink, Trophy, AlertTriangle } from 'lucide-react'
+import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink, Trophy, AlertTriangle, GamepadIcon, Download, Activity } from 'lucide-react'
 import { Button } from './ui/button'
+import { IconButton } from './ui/icon-button'
 import Image from 'next/image'
 
 interface GameDetailModalProps {
@@ -117,6 +118,12 @@ export function GameDetailModal({
   const steamUrl = game.steam_game?.steam_app_id 
     ? `https://store.steampowered.com/app/${game.steam_game.steam_app_id}`
     : '#'
+  const steamPlayUrl = game.steam_game?.steam_app_id 
+    ? `steam://run/${game.steam_game.steam_app_id}`
+    : null
+  const steamInstallUrl = game.steam_game?.steam_app_id 
+    ? `steam://install/${game.steam_game.steam_app_id}`
+    : null
   
   const formatPlaytime = (minutes: number) => {
     if (minutes === 0) return 'Never played'
@@ -138,6 +145,77 @@ export function GameDetailModal({
 
   const reviewScore = getReviewScore()
 
+  // Steam play/install motivational messaging with therapeutic roasting
+  const getPlayNowMotivation = () => {
+    const price = game.steam_game.price || 0
+    const daysSinceRelease = game.steam_game.release_date ? 
+      Math.floor((Date.now() - new Date(game.steam_game.release_date).getTime()) / (1000 * 60 * 60 * 24)) : 0
+    const hours = Math.floor(game.playtime_minutes / 60)
+
+    if (game.status === 'unplayed') {
+      if (game.playtime_minutes === 0) {
+        if (price > 40) return "Finally Launch Your $" + price + " Regret"
+        if (daysSinceRelease > 730) return "It's About Time"
+        return "Actually Play This?"
+      }
+      if (hours < 2) return "Give It Another Shot"
+      return "Continue Where You Left Off"
+    }
+    
+    if (game.status === 'playing') {
+      if (hours < 5) return "Keep Going This Time"
+      return "Back to Your Journey"
+    }
+    
+    if (game.status === 'abandoned') {
+      return "One More Try?"
+    }
+    
+    return "Play Now"
+  }
+
+  const getInstallMotivation = () => {
+    const price = game.steam_game.price || 0
+    
+    if (price > 30) return "Download Your $" + price + " Shame"
+    if (price === 0) return "Install Your Free Guilt"
+    return "Finally Download This?"
+  }
+
+  const getPlayNowTooltip = () => {
+    const price = game.steam_game.price || 0
+    const daysSinceRelease = game.steam_game.release_date ? 
+      Math.floor((Date.now() - new Date(game.steam_game.release_date).getTime()) / (1000 * 60 * 60 * 24)) : 0
+    const yearsSinceRelease = Math.floor(daysSinceRelease / 365)
+    const hours = Math.floor(game.playtime_minutes / 60)
+
+    if (game.status === 'unplayed' && game.playtime_minutes === 0) {
+      if (price > 40) {
+        return `You spent $${price} on this ${yearsSinceRelease > 0 ? yearsSinceRelease + ' year' + (yearsSinceRelease > 1 ? 's' : '') + ' ago' : 'recently'} and haven't even launched it once. Maybe today's the day you finally get your money's worth?`
+      }
+      if (daysSinceRelease > 730) {
+        return `This game has been waiting ${yearsSinceRelease} year${yearsSinceRelease > 1 ? 's' : ''} for you to press play. Your Steam library is starting to feel like a digital graveyard.`
+      }
+      if (price === 0) {
+        return `It's free and you still won't play it. Even when there's no financial commitment, you find ways to procrastinate.`
+      }
+      return `Time to stop staring at your library and actually launch something. Your backlog isn't going to play itself.`
+    }
+    
+    if (game.status === 'playing') {
+      if (hours < 5) {
+        return `You marked this as "playing" but only have ${hours} hour${hours !== 1 ? 's' : ''} logged. Time to show some actual commitment.`
+      }
+      return `Back to your ${hours}-hour journey. At least you're making progress on something.`
+    }
+    
+    if (game.status === 'abandoned') {
+      return `You gave up on this once before. Will this time be different, or are we just delaying the inevitable amnesty?`
+    }
+    
+    return `Launch directly in Steam. No more excuses.`
+  }
+
   // Sarcastic button text and confirmation messages
   const getSarcasticPlayingButton = () => {
     const daysSinceRelease = game.steam_game.release_date ? 
@@ -145,12 +223,12 @@ export function GameDetailModal({
 
     if (game.status === 'unplayed') {
       if (game.playtime_minutes === 0) {
-        if (daysSinceRelease > 365) return "Finally Ready?"
-        return "Actually Play This?"
+        if (daysSinceRelease > 365) return "Mark as Playing"
+        return "Mark as Playing"
       }
-      return "Give It Another Try?"
+      return "Mark as Playing"
     }
-    return "Start Playing"
+    return "Mark as Playing"
   }
 
   const getSarcasticPlayingConfirm = () => {
@@ -285,202 +363,333 @@ export function GameDetailModal({
         </button>
 
         {/* Content */}
-        <div className="flex flex-col lg:flex-row max-h-[90vh]">
-          {/* Left Column - Image & Status */}
-          <div className="lg:w-1/2 p-6">
-            {/* Game Image */}
-            <div className="relative w-full rounded-xl overflow-hidden mb-6 bg-gray-900/50">
-              {/* Steam header images are typically 460x215 (2.14:1 aspect ratio) */}
-              <div className="relative" style={{ paddingBottom: '46.74%' }}>
-                <Image
-                  src={game.steam_game?.image_url || '/default-game.svg'}
-                  alt={game.steam_game?.name || 'Unknown Game'}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  priority
-                  onError={(e) => {
-                    e.currentTarget.src = '/default-game.svg'
-                  }}
-                />
-              </div>
+        <div className="flex flex-col max-h-[90vh] overflow-hidden">
+          {/* Hero Section - Game Art as Centerpiece */}
+          <div className="relative">
+            {/* Background Image with Overlay */}
+            <div className="relative h-64 lg:h-80 overflow-hidden">
+              <Image
+                src={game.steam_game?.image_url || '/default-game.svg'}
+                alt={game.steam_game?.name || 'Unknown Game'}
+                fill
+                className="object-cover"
+                sizes="100vw"
+                priority
+                onError={(e) => {
+                  e.currentTarget.src = '/default-game.svg'
+                }}
+              />
+              {/* Gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/40" />
             </div>
-
-            {/* Status Card */}
-            <div className={`
-              ${config.bgColor} ${config.borderColor}
-              border rounded-xl p-4 mb-4
-            `}>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">{config.icon}</span>
-                <div>
-                  <h3 className={`font-semibold ${config.color}`}>
-                    {config.label}
-                  </h3>
-                  <p className="text-sm text-gray-400">
-                    {formatPlaytime(game.playtime_minutes)}
-                  </p>
+            
+            {/* Hero Content Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-6">
+              <div className="flex items-end justify-between">
+                {/* Title and Meta Info */}
+                <div className="flex-1 mr-4">
+                  <h1 className="text-4xl lg:text-5xl font-bold mb-2 text-white drop-shadow-lg" style={{ fontFamily: 'Crimson Text, serif' }}>
+                    {game.steam_game?.name || 'Unknown Game'}
+                  </h1>
+                  
+                  {/* Developer, Publisher, Year, Price - Consolidated */}
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-200 mb-3">
+                    {game.steam_game?.developer && (
+                      <span className="bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
+                        {game.steam_game.developer}
+                      </span>
+                    )}
+                    {game.steam_game?.release_date && (
+                      <span className="bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
+                        {new Date(game.steam_game.release_date).getFullYear()}
+                      </span>
+                    )}
+                    {game.steam_game?.price && (
+                      <span className="bg-black/40 px-2 py-1 rounded backdrop-blur-sm text-yellow-300">
+                        ${game.steam_game.price.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Primary Action - Prominent Play Now Button */}
+                  <div className="flex items-center gap-3">
+                    {steamPlayUrl && (
+                      <IconButton
+                        size="lg"
+                        onClick={() => window.location.href = steamPlayUrl}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+                        icon={Play}
+                        iconSize="lg"
+                      >
+                        {getPlayNowMotivation()}
+                      </IconButton>
+                    )}
+                    
+                    {steamUrl !== '#' && (
+                      <IconButton
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(steamUrl, '_blank')}
+                        className="bg-black/40 border-white/20 text-white hover:bg-black/60 backdrop-blur-sm"
+                        icon={ExternalLink}
+                        iconSize="sm"
+                      >
+                        Steam Store
+                      </IconButton>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Status Badge - Floating on the right */}
+                <div className={`
+                  ${config.bgColor} ${config.borderColor}
+                  border rounded-xl p-4 backdrop-blur-sm bg-opacity-90
+                  shadow-lg
+                `}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{config.icon}</span>
+                    <div className="text-right">
+                      <h3 className={`font-semibold ${config.color} text-lg`}>
+                        {config.label}
+                      </h3>
+                      <p className="text-sm text-gray-300">
+                        {formatPlaytime(game.playtime_minutes)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              {/* Status Actions */}
-              <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-300 mb-3">Face Your Choices</h4>
-                <div className="grid grid-cols-1 gap-2">
-                  {game.status !== 'playing' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleActionWithConfirm('playing')}
-                      className="flex items-center justify-center text-yellow-400 border-yellow-600 hover:bg-yellow-600/10 hover:text-yellow-300 transition-all duration-200 hover:scale-[1.02]"
-                    >
-                      <Play size={14} className="mr-2" />
-                      {getSarcasticPlayingButton()}
-                    </Button>
-                  )}
-                  
-                  {game.status !== 'completed' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleActionWithConfirm('completed')}
-                      className="flex items-center justify-center text-green-400 border-green-600 hover:bg-green-600/10 hover:text-green-300 transition-all duration-200 hover:scale-[1.02]"
-                    >
-                      <Star size={14} className="mr-2" />
-                      {getSarcasticCompletedButton()}
-                    </Button>
-                  )}
-                  
-                  {game.status !== 'amnesty_granted' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleActionWithConfirm('amnesty')}
-                      className="flex items-center justify-center text-purple-400 border-purple-600 hover:bg-purple-600/10 hover:text-purple-300 transition-all duration-200 hover:scale-[1.02]"
-                    >
-                      <Feather size={14} className="mr-2" />
-                      {getSarcasticAmnestyButton()}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              {game.steam_game.price && (
-                <div className="flex items-center gap-2 text-yellow-400">
-                  <DollarSign size={16} />
-                  <span>${game.steam_game.price.toFixed(2)}</span>
-                </div>
-              )}
-              
-              {game.steam_game.release_date && (
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Calendar size={16} />
-                  <span>{new Date(game.steam_game.release_date).getFullYear()}</span>
-                </div>
-              )}
-              
-              {game.steam_game.metacritic_score && (
-                <div className="flex items-center gap-2">
-                  <Star size={16} className="text-yellow-500" />
-                  <span className="text-yellow-400">{game.steam_game.metacritic_score}/100</span>
-                </div>
-              )}
-              
-              {reviewScore && (
-                <div className="flex items-center gap-2">
-                  <span className={reviewScore.percentage >= 80 ? 'text-green-400' : reviewScore.percentage >= 60 ? 'text-yellow-400' : 'text-red-400'}>
-                    {reviewScore.percentage}%
-                  </span>
-                  <span className="text-gray-500 text-xs">({reviewScore.total.toLocaleString()} reviews)</span>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Right Column - Details */}
-          <div className="lg:w-1/2 p-6 overflow-y-auto">
-            {/* Game Title */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
-                {game.steam_game?.name || 'Unknown Game'}
-              </h1>
-              
-              {game.steam_game?.developer && (
-                <p className="text-gray-400 mb-1">
-                  <strong>Developer:</strong> {game.steam_game.developer}
-                </p>
-              )}
-              
-              {game.steam_game?.publisher && (
-                <p className="text-gray-400 mb-4">
-                  <strong>Publisher:</strong> {game.steam_game.publisher}
-                </p>
-              )}
-
-              {steamUrl !== '#' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(steamUrl, '_blank')}
-                  className="mb-4"
-                >
-                  <ExternalLink size={14} className="mr-2" />
-                  View on Steam
-                </Button>
-              )}
+          
+          {/* Main Content Area - Scrollable */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Secondary Actions & Status Management */}
+            <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+              <h3 className="text-lg font-semibold mb-4 text-gray-200">Manage Your Pile</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {game.status !== 'playing' && (
+                  <IconButton
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleActionWithConfirm('playing')}
+                    className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10 border border-yellow-600/30 hover:border-yellow-500/50"
+                    title="Mark this game as currently playing in your pile"
+                    icon={Activity}
+                    iconSize="sm"
+                  >
+                    {getSarcasticPlayingButton()}
+                  </IconButton>
+                )}
+                
+                {game.status !== 'completed' && (
+                  <IconButton
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleActionWithConfirm('completed')}
+                    className="text-green-400 hover:text-green-300 hover:bg-green-400/10 border border-green-600/30 hover:border-green-500/50"
+                    icon={Trophy}
+                    iconSize="sm"
+                  >
+                    {getSarcasticCompletedButton()}
+                  </IconButton>
+                )}
+                
+                {game.status !== 'amnesty_granted' && (
+                  <IconButton
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleActionWithConfirm('amnesty')}
+                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-400/10 border border-purple-600/30 hover:border-purple-500/50"
+                    icon={Feather}
+                    iconSize="sm"
+                  >
+                    {getSarcasticAmnestyButton()}
+                  </IconButton>
+                )}
+              </div>
             </div>
 
-            {/* Genres */}
-            {game.steam_game?.genres && game.steam_game.genres.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
-                  Genres
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {game.steam_game.genres.map(genre => (
-                    <span 
-                      key={genre}
-                      className="px-3 py-1 bg-purple-950/30 border border-purple-800/30 rounded-full text-sm text-purple-200"
-                    >
-                      {genre}
-                    </span>
-                  ))}
+            {/* Game Stats & Metadata - Horizontal Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Game Details */}
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <h3 className="text-lg font-semibold mb-3 text-gray-200">Game Details</h3>
+                <div className="space-y-3">
+                  {/* Playtime vs Last Played */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Total Playtime:</span>
+                    <span className="text-white font-medium">{formatPlaytime(game.playtime_minutes)}</span>
+                  </div>
+                  
+                  {game.steam_game?.rtime_last_played && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Last Played:</span>
+                      <span className="text-gray-300">
+                        {new Date(game.steam_game.rtime_last_played * 1000).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {game.steam_game?.publisher && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Publisher:</span>
+                      <span className="text-gray-300">{game.steam_game.publisher}</span>
+                    </div>
+                  )}
+                  
+                  {game.steam_game?.metacritic_score && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Metacritic:</span>
+                      <span className={`font-medium ${
+                        game.steam_game.metacritic_score >= 80 ? 'text-green-400' : 
+                        game.steam_game.metacritic_score >= 60 ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        {game.steam_game.metacritic_score}/100
+                      </span>
+                    </div>
+                  )}
+                  
+                  {game.steam_game?.achievements_total && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Achievements:</span>
+                      <span className="text-gray-300 flex items-center">
+                        <Trophy size={14} className="mr-1 text-yellow-500" />
+                        {game.steam_game.achievements_total} total
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Tags */}
-            {game.steam_game?.tags && game.steam_game.tags.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
-                  Tags
+              {/* Tags & Genres Combined */}
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <h3 className="text-lg font-semibold mb-3 text-gray-200">Categories</h3>
+                <div className="space-y-3">
+                  {game.steam_game?.genres && game.steam_game.genres.length > 0 && (
+                    <div>
+                      <span className="text-sm text-gray-400 block mb-2">Genres:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {game.steam_game.genres.map(genre => (
+                          <span 
+                            key={genre}
+                            className="px-3 py-1 bg-purple-950/30 border border-purple-800/30 rounded-full text-sm text-purple-200"
+                          >
+                            {genre}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {game.steam_game?.tags && game.steam_game.tags.length > 0 && (
+                    <div>
+                      <span className="text-sm text-gray-400 block mb-2">Popular Tags:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {game.steam_game.tags.slice(0, 6).map(tag => (
+                          <span 
+                            key={tag}
+                            className="px-2 py-1 bg-gray-800/50 border border-gray-600/30 rounded text-xs text-gray-300"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Reviews & Community - Full Width */}
+            {reviewScore && (
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <h3 className="text-lg font-semibold mb-3 text-gray-200 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500" />
+                  Community Reviews
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {game.steam_game.tags.slice(0, 8).map(tag => (
-                    <span 
-                      key={tag}
-                      className="px-2 py-1 bg-gray-800/50 border border-gray-600/30 rounded text-xs text-gray-300"
-                    >
-                      {tag}
+                
+                {/* Review Score with Personality */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`text-3xl font-bold ${
+                      reviewScore.percentage >= 80 ? 'text-green-400' : 
+                      reviewScore.percentage >= 60 ? 'text-yellow-400' : 'text-red-400'
+                    }`}>
+                      {reviewScore.percentage}%
+                    </div>
+                    <div>
+                      <div className="font-semibold text-white">
+                        {reviewScore.percentage >= 90 ? 'Overwhelmingly Positive' : 
+                         reviewScore.percentage >= 80 ? 'Very Positive' :
+                         reviewScore.percentage >= 70 ? 'Mostly Positive' :
+                         reviewScore.percentage >= 60 ? 'Mixed' : 
+                         reviewScore.percentage >= 40 ? 'Mostly Negative' : 'Overwhelmingly Negative'}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {reviewScore.total.toLocaleString()} user reviews
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Sarcastic Commentary */}
+                  <div className="text-xs text-gray-500 italic max-w-xs text-right">
+                    {game.status === 'unplayed' ? 
+                      'Everyone but you loves this' :
+                      game.status === 'abandoned' ?
+                      'Even this got more love than your attention span' :
+                      game.status === 'completed' ?
+                      'You and the community actually agree on something!' :
+                      'At least you\'re making progress like everyone else'
+                    }
+                  </div>
+                </div>
+
+                {/* Review Breakdown */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-green-400 flex items-center gap-2">
+                      👍 Positive
                     </span>
-                  ))}
+                    <span className="text-gray-300">
+                      {(game.steam_game?.positive_reviews || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-red-400 flex items-center gap-2">
+                      👎 Negative
+                    </span>
+                    <span className="text-gray-300">
+                      {(game.steam_game?.negative_reviews || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Review Bar */}
+                <div className="mt-3 h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-500 ${
+                      reviewScore.percentage >= 80 ? 'bg-green-500' : 
+                      reviewScore.percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ width: `${reviewScore.percentage}%` }}
+                  />
                 </div>
               </div>
             )}
 
             {/* Description */}
             {game.steam_game?.description && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3" style={{ fontFamily: 'Crimson Text, serif' }}>
-                  About This Game
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <h3 className="text-lg font-semibold mb-3 text-gray-200 flex items-center">
+                  📝 About This Game
                 </h3>
                 <div className="prose prose-sm prose-invert max-w-none">
-                  <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-                    {game.steam_game.description.length > 500 
-                      ? `${game.steam_game.description.substring(0, 500)}...`
+                  <p className="text-gray-300 leading-relaxed">
+                    {game.steam_game.description.length > 400 
+                      ? `${game.steam_game.description.substring(0, 400)}...`
                       : game.steam_game.description
                     }
                   </p>
@@ -490,111 +699,41 @@ export function GameDetailModal({
 
             {/* Screenshots */}
             {game.steam_game?.screenshots && game.steam_game.screenshots.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3" style={{ fontFamily: 'Crimson Text, serif' }}>
-                  Screenshots
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <h3 className="text-lg font-semibold mb-3 text-gray-200 flex items-center">
+                  🖼️ Screenshots
+                  <span className="ml-2 text-sm text-gray-400 font-normal">
+                    ({game.steam_game.screenshots.length} total)
+                  </span>
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {game.steam_game.screenshots.slice(0, 4).map((screenshot, index) => (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  {game.steam_game.screenshots.slice(0, 6).map((screenshot, index) => (
                     <div 
                       key={index}
-                      className="relative aspect-video rounded-lg overflow-hidden bg-gray-800/50 cursor-pointer hover:scale-105 transition-transform duration-200"
+                      className="relative aspect-video rounded-lg overflow-hidden bg-gray-800/50 cursor-pointer hover:scale-105 transition-transform duration-200 group"
                       onClick={() => window.open(screenshot, '_blank')}
                     >
                       <Image
                         src={screenshot}
                         alt={`Screenshot ${index + 1}`}
                         fill
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                        className="object-cover hover:opacity-90"
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                        className="object-cover group-hover:opacity-90"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
                         }}
                       />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                        <ExternalLink className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                      </div>
                     </div>
                   ))}
                 </div>
-                {game.steam_game.screenshots.length > 4 && (
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    +{game.steam_game.screenshots.length - 4} more screenshots
+                {game.steam_game.screenshots.length > 6 && (
+                  <p className="text-xs text-gray-400 mt-3 text-center">
+                    +{game.steam_game.screenshots.length - 6} more screenshots • Click to view full size
                   </p>
                 )}
-              </div>
-            )}
-
-            {/* Achievements */}
-            {game.steam_game?.achievements_total && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: 'Crimson Text, serif' }}>
-                  Achievements
-                </h3>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Trophy size={16} className="text-yellow-500" />
-                  <span>{game.steam_game.achievements_total} total achievements</span>
-                </div>
-              </div>
-            )}
-
-            {/* Detailed Reviews Section */}
-            {reviewScore && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3" style={{ fontFamily: 'Crimson Text, serif' }}>
-                  Community Reviews
-                </h3>
-                <div className="bg-gray-900/30 rounded-lg p-4 border border-gray-700/20">
-                  {/* Review Score */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`text-2xl font-bold ${reviewScore.percentage >= 80 ? 'text-green-400' : reviewScore.percentage >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        {reviewScore.percentage}%
-                      </div>
-                      <div className="text-gray-300">
-                        <div className="font-semibold">
-                          {reviewScore.percentage >= 80 ? 'Overwhelmingly Positive' : 
-                           reviewScore.percentage >= 70 ? 'Very Positive' :
-                           reviewScore.percentage >= 60 ? 'Mixed' : 'Negative'}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {reviewScore.total.toLocaleString()} user reviews
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Review Breakdown */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-green-400 flex items-center gap-2">
-                        👍 Positive
-                      </span>
-                      <span className="text-gray-300">
-                        {(game.steam_game?.positive_reviews || 0).toLocaleString()} 
-                        <span className="text-gray-500 ml-1">
-                          ({reviewScore.percentage}%)
-                        </span>
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-red-400 flex items-center gap-2">
-                        👎 Negative
-                      </span>
-                      <span className="text-gray-300">
-                        {(game.steam_game?.negative_reviews || 0).toLocaleString()} 
-                        <span className="text-gray-500 ml-1">
-                          ({100 - reviewScore.percentage}%)
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Review Bar */}
-                  <div className="mt-3 h-2 bg-gray-700/50 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full transition-all duration-500 ${reviewScore.percentage >= 80 ? 'bg-green-500' : reviewScore.percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                      style={{ width: `${reviewScore.percentage}%` }}
-                    />
-                  </div>
-                </div>
               </div>
             )}
           </div>
