@@ -15,6 +15,20 @@ user_service = UserService()
 pile_service = PileService()
 
 
+async def get_updated_shame_score(user_id: int, db: Session) -> float:
+    """Helper function to invalidate cache and recalculate shame score"""
+    from app.services.cache_service import invalidate_cache_pattern
+    from app.services.stats_service import StatsService
+    
+    # Clear stats cache for this user
+    invalidate_cache_pattern(f"reality_check_{user_id}_*")
+    invalidate_cache_pattern(f"behavioral_insights_{user_id}_*")
+    
+    stats_service = StatsService()
+    updated_shame_score = await stats_service.calculate_shame_score(user_id, db)
+    return updated_shame_score.score
+
+
 @router.get("/", response_model=List[PileEntryResponse])
 async def get_pile(
     status: Optional[str] = None,
@@ -209,7 +223,14 @@ async def grant_amnesty(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": "Amnesty granted", "pile_entry_id": pile_entry_id}
+    # Get updated shame score after status change
+    updated_shame_score = await get_updated_shame_score(current_user["id"], db)
+
+    return {
+        "message": "Amnesty granted", 
+        "pile_entry_id": pile_entry_id,
+        "shame_score": updated_shame_score
+    }
 
 
 @router.post("/start-playing/{pile_entry_id}")
@@ -239,7 +260,14 @@ async def start_playing(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": "Game marked as playing", "pile_entry_id": pile_entry_id}
+    # Get updated shame score after status change
+    updated_shame_score = await get_updated_shame_score(current_user["id"], db)
+
+    return {
+        "message": "Game marked as playing", 
+        "pile_entry_id": pile_entry_id,
+        "shame_score": updated_shame_score
+    }
 
 
 @router.post("/complete/{pile_entry_id}")
@@ -269,7 +297,14 @@ async def mark_completed(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": "Game marked as completed", "pile_entry_id": pile_entry_id}
+    # Get updated shame score after status change
+    updated_shame_score = await get_updated_shame_score(current_user["id"], db)
+
+    return {
+        "message": "Game marked as completed", 
+        "pile_entry_id": pile_entry_id,
+        "shame_score": updated_shame_score
+    }
 
 
 @router.post("/abandon/{pile_entry_id}")
@@ -302,7 +337,14 @@ async def mark_abandoned(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": "Game marked as abandoned", "pile_entry_id": pile_entry_id}
+    # Get updated shame score after status change
+    updated_shame_score = await get_updated_shame_score(current_user["id"], db)
+
+    return {
+        "message": "Game marked as abandoned", 
+        "pile_entry_id": pile_entry_id,
+        "shame_score": updated_shame_score
+    }
 
 
 @router.post("/status/{pile_entry_id}")
@@ -354,7 +396,14 @@ async def update_status(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": f"Game status updated to {status_value}", "pile_entry_id": pile_entry_id}
+    # Get updated shame score after status change
+    updated_shame_score = await get_updated_shame_score(current_user["id"], db)
+
+    return {
+        "message": f"Game status updated to {status_value}", 
+        "pile_entry_id": pile_entry_id,
+        "shame_score": updated_shame_score
+    }
 
 
 @router.delete("/clear")
