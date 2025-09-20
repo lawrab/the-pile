@@ -41,7 +41,7 @@ jobs:
       run: isort --check-only --diff .
     
     - name: Run flake8 (linting)
-      run: flake8 .
+      run: flake8 . --extend-ignore=I
     
     - name: Run mypy (type checking)
       run: mypy .
