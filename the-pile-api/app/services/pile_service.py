@@ -96,9 +96,25 @@ class PileService:
                     logger.error(f"No 'response' key in Steam API data: {data}")
                     return []
 
-                games = data["response"].get("games", [])
-                logger.info(f"Found {len(games)} games in Steam API response")
-
+                response_data = data["response"]
+                
+                # Log only the structure, not the content (privacy and size concerns)
+                response_keys = list(response_data.keys()) if response_data else []
+                logger.info(f"Steam API response keys: {response_keys}")
+                
+                # Check if the response has a game_count field
+                game_count = response_data.get("game_count", 0)
+                games = response_data.get("games", [])
+                
+                logger.info(f"Steam API reports game_count: {game_count}")
+                logger.info(f"Found {len(games)} games in games array")
+                
+                # If game_count is 0 or games is empty, profile might be private
+                if game_count == 0 and len(games) == 0:
+                    logger.warning(f"Steam profile might be private or user has no games: steam_id={steam_id}")
+                    # Log structure only, not data
+                    logger.info(f"Response structure - keys: {response_keys}, is_empty: {not response_data}")
+                
                 return games
 
             except httpx.TimeoutException as e:
@@ -408,7 +424,12 @@ class PileService:
                 logger.warning(f"No games found for Steam ID {steam_id}")
                 import_status.status = "completed"
                 import_status.completed_at = datetime.now(timezone.utc)
+                import_status.error_message = "No games found. Profile might be private or user has no games."
                 db.commit()
+                
+                # Check if user profile is set to private
+                logger.info("Checking if this is a profile privacy issue...")
+                # We'll still mark as completed but with a message
                 return
 
             # Process games in batches for better performance
