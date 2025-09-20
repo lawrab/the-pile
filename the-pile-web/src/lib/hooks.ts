@@ -38,7 +38,7 @@ export const useGameStatusMutations = () => {
       pileApi.grantAmnesty(gameId, reason),
     onSuccess: () => {
       invalidatePile()
-      toast.success('Amnesty granted! 🕊️ The game has found peace.')
+      toast.success('Game amnesty granted.')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || 'Failed to grant amnesty')
@@ -49,7 +49,7 @@ export const useGameStatusMutations = () => {
     mutationFn: (gameId: string | number) => pileApi.startPlaying(gameId),
     onSuccess: () => {
       invalidatePile()
-      toast.success('Quest begun! 🔥 The adventure awaits.')
+      toast.success('Game marked as playing.')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || 'Failed to start playing')
@@ -60,7 +60,7 @@ export const useGameStatusMutations = () => {
     mutationFn: (gameId: string | number) => pileApi.markCompleted(gameId),
     onSuccess: () => {
       invalidatePile()
-      toast.success('Victory achieved! 👑 Another soul saved from the pile.')
+      toast.success('Game marked as completed.')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || 'Failed to mark as completed')
@@ -72,7 +72,7 @@ export const useGameStatusMutations = () => {
       pileApi.markAbandoned(gameId, reason),
     onSuccess: () => {
       invalidatePile()
-      toast.success('Game abandoned. 💀 It joins the lost spirits.')
+      toast.success('Game marked as abandoned.')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.detail || 'Failed to mark as abandoned')

@@ -4,6 +4,11 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 import time
+
+try:
+    from dateutil import parser as dateutil_parser
+except ImportError:
+    dateutil_parser = None
 from app.models.user import User
 from app.models.steam_game import SteamGame
 from app.models.pile_entry import PileEntry, GameStatus
@@ -123,6 +128,85 @@ class PileService:
         if total == 0:
             return 0
         return int((positive / total) * 100)
+
+    def _detect_abandoned_status(self, current_playtime: int, stored_playtime: int, current_status: GameStatus, last_updated: datetime = None) -> GameStatus:
+        """
+        Detect if a game should be marked as abandoned based on playtime patterns.
+        
+        Abandoned game criteria (3 month timeframe):
+        1. Game was being played (status = PLAYING) but playtime hasn't increased in 3+ months
+        2. Game has some playtime (> 0) but hasn't been touched in 3+ months
+        3. Unplayed games that have been in pile for 3+ months
+        
+        Args:
+            current_playtime: Current playtime from Steam (minutes)
+            stored_playtime: Previously stored playtime (minutes)
+            current_status: Current game status
+            last_updated: When the entry was last updated
+            
+        Returns:
+            GameStatus.ABANDONED if criteria met, otherwise the current status
+        """
+        # Only auto-abandon games that are currently unplayed or playing
+        if current_status not in [GameStatus.UNPLAYED, GameStatus.PLAYING]:
+            return current_status
+            
+        # If playtime hasn't changed, this suggests the game hasn't been played recently
+        playtime_unchanged = current_playtime == stored_playtime
+        
+        # Get time thresholds - 3 months for all criteria
+        now = datetime.now(timezone.utc)
+        three_months_ago = now - timedelta(days=90)
+        
+        # Ensure we have a valid datetime object for comparison
+        if last_updated is None:
+            # If no last_updated, assume it's very old (fallback to long ago)
+            last_activity = three_months_ago - timedelta(days=365)  # Over a year ago
+        elif isinstance(last_updated, str):
+            # If it's a string, try to parse it
+            try:
+                if dateutil_parser:
+                    last_activity = dateutil_parser.parse(last_updated)
+                else:
+                    # Fallback to basic datetime parsing
+                    last_activity = datetime.fromisoformat(last_updated.replace('Z', '+00:00'))
+                # Ensure it's timezone-aware
+                if last_activity.tzinfo is None:
+                    last_activity = last_activity.replace(tzinfo=timezone.utc)
+            except Exception as e:
+                print(f"Error parsing datetime string '{last_updated}': {e}")
+                last_activity = three_months_ago - timedelta(days=365)  # Fallback
+        elif isinstance(last_updated, datetime):
+            last_activity = last_updated
+            # Ensure it's timezone-aware
+            if last_activity.tzinfo is None:
+                last_activity = last_activity.replace(tzinfo=timezone.utc)
+        else:
+            print(f"Unexpected type for last_updated: {type(last_updated)} - {last_updated}")
+            last_activity = three_months_ago - timedelta(days=365)  # Fallback
+        
+        # 3-month criteria:
+        
+        # Criterion 1: Unplayed games older than 3 months
+        if (current_status == GameStatus.UNPLAYED and
+            current_playtime == 0 and
+            last_activity < three_months_ago):
+            return GameStatus.ABANDONED
+        
+        # Criterion 2: Games with any playtime but not touched in 3+ months
+        if (current_playtime > 0 and 
+            playtime_unchanged and
+            last_activity < three_months_ago):
+            return GameStatus.ABANDONED
+            
+        # Criterion 3: Playing games with no playtime increase in 3+ months
+        if (current_status == GameStatus.PLAYING and 
+            playtime_unchanged and 
+            current_playtime > 0 and
+            last_activity < three_months_ago):
+            return GameStatus.ABANDONED
+            
+        return current_status
     
     async def get_game_details_batch(self, app_ids: List[int], db: Session = None) -> Dict[int, Dict[str, Any]]:
         """Fetch game details for multiple games in parallel with rate limiting and smart caching"""
@@ -283,6 +367,10 @@ class PileService:
             details = game_details.get(app_id, {}).get("details", {})
             reviews = game_details.get(app_id, {}).get("reviews", {})
             
+            # Ensure reviews is never None
+            if reviews is None:
+                reviews = {}
+            
             # Check if Steam game already exists in database
             steam_game = db.query(SteamGame).filter(SteamGame.steam_app_id == app_id).first()
             
@@ -310,9 +398,9 @@ class PileService:
                     publisher=", ".join(details.get("publishers", [])) if details.get("publishers") else "",
                     screenshots=[s["path_full"] for s in details.get("screenshots", [])] if details.get("screenshots") else [],
                     # Steam review/rating data
-                    steam_rating_percent=reviews.get("rating_percent") if reviews.get("total_reviews", 0) > 0 else None,
-                    steam_review_summary=reviews.get("review_score_desc") if reviews.get("total_reviews", 0) > 0 else None,
-                    steam_review_count=reviews.get("total_reviews") if reviews.get("total_reviews", 0) > 0 else None,
+                    steam_rating_percent=reviews.get("rating_percent") if reviews and reviews.get("total_reviews", 0) and reviews.get("total_reviews", 0) > 0 else None,
+                    steam_review_summary=reviews.get("review_score_desc") if reviews and reviews.get("total_reviews", 0) and reviews.get("total_reviews", 0) > 0 else None,
+                    steam_review_count=reviews.get("total_reviews") if reviews and reviews.get("total_reviews", 0) and reviews.get("total_reviews", 0) > 0 else None,
                     steam_type=details.get("type")
                 )
                 db.add(steam_game)
@@ -339,7 +427,8 @@ class PileService:
                     steam_game.screenshots = [s["path_full"] for s in details.get("screenshots", [])]
                 
                 # Update Steam review/rating data if available
-                if reviews.get("total_reviews", 0) > 0:
+                total_reviews = reviews.get("total_reviews") if reviews else None
+                if total_reviews and total_reviews > 0:
                     steam_game.steam_rating_percent = reviews.get("rating_percent")
                     steam_game.steam_review_summary = reviews.get("review_score_desc")
                     steam_game.steam_review_count = reviews.get("total_reviews")
@@ -356,35 +445,135 @@ class PileService:
                 PileEntry.steam_game_id == steam_game.id
             ).first()
             
+            current_playtime = game_data.get("playtime_forever", 0)
+            
+            # Get Steam's last played time
+            steam_last_played = None
+            rtime_last_played = game_data.get("rtime_last_played")
+            if rtime_last_played and rtime_last_played > 0:
+                steam_last_played = datetime.fromtimestamp(rtime_last_played, tz=timezone.utc)
+            
             if not existing_entry:
                 # Create pile entry with purchase price from Steam game
                 pile_entry = PileEntry(
                     user_id=user_id,
                     steam_game_id=steam_game.id,
-                    playtime_minutes=game_data.get("playtime_forever", 0),
+                    playtime_minutes=current_playtime,
                     purchase_price=game_price,  # Use current Steam price as purchase price
-                    status=GameStatus.UNPLAYED if game_data.get("playtime_forever", 0) == 0 else GameStatus.PLAYING
+                    status=GameStatus.UNPLAYED if current_playtime == 0 else GameStatus.PLAYING
                 )
                 db.add(pile_entry)
+            else:
+                # Update existing entry with abandoned detection using Steam's last played data
+                stored_playtime = existing_entry.playtime_minutes
+                current_status = existing_entry.status
+                
+                # Use Steam's last played time if available, otherwise fall back to database timestamps
+                if steam_last_played:
+                    last_activity_date = steam_last_played
+                    activity_source = "Steam"
+                else:
+                    last_activity_date = existing_entry.updated_at or existing_entry.created_at
+                    activity_source = "Database"
+                
+                # Check if game should be marked as abandoned
+                new_status = self._detect_abandoned_status(
+                    current_playtime=current_playtime,
+                    stored_playtime=stored_playtime,
+                    current_status=current_status,
+                    last_updated=last_activity_date
+                )
+                
+                # Update playtime and status
+                existing_entry.playtime_minutes = current_playtime
+                if new_status != current_status:
+                    existing_entry.status = new_status
+                    if new_status == GameStatus.ABANDONED:
+                        existing_entry.abandon_date = datetime.now(timezone.utc)
+                        existing_entry.abandon_reason = f"Automatically detected during import - no recent activity (using {activity_source} data)"
+                
+                existing_entry.updated_at = datetime.now(timezone.utc)
         
         # Commit the entire batch at once for better performance
         db.commit()
     
     async def sync_playtime(self, steam_id: str, user_id: int, db: Session):
-        """Sync playtime data from Steam using repository pattern"""
-        from app.repositories.pile_repository import PileRepository
-        
+        """Sync playtime data from Steam with abandoned detection using Steam's last played data"""
         try:
             owned_games = await self.get_steam_owned_games(steam_id)
             
-            # Build a map of app_id -> playtime for efficient lookup
-            playtime_map = {game_data["appid"]: game_data.get("playtime_forever", 0) for game_data in owned_games}
+            # Build maps for efficient lookup
+            playtime_map = {}
+            last_played_map = {}
             
-            # Use repository's bulk update method
-            pile_repo = PileRepository(db)
-            updated_count = pile_repo.bulk_update_playtime(user_id, playtime_map)
+            for game_data in owned_games:
+                app_id = game_data["appid"]
+                playtime_map[app_id] = game_data.get("playtime_forever", 0)
+                
+                # Get last played time from Steam (Unix timestamp)
+                rtime_last_played = game_data.get("rtime_last_played")
+                if rtime_last_played and rtime_last_played > 0:
+                    # Convert Unix timestamp to datetime
+                    last_played_map[app_id] = datetime.fromtimestamp(rtime_last_played, tz=timezone.utc)
+                else:
+                    last_played_map[app_id] = None
             
-            print(f"Updated playtime for {updated_count} games")
+            # Get all pile entries for this user with their steam games
+            pile_entries = db.query(PileEntry).join(SteamGame).filter(
+                PileEntry.user_id == user_id,
+                SteamGame.steam_app_id.in_(list(playtime_map.keys()))
+            ).all()
+            
+            updated_count = 0
+            abandoned_count = 0
+            checked_count = 0
+            
+            for entry in pile_entries:
+                app_id = entry.steam_game.steam_app_id
+                current_playtime = playtime_map.get(app_id, 0)
+                stored_playtime = entry.playtime_minutes
+                steam_last_played = last_played_map.get(app_id)
+                checked_count += 1
+                
+                # Use Steam's last played time if available, otherwise fall back to database timestamps
+                if steam_last_played:
+                    last_activity_date = steam_last_played
+                    activity_source = "Steam"
+                else:
+                    last_activity_date = entry.updated_at or entry.created_at
+                    activity_source = "Database"
+                
+                # Always check if game should be marked as abandoned
+                new_status = self._detect_abandoned_status(
+                    current_playtime=current_playtime,
+                    stored_playtime=stored_playtime,
+                    current_status=entry.status,
+                    last_updated=last_activity_date
+                )
+                
+                # Update playtime if it changed
+                playtime_changed = current_playtime != stored_playtime
+                if playtime_changed:
+                    entry.playtime_minutes = current_playtime
+                    entry.updated_at = datetime.now(timezone.utc)
+                    updated_count += 1
+                
+                # Update status if abandoned detection triggered
+                if new_status != entry.status and new_status == GameStatus.ABANDONED:
+                    entry.status = new_status
+                    entry.abandon_date = datetime.now(timezone.utc)
+                    entry.abandon_reason = f"Automatically detected during sync - no recent activity (using {activity_source} data)"
+                    entry.updated_at = datetime.now(timezone.utc)
+                    abandoned_count += 1
+                
+                # If either playtime or status changed, mark as updated
+                if playtime_changed or (new_status != entry.status):
+                    entry.updated_at = datetime.now(timezone.utc)
+            
+            # Commit all changes
+            db.commit()
+            
+            print(f"Checked {checked_count} games, updated playtime for {updated_count} games, marked {abandoned_count} games as abandoned")
             
         except Exception as e:
             db.rollback()

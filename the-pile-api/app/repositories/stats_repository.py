@@ -147,7 +147,11 @@ class StatsRepository(BaseRepository[PileEntry]):
         most_expensive_unplayed = {"game": None, "price": 0}
         for entry in pile_entries:
             if entry.playtime_minutes == 0:
-                price = entry.purchase_price or entry.steam_game.price or 0
+                # Handle None values explicitly
+                purchase_price = entry.purchase_price if entry.purchase_price is not None else 0
+                steam_price = entry.steam_game.price if entry.steam_game.price is not None else 0
+                price = purchase_price or steam_price
+                
                 if price > most_expensive_unplayed["price"]:
                     most_expensive_unplayed = {
                         "game": entry.steam_game.name,

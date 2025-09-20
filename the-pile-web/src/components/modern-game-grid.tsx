@@ -17,7 +17,9 @@ import {
   ThumbsUp,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Calendar,
+  Activity
 } from 'lucide-react'
 
 interface ModernGameGridProps {
@@ -89,6 +91,35 @@ export function ModernGameGrid({
       case GameStatus.ABANDONED: return 'Abandoned'
       case GameStatus.AMNESTY_GRANTED: return 'Amnesty Granted'
       default: return 'Unknown'
+    }
+  }
+
+  const formatReleaseDate = (dateString?: string) => {
+    if (!dateString) return null
+    try {
+      const date = new Date(dateString)
+      return date.getFullYear()
+    } catch {
+      return null
+    }
+  }
+
+  const formatLastActivity = (dateString?: string) => {
+    if (!dateString) return null
+    try {
+      const date = new Date(dateString)
+      const now = new Date()
+      const diffMs = now.getTime() - date.getTime()
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      
+      if (diffDays === 0) return 'Today'
+      if (diffDays === 1) return 'Yesterday'
+      if (diffDays < 7) return `${diffDays} days ago`
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
+      return `${Math.floor(diffDays / 365)} years ago`
+    } catch {
+      return null
     }
   }
 
@@ -234,8 +265,10 @@ export function ModernGameGrid({
               All Games ({pile.length})
             </Button>
             
-            {Object.entries(statusCounts).map(([status, count]) => (
-              count > 0 && (
+            {Object.entries(statusCounts).map(([status, count]) => {
+              // Always show abandoned filter, hide others if count is 0
+              const shouldShow = status === GameStatus.ABANDONED || count > 0;
+              return shouldShow && (
                 <Button
                   key={status}
                   variant={activeFilter === status ? 'default' : 'ghost'}
@@ -249,7 +282,7 @@ export function ModernGameGrid({
                   {getStatusLabel(status as GameStatus)} ({count})
                 </Button>
               )
-            ))}
+            })}
           </div>
         </CardContent>
       </Card>
@@ -292,29 +325,61 @@ export function ModernGameGrid({
                   {game.steam_game.name}
                 </h3>
 
-                <div className="space-y-2 text-xs text-slate-400">
-                  <div className={`inline-block px-2 py-1 rounded-full border text-xs ${getStatusColor(game.status)}`}>
-                    {getStatusLabel(game.status)}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-3 w-3" />
-                    <span>{Math.floor((game.playtime_minutes || 0) / 60)}h {(game.playtime_minutes || 0) % 60}m</span>
-                  </div>
-                  
-                  {game.purchase_price && (
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-3 w-3" />
-                      <span>${game.purchase_price.toFixed(2)}</span>
+                <div className="space-y-3 text-xs text-slate-400">
+                  {/* Status Badge - Full Width */}
+                  <div className="space-y-1">
+                    <div className={`inline-block px-2 py-1 rounded-full border text-xs ${getStatusColor(game.status)}`}>
+                      {getStatusLabel(game.status)}
                     </div>
-                  )}
+                    {/* Show last played for In Progress and Completed games */}
+                    {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED) && formatLastActivity(game.updated_at) && (
+                      <div className="text-[10px] text-slate-500">
+                        Last played: {formatLastActivity(game.updated_at)}
+                      </div>
+                    )}
+                  </div>
                   
+                  {/* Fixed Grid Layout - Always 2x2 */}
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-2">
+                    {/* Row 1: Playtime | Price */}
+                    <div className="flex items-center gap-1 min-h-[16px]">
+                      <Clock className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{Math.floor((game.playtime_minutes || 0) / 60)}h {(game.playtime_minutes || 0) % 60}m</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1 min-h-[16px]">
+                      <DollarSign className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">
+                        {game.purchase_price && game.purchase_price > 0 
+                          ? `$${game.purchase_price.toFixed(2)}`
+                          : 'Free'
+                        }
+                      </span>
+                    </div>
+                    
+                    {/* Row 2: Release Date | Last Activity */}
+                    <div className="flex items-center gap-1 min-h-[16px]">
+                      <Calendar className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">
+                        {formatReleaseDate(game.steam_game.release_date) || '—'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1 min-h-[16px]">
+                      <Activity className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate text-[10px] leading-tight">
+                        {formatLastActivity(game.updated_at) || '—'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Reviews - Full Width */}
                   {game.steam_game.steam_rating_percent && (
-                    <div className="flex items-center gap-2">
-                      <ThumbsUp className="h-3 w-3" />
-                      <span>{game.steam_game.steam_rating_percent}%</span>
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-700/50">
+                      <ThumbsUp className="h-3 w-3 flex-shrink-0" />
+                      <span className="font-medium">{game.steam_game.steam_rating_percent}%</span>
                       {game.steam_game.steam_review_summary && (
-                        <span className="text-xs text-slate-500">({game.steam_game.steam_review_summary})</span>
+                        <span className="text-[10px] text-slate-500 truncate">({game.steam_game.steam_review_summary})</span>
                       )}
                     </div>
                   )}
@@ -352,17 +417,44 @@ export function ModernGameGrid({
                     <h3 className="font-semibold text-base mb-1 truncate hover:text-blue-400 transition-colors">
                       {game.steam_game.name}
                     </h3>
-                    <div className="flex items-center gap-4 text-sm text-slate-400">
-                      <div className={`px-2 py-1 rounded-full border text-xs ${getStatusColor(game.status)}`}>
-                        {getStatusLabel(game.status)}
-                      </div>
-                      <span>{Math.floor((game.playtime_minutes || 0) / 60)}h {(game.playtime_minutes || 0) % 60}m played</span>
-                      {game.purchase_price && <span>${game.purchase_price.toFixed(2)}</span>}
-                      {game.steam_game.steam_rating_percent && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-4 text-sm text-slate-400">
+                        <div className="flex flex-col gap-1">
+                          <div className={`px-2 py-1 rounded-full border text-xs ${getStatusColor(game.status)}`}>
+                            {getStatusLabel(game.status)}
+                          </div>
+                          {/* Show last played for In Progress and Completed games */}
+                          {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED) && formatLastActivity(game.updated_at) && (
+                            <div className="text-[10px] text-slate-500 px-2">
+                              Last played: {formatLastActivity(game.updated_at)}
+                            </div>
+                          )}
+                        </div>
                         <span className="flex items-center gap-1">
-                          <ThumbsUp className="h-3 w-3" />
-                          {game.steam_game.steam_rating_percent}%
+                          <Clock className="h-3 w-3" />
+                          {Math.floor((game.playtime_minutes || 0) / 60)}h {(game.playtime_minutes || 0) % 60}m
                         </span>
+                        <span className="flex items-center gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          {game.purchase_price && game.purchase_price > 0 
+                            ? `$${game.purchase_price.toFixed(2)}`
+                            : 'Free'
+                          }
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatReleaseDate(game.steam_game.release_date) || '—'}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Activity className="h-3 w-3" />
+                          {formatLastActivity(game.updated_at) || '—'}
+                        </span>
+                      </div>
+                      {game.steam_game.steam_rating_percent && (
+                        <div className="flex items-center gap-1 text-xs text-slate-500 pl-2">
+                          <ThumbsUp className="h-3 w-3" />
+                          <span className="font-medium">{game.steam_game.steam_rating_percent}% {game.steam_game.steam_review_summary && `(${game.steam_game.steam_review_summary})`}</span>
+                        </div>
                       )}
                     </div>
                   </div>

@@ -80,7 +80,7 @@ export function GameDetailModal({
   game, 
   onGrantAmnesty, 
   onStartPlaying, 
-  onMarkCompleted 
+  onMarkCompleted
 }: GameDetailModalProps) {
   // Close on Escape key
   useEffect(() => {
@@ -165,16 +165,21 @@ export function GameDetailModal({
           {/* Left Column - Image & Status */}
           <div className="lg:w-1/2 p-6">
             {/* Game Image */}
-            <div className="aspect-video rounded-xl overflow-hidden mb-6 bg-gray-900/50">
-              <Image
-                src={game.steam_game?.image_url || '/default-game.svg'}
-                alt={game.steam_game?.name || 'Unknown Game'}
-                fill
-                className="object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = '/default-game.svg'
-                }}
-              />
+            <div className="relative w-full rounded-xl overflow-hidden mb-6 bg-gray-900/50">
+              {/* Steam header images are typically 460x215 (2.14:1 aspect ratio) */}
+              <div className="relative" style={{ paddingBottom: '46.74%' }}>
+                <Image
+                  src={game.steam_game?.image_url || '/default-game.svg'}
+                  alt={game.steam_game?.name || 'Unknown Game'}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority
+                  onError={(e) => {
+                    e.currentTarget.src = '/default-game.svg'
+                  }}
+                />
+              </div>
             </div>
 
             {/* Status Card */}
@@ -194,42 +199,47 @@ export function GameDetailModal({
                 </div>
               </div>
               
-              {/* Action Buttons */}
-              <div className="flex gap-2 mt-3">
-                {game.status === 'unplayed' && (
-                  <>
+              {/* Status Actions */}
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-300 mb-3">Change Status</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {game.status !== 'playing' && (
                     <Button
                       size="sm"
-                      variant="playing"
+                      variant="outline"
                       onClick={() => onStartPlaying?.(game.id)}
-                      className="flex-1"
+                      className="flex items-center justify-center text-yellow-400 border-yellow-600 hover:bg-yellow-600/10 hover:text-yellow-300"
                     >
                       <Play size={14} className="mr-1" />
-                      Begin Quest
+                      Playing
                     </Button>
+                  )}
+                  
+                  {game.status !== 'completed' && (
                     <Button
                       size="sm"
-                      variant="amnesty"
+                      variant="outline"
+                      onClick={() => onMarkCompleted?.(game.id)}
+                      className="flex items-center justify-center text-green-400 border-green-600 hover:bg-green-600/10 hover:text-green-300"
+                    >
+                      <Star size={14} className="mr-1" />
+                      Completed
+                    </Button>
+                  )}
+                  
+                  
+                  {game.status !== 'amnesty_granted' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => onGrantAmnesty?.(game.id)}
-                      className="flex-1"
+                      className="flex items-center justify-center text-blue-400 border-blue-600 hover:bg-blue-600/10 hover:text-blue-300"
                     >
                       <Feather size={14} className="mr-1" />
-                      Grant Peace
+                      Amnesty
                     </Button>
-                  </>
-                )}
-                
-                {game.status === 'playing' && (
-                  <Button
-                    size="sm"
-                    variant="completed"
-                    onClick={() => onMarkCompleted?.(game.id)}
-                    className="w-full"
-                  >
-                    <Star size={14} className="mr-1" />
-                    Mark Complete
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
             </div>
 
@@ -365,13 +375,14 @@ export function GameDetailModal({
                   {game.steam_game.screenshots.slice(0, 4).map((screenshot, index) => (
                     <div 
                       key={index}
-                      className="aspect-video rounded-lg overflow-hidden bg-gray-800/50 cursor-pointer hover:scale-105 transition-transform duration-200"
+                      className="relative aspect-video rounded-lg overflow-hidden bg-gray-800/50 cursor-pointer hover:scale-105 transition-transform duration-200"
                       onClick={() => window.open(screenshot, '_blank')}
                     >
                       <Image
                         src={screenshot}
                         alt={`Screenshot ${index + 1}`}
                         fill
+                        sizes="(max-width: 768px) 50vw, 25vw"
                         className="object-cover hover:opacity-90"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
