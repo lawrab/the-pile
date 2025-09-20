@@ -56,6 +56,61 @@ class PileService:
             burst_size=20,  # Allow small bursts
         )
 
+    async def check_steam_profile_visibility(self, steam_id: str) -> tuple[bool, str]:
+        """Check if a Steam profile is public
+        
+        Returns:
+            tuple: (is_public: bool, visibility_state: str)
+            visibility_state can be: "public", "friendsonly", "private", or "unknown"
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Apply rate limiting
+        await self.rate_limiter.acquire()
+        
+        api_key = settings.STEAM_API_KEY
+        if not api_key:
+            logger.error("STEAM_API_KEY is not configured")
+            raise ValueError("Steam API key is not configured")
+        
+        url = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/"
+        params = {
+            "key": api_key,
+            "steamids": steam_id,
+        }
+        
+        logger.info(f"Checking profile visibility for steam_id: {steam_id}")
+        
+        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0)) as client:
+            try:
+                response = await client.get(url, params=params)
+                response.raise_for_status()
+                data = response.json()
+                
+                players = data.get("response", {}).get("players", [])
+                if not players:
+                    logger.warning(f"No player data found for steam_id: {steam_id}")
+                    return False, "unknown"
+                
+                player = players[0]
+                # communityvisibilitystate: 1 = Private, 2 = Friends Only, 3 = Public
+                visibility_state = player.get("communityvisibilitystate", 1)
+                
+                if visibility_state == 3:
+                    logger.info(f"Profile is public for steam_id: {steam_id}")
+                    return True, "public"
+                elif visibility_state == 2:
+                    logger.info(f"Profile is friends-only for steam_id: {steam_id}")
+                    return False, "friendsonly"
+                else:
+                    logger.info(f"Profile is private for steam_id: {steam_id}")
+                    return False, "private"
+                    
+            except Exception as e:
+                logger.error(f"Error checking profile visibility: {e}")
+                return False, "unknown"
+    
     async def get_steam_owned_games(self, steam_id: str):
         """Fetch owned games from Steam API with rate limiting and timeout handling"""
         import logging
@@ -422,14 +477,30 @@ class PileService:
 
             if len(owned_games) == 0:
                 logger.warning(f"No games found for Steam ID {steam_id}")
-                import_status.status = "completed"
-                import_status.completed_at = datetime.now(timezone.utc)
-                import_status.error_message = "No games found. Profile might be private or user has no games."
-                db.commit()
                 
-                # Check if user profile is set to private
-                logger.info("Checking if this is a profile privacy issue...")
-                # We'll still mark as completed but with a message
+                # Check if this is a privacy issue
+                logger.info("Checking profile visibility...")
+                is_public, visibility_state = await self.check_steam_profile_visibility(steam_id)
+                
+                if not is_public:
+                    if visibility_state == "private":
+                        error_msg = "Your Steam profile is set to Private. Please set your profile to Public in Steam Privacy Settings to import your games."
+                    elif visibility_state == "friendsonly":
+                        error_msg = "Your Steam profile is set to Friends Only. Please set your profile to Public in Steam Privacy Settings to import your games."
+                    else:
+                        error_msg = "Unable to access your Steam profile. Please ensure your profile is set to Public in Steam Privacy Settings."
+                    
+                    import_status.status = "failed"
+                    import_status.error_message = error_msg
+                    logger.warning(f"Profile visibility issue: {visibility_state}")
+                else:
+                    # Profile is public but no games found
+                    import_status.status = "completed"
+                    import_status.error_message = "No games found in your Steam library."
+                    logger.info("Profile is public but user has no games")
+                
+                import_status.completed_at = datetime.now(timezone.utc)
+                db.commit()
                 return
 
             # Process games in batches for better performance
