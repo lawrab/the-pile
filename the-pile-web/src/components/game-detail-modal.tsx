@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useEffect } from 'react'
-import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink, Trophy } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink, Trophy, AlertTriangle } from 'lucide-react'
 import { Button } from './ui/button'
 import Image from 'next/image'
 
@@ -82,10 +82,22 @@ export function GameDetailModal({
   onStartPlaying, 
   onMarkCompleted
 }: GameDetailModalProps) {
+  const [confirmDialog, setConfirmDialog] = useState<{
+    type: 'playing' | 'completed' | 'amnesty' | null,
+    message: string,
+    action: () => void
+  } | null>(null)
+
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        if (confirmDialog) {
+          setConfirmDialog(null)
+        } else {
+          onClose()
+        }
+      }
     }
     
     if (isOpen) {
@@ -97,7 +109,7 @@ export function GameDetailModal({
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = 'unset'
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, confirmDialog])
 
   if (!isOpen || !game) return null
 
@@ -125,6 +137,118 @@ export function GameDetailModal({
   }
 
   const reviewScore = getReviewScore()
+
+  // Sarcastic button text and confirmation messages
+  const getSarcasticPlayingButton = () => {
+    const daysSinceRelease = game.steam_game.release_date ? 
+      Math.floor((Date.now() - new Date(game.steam_game.release_date).getTime()) / (1000 * 60 * 60 * 24)) : 0
+
+    if (game.status === 'unplayed') {
+      if (game.playtime_minutes === 0) {
+        if (daysSinceRelease > 365) return "Finally Ready?"
+        return "Actually Play This?"
+      }
+      return "Give It Another Try?"
+    }
+    return "Start Playing"
+  }
+
+  const getSarcasticPlayingConfirm = () => {
+    const price = game.steam_game.price || 0
+    const daysSinceRelease = game.steam_game.release_date ? 
+      Math.floor((Date.now() - new Date(game.steam_game.release_date).getTime()) / (1000 * 60 * 60 * 24)) : 0
+
+    if (game.status === 'unplayed') {
+      if (game.playtime_minutes === 0) {
+        if (price > 30) {
+          return `Really? You're going to start playing "${game.steam_game.name}" after ignoring your $${price} investment? Bold move. Let's see if you actually follow through this time.`
+        }
+        if (daysSinceRelease > 365) {
+          return `"${game.steam_game.name}" has been waiting ${Math.floor(daysSinceRelease/365)} year${Math.floor(daysSinceRelease/365) > 1 ? 's' : ''} for you. Think you're finally ready to commit?`
+        }
+        return `Starting "${game.steam_game.name}" for the first time? How optimistic of you. Try not to abandon it like the others.`
+      }
+      return `Going back to "${game.steam_game.name}"? Last time you played for ${Math.floor(game.playtime_minutes/60)}h${game.playtime_minutes%60}m before giving up. Third time's the charm?`
+    }
+    return `Mark "${game.steam_game.name}" as currently playing?`
+  }
+
+  const getSarcasticCompletedButton = () => {
+    if (game.playtime_minutes < 60) return "Completed Already?"
+    if (game.playtime_minutes < 300) return "That Was Quick"
+    return "Actually Finished?"
+  }
+
+  const getSarcasticCompletedConfirm = () => {
+    const hours = Math.floor(game.playtime_minutes / 60)
+    
+    if (game.playtime_minutes < 60) {
+      return `"${game.steam_game.name}" completed in under an hour? Either it's a very short game or you're being... generous with the definition of "completed."`
+    }
+    if (hours < 5) {
+      return `${hours} hours and you're calling "${game.steam_game.name}" completed? Well, congratulations on actually finishing something for once.`
+    }
+    if (hours > 100) {
+      return `${hours} hours in "${game.steam_game.name}"? That's either dedication or procrastination from real life. Either way, congrats on the completion!`
+    }
+    return `Mark "${game.steam_game.name}" as completed after ${hours} hours? Finally, a success story!`
+  }
+
+  const getSarcasticAmnestyButton = () => {
+    if (game.status === 'unplayed') return "Give Up Hope"
+    if (game.status === 'playing') return "Throw in Towel"
+    return "Grant Peace"
+  }
+
+  const getSarcasticAmnestyConfirm = () => {
+    const price = game.steam_game.price || 0
+    const hours = Math.floor(game.playtime_minutes / 60)
+
+    if (game.status === 'unplayed') {
+      if (price > 30) {
+        return `Giving up on "${game.steam_game.name}" without even trying? That's $${price} down the drain. At least you're honest about your lack of commitment.`
+      }
+      return `Granting amnesty to "${game.steam_game.name}" without a single minute played? Sometimes acceptance is the first step to healing.`
+    }
+    
+    if (game.status === 'playing') {
+      if (hours < 2) {
+        return `Already giving up on "${game.steam_game.name}" after ${hours > 0 ? `${hours} hour${hours > 1 ? 's' : ''}` : 'less than an hour'}? Quick to surrender, aren't we?`
+      }
+      return `Abandoning "${game.steam_game.name}" after ${hours} hours? At least you gave it a fair shot before admitting defeat.`
+    }
+
+    return `Grant amnesty to "${game.steam_game.name}"? Sometimes letting go is the kindest thing you can do.`
+  }
+
+  const handleActionWithConfirm = (type: 'playing' | 'completed' | 'amnesty') => {
+    let message = ''
+    let action = () => {}
+
+    switch(type) {
+      case 'playing':
+        message = getSarcasticPlayingConfirm()
+        action = () => onStartPlaying?.(game.id)
+        break
+      case 'completed':
+        message = getSarcasticCompletedConfirm()
+        action = () => onMarkCompleted?.(game.id)
+        break
+      case 'amnesty':
+        message = getSarcasticAmnestyConfirm()
+        action = () => onGrantAmnesty?.(game.id)
+        break
+    }
+
+    setConfirmDialog({ type, message, action })
+  }
+
+  const executeConfirmedAction = () => {
+    if (confirmDialog) {
+      confirmDialog.action()
+      setConfirmDialog(null)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -201,17 +325,17 @@ export function GameDetailModal({
               
               {/* Status Actions */}
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-300 mb-3">Change Status</h4>
-                <div className="grid grid-cols-2 gap-2">
+                <h4 className="text-sm font-medium text-gray-300 mb-3">Face Your Choices</h4>
+                <div className="grid grid-cols-1 gap-2">
                   {game.status !== 'playing' && (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onStartPlaying?.(game.id)}
-                      className="flex items-center justify-center text-yellow-400 border-yellow-600 hover:bg-yellow-600/10 hover:text-yellow-300"
+                      onClick={() => handleActionWithConfirm('playing')}
+                      className="flex items-center justify-center text-yellow-400 border-yellow-600 hover:bg-yellow-600/10 hover:text-yellow-300 transition-all duration-200 hover:scale-[1.02]"
                     >
-                      <Play size={14} className="mr-1" />
-                      Playing
+                      <Play size={14} className="mr-2" />
+                      {getSarcasticPlayingButton()}
                     </Button>
                   )}
                   
@@ -219,24 +343,23 @@ export function GameDetailModal({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onMarkCompleted?.(game.id)}
-                      className="flex items-center justify-center text-green-400 border-green-600 hover:bg-green-600/10 hover:text-green-300"
+                      onClick={() => handleActionWithConfirm('completed')}
+                      className="flex items-center justify-center text-green-400 border-green-600 hover:bg-green-600/10 hover:text-green-300 transition-all duration-200 hover:scale-[1.02]"
                     >
-                      <Star size={14} className="mr-1" />
-                      Completed
+                      <Star size={14} className="mr-2" />
+                      {getSarcasticCompletedButton()}
                     </Button>
                   )}
-                  
                   
                   {game.status !== 'amnesty_granted' && (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onGrantAmnesty?.(game.id)}
-                      className="flex items-center justify-center text-blue-400 border-blue-600 hover:bg-blue-600/10 hover:text-blue-300"
+                      onClick={() => handleActionWithConfirm('amnesty')}
+                      className="flex items-center justify-center text-purple-400 border-purple-600 hover:bg-purple-600/10 hover:text-purple-300 transition-all duration-200 hover:scale-[1.02]"
                     >
-                      <Feather size={14} className="mr-1" />
-                      Amnesty
+                      <Feather size={14} className="mr-2" />
+                      {getSarcasticAmnestyButton()}
                     </Button>
                   )}
                 </div>
@@ -477,6 +600,52 @@ export function GameDetailModal({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      {confirmDialog && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setConfirmDialog(null)}
+          />
+          <div className="relative bg-slate-900 border border-slate-600 rounded-xl p-6 max-w-lg mx-4 shadow-2xl">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <AlertTriangle className="h-6 w-6 text-yellow-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-white mb-2">Hold Up There...</h3>
+                <p className="text-slate-300 text-sm leading-relaxed mb-6">
+                  {confirmDialog.message}
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConfirmDialog(null)}
+                    className="text-slate-400 hover:text-slate-300"
+                  >
+                    Never Mind
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={executeConfirmedAction}
+                    className={`
+                      ${confirmDialog.type === 'playing' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : ''}
+                      ${confirmDialog.type === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                      ${confirmDialog.type === 'amnesty' ? 'bg-purple-600 hover:bg-purple-700 text-white' : ''}
+                    `}
+                  >
+                    {confirmDialog.type === 'playing' && "Yes, I'll Try"}
+                    {confirmDialog.type === 'completed' && "Mark Complete"}
+                    {confirmDialog.type === 'amnesty' && "Grant Amnesty"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

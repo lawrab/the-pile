@@ -1061,29 +1061,42 @@ export function ModernGameGrid({
             top: `${popoverPosition.y}px`
           }}
         >
-          <div className="bg-slate-800 border border-slate-600 rounded-lg shadow-2xl p-4 w-80 max-w-sm transform transition-all duration-200 animate-in">
+          <div className="
+            bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 
+            rounded-2xl shadow-2xl p-5 w-80 max-w-sm 
+            transform transition-all duration-300 animate-in
+            ring-1 ring-white/10
+          " style={{
+            boxShadow: `
+              0 25px 50px -12px rgba(0, 0, 0, 0.8),
+              0 10px 20px -5px rgba(0, 0, 0, 0.4),
+              0 0 0 1px rgba(255, 255, 255, 0.05),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1)
+            `
+          }}>
             {/* Game Header */}
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-16 h-9 rounded overflow-hidden bg-slate-700 flex-shrink-0 relative">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-20 h-11 rounded-xl overflow-hidden bg-slate-800/50 flex-shrink-0 relative ring-1 ring-slate-600/30">
                 {hoveredGame.steam_game.image_url ? (
                   <Image 
                     src={hoveredGame.steam_game.image_url}
                     alt={hoveredGame.steam_game.name}
-                    width={64}
-                    height={36}
+                    width={80}
+                    height={44}
                     className="object-cover w-full h-full"
+                    style={{ imageRendering: 'crisp-edges' }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-500">
-                    <Play className="h-4 w-4" />
+                    <Play className="h-5 w-5" />
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm text-white line-clamp-2 mb-1">
+                <h3 className="font-semibold text-sm text-white/95 line-clamp-2 mb-2 leading-snug">
                   {hoveredGame.steam_game.name}
                 </h3>
-                <div className={`inline-block px-2 py-1 rounded border text-xs font-medium ${
+                <div className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-medium backdrop-blur-sm ${
                   getStatusColor(hoveredGame.status)
                 }`}>
                   {getStatusLabel(hoveredGame.status, hoveredGame)}
@@ -1095,22 +1108,22 @@ export function ModernGameGrid({
             <div className="space-y-3 text-xs">
               {/* Brutal Ownership Truth */}
               {getSarcasticOwnership(hoveredGame) && (
-                <div className="bg-slate-900/50 p-2 rounded border border-red-500/20">
-                  <div className="text-red-300 font-medium mb-1">Ownership Shame</div>
-                  <div className="text-slate-300 leading-relaxed">{getSarcasticOwnership(hoveredGame)}</div>
+                <div className="bg-red-950/20 backdrop-blur-sm p-3 rounded-xl border border-red-500/30 ring-1 ring-red-500/10">
+                  <div className="text-red-300 font-semibold mb-1.5 text-xs">Ownership Shame</div>
+                  <div className="text-slate-200 leading-relaxed text-xs">{getSarcasticOwnership(hoveredGame)}</div>
                 </div>
               )}
               
               {/* Genre Mockery */}
-              <div className="bg-slate-900/50 p-2 rounded border border-yellow-500/20">
-                <div className="text-yellow-300 font-medium mb-1">Genre Psychology</div>
-                <div className="text-slate-300 leading-relaxed">{getGenreShame(hoveredGame.steam_game.genres, hoveredGame.steam_game.name)}</div>
+              <div className="bg-yellow-950/20 backdrop-blur-sm p-3 rounded-xl border border-yellow-500/30 ring-1 ring-yellow-500/10">
+                <div className="text-yellow-300 font-semibold mb-1.5 text-xs">Genre Psychology</div>
+                <div className="text-slate-200 leading-relaxed text-xs">{getGenreShame(hoveredGame.steam_game.genres, hoveredGame.steam_game.name)}</div>
               </div>
               
               {/* Developer Support Guilt */}
-              <div className="bg-slate-900/50 p-2 rounded border border-purple-500/20">
-                <div className="text-purple-300 font-medium mb-1">Developer Support</div>
-                <div className="text-slate-300 mb-1">{hoveredGame.steam_game.developer || 'Unknown (even more shameful)'}</div>
+              <div className="bg-purple-950/20 backdrop-blur-sm p-3 rounded-xl border border-purple-500/30 ring-1 ring-purple-500/10">
+                <div className="text-purple-300 font-semibold mb-1.5 text-xs">Developer Support</div>
+                <div className="text-slate-200 mb-1.5 text-xs font-medium">{hoveredGame.steam_game.developer || 'Unknown (even more shameful)'}</div>
                 <div className="text-slate-400 text-[10px] leading-relaxed">
                   {hoveredGame.status === GameStatus.UNPLAYED ? 
                     'They worked hard, you bought it, now play it!' :
@@ -1124,8 +1137,8 @@ export function ModernGameGrid({
               </div>
 
               {/* Click hint */}
-              <div className="text-center pt-2 border-t border-slate-700/50">
-                <div className="text-xs text-slate-500">
+              <div className="text-center pt-3 mt-4 border-t border-slate-700/30">
+                <div className="text-xs text-slate-400/80 font-medium">
                   Click for full details & actions
                 </div>
               </div>
