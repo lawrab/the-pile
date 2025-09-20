@@ -76,8 +76,8 @@ class PileEntryResponse(BaseModel):
 class PileFilters(BaseModel):
     status: Optional[str] = None
     genre: Optional[str] = None
-    sort_by: Optional[str] = None  # playtime, rating
-    sort_direction: Optional[str] = "desc"  # asc, desc
+    sort_by: Optional[str] = "playtime"  # playtime, rating, default: playtime
+    sort_direction: Optional[str] = "asc"  # asc, desc, default: asc (unplayed first)
     limit: int = 100
     offset: int = 0
 
