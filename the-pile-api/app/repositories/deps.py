@@ -1,12 +1,14 @@
 """
 Repository dependency injection for FastAPI.
 """
+
+from fastapi import Depends
 from sqlalchemy.orm import Session
+
 from app.db.base import get_db
 from app.repositories.pile_repository import PileRepository
 from app.repositories.stats_repository import StatsRepository
 from app.repositories.user_repository import UserRepository
-from fastapi import Depends
 
 
 def get_pile_repository(db: Session = Depends(get_db)) -> PileRepository:
@@ -27,7 +29,7 @@ def get_user_repository(db: Session = Depends(get_db)) -> UserRepository:
 # Repository container for services that need multiple repositories
 class RepositoryContainer:
     """Container for all repositories - useful for services that need multiple repos"""
-    
+
     def __init__(self, db: Session):
         self.pile = PileRepository(db)
         self.stats = StatsRepository(db)

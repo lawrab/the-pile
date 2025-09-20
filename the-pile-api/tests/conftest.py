@@ -1,20 +1,21 @@
 """
 Shared test configuration and fixtures for The Pile API tests.
 """
-import pytest
+
 import asyncio
 from typing import AsyncGenerator, Generator
-from httpx import AsyncClient
-from sqlalchemy import create_engine, StaticPool
-from sqlalchemy.orm import sessionmaker
+
+import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
+from sqlalchemy import StaticPool, create_engine
+from sqlalchemy.orm import sessionmaker
 
-from app.main import app
 from app.db.base import Base, get_db
-from app.models.user import User
+from app.main import app
+from app.models.pile_entry import GameStatus, PileEntry
 from app.models.steam_game import SteamGame
-from app.models.pile_entry import PileEntry, GameStatus
-
+from app.models.user import User
 
 # Test database setup
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test_the_pile.db"
@@ -50,9 +51,10 @@ def db_session():
 @pytest.fixture(scope="function")
 def override_get_db(db_session):
     """Override the get_db dependency to use test database."""
+
     def _override_get_db():
         yield db_session
-    
+
     app.dependency_overrides[get_db] = _override_get_db
     yield
     app.dependency_overrides.clear()
@@ -80,7 +82,7 @@ def sample_user(db_session) -> User:
         steam_id="76561197960435530",
         username="testuser",
         avatar_url="https://example.com/avatar.jpg",
-        shame_score=150.0
+        shame_score=150.0,
     )
     db_session.add(user)
     db_session.commit()
@@ -105,8 +107,8 @@ def sample_steam_game(db_session) -> SteamGame:
         publisher="Valve Corporation",
         screenshots=[
             "https://example.com/screenshot1.jpg",
-            "https://example.com/screenshot2.jpg"
-        ]
+            "https://example.com/screenshot2.jpg",
+        ],
     )
     db_session.add(game)
     db_session.commit()
@@ -122,7 +124,7 @@ def sample_pile_entry(db_session, sample_user, sample_steam_game) -> PileEntry:
         steam_game_id=sample_steam_game.id,
         status=GameStatus.UNPLAYED,
         playtime_minutes=0,
-        purchase_price=9.99
+        purchase_price=9.99,
     )
     db_session.add(entry)
     db_session.commit()
@@ -142,15 +144,15 @@ def mock_steam_owned_games():
                     "name": "Portal",
                     "playtime_forever": 120,
                     "img_icon_url": "example_icon",
-                    "img_logo_url": "example_logo"
+                    "img_logo_url": "example_logo",
                 },
                 {
                     "appid": 420,
                     "name": "Portal 2",
                     "playtime_forever": 0,
                     "img_icon_url": "example_icon2",
-                    "img_logo_url": "example_logo2"
-                }
+                    "img_logo_url": "example_logo2",
+                },
             ]
         }
     }
@@ -167,26 +169,18 @@ def mock_steam_app_details():
                 "short_description": "A puzzle-platform game that combines puzzles with action",
                 "developers": ["Valve Corporation"],
                 "publishers": ["Valve Corporation"],
-                "price_overview": {
-                    "initial": 999,
-                    "final": 999,
-                    "currency": "USD"
-                },
+                "price_overview": {"initial": 999, "final": 999, "currency": "USD"},
                 "genres": [
                     {"id": "1", "description": "Action"},
-                    {"id": "2", "description": "Puzzle"}
+                    {"id": "2", "description": "Puzzle"},
                 ],
-                "categories": [
-                    {"id": "2", "description": "Single-player"}
-                ],
+                "categories": [{"id": "2", "description": "Single-player"}],
                 "screenshots": [
                     {"path_full": "https://example.com/screenshot1.jpg"},
-                    {"path_full": "https://example.com/screenshot2.jpg"}
+                    {"path_full": "https://example.com/screenshot2.jpg"},
                 ],
-                "release_date": {
-                    "date": "Oct 9, 2007"
-                }
-            }
+                "release_date": {"date": "Oct 9, 2007"},
+            },
         }
     }
 
@@ -203,9 +197,10 @@ def auth_headers(sample_user):
 @pytest.fixture
 def mock_jwt_decode(monkeypatch, sample_user):
     """Mock JWT token decoding for authentication tests."""
+
     def mock_verify_token(token):
         # Mock the verify_token function to return the sample user's steam_id
         return str(sample_user.steam_id)
-    
+
     # Mock the verify_token function used in user_service
     monkeypatch.setattr("app.services.user_service.verify_token", mock_verify_token)

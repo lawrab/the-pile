@@ -1,11 +1,12 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.sql import func
+
 from app.db.base import Base
 
 
 class ImportStatus(Base):
     __tablename__ = "import_status"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True, nullable=False)
     operation_type = Column(String, nullable=False)  # 'import' or 'sync'

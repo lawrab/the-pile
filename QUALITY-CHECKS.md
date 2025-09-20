@@ -37,6 +37,22 @@ cd the-pile-api
 ./scripts/quality-check.sh
 ```
 
+#### Setup Virtual Environment & Install Dependencies
+```bash
+cd the-pile-api
+
+# Create virtual environment (if not exists)
+python -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate  # Linux/Mac
+# OR
+venv\Scripts\activate     # Windows
+
+# Install development dependencies
+pip install -r requirements-dev.txt
+```
+
 #### Individual Tools
 ```bash
 # Type checking (catches import errors)

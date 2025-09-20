@@ -1,4 +1,5 @@
 from typing import List, Optional
+
 from pydantic_settings import BaseSettings
 
 
@@ -12,7 +13,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
     ENVIRONMENT: str = "development"
     BASE_URL: str = "http://localhost:8000"
-    
+
     class Config:
         env_file = ".env"
 

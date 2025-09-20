@@ -136,7 +136,14 @@ interface ButtonProps {
 
 **Start Development:**
 ```bash
-# Backend (Terminal 1)
+# Backend (Terminal 1) - Setup virtual environment first time
+cd the-pile-api
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python dev.py
+
+# Backend (Terminal 1) - Subsequent runs
 cd the-pile-api && source venv/bin/activate && python dev.py
 
 # Frontend (Terminal 2)  

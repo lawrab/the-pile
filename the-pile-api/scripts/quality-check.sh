@@ -1,9 +1,22 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Quality check script for The Pile API
 
 set -e
 
 echo "🔍 Running Python quality checks..."
+
+# Check if virtual environment exists, create if not
+if [ ! -d "venv" ]; then
+    echo "📦 Creating virtual environment..."
+    python -m venv venv
+fi
+
+# Activate virtual environment
+echo "🔧 Activating virtual environment..."
+source venv/bin/activate
+
+echo "📦 Installing/updating development dependencies..."
+pip install -r requirements-dev.txt
 
 echo "📝 Running black (code formatting)..."
 black --check --diff .

@@ -36,6 +36,8 @@
             # Additional tools that might be useful
             nodePackages.npm
             git
+            # Railway CLI for deployment
+            railway
           ];
 
           shellHook = ''
@@ -62,6 +64,7 @@
             echo "  • Node.js $(node --version)"
             echo "  • npm $(npm --version)"
             echo "  • Chromium ${pkgs.chromium.version}"
+            echo "  • Railway CLI $(railway --version 2>/dev/null || echo 'available')"
             echo ""
             echo "🎭 Puppeteer MCP Server configured:"
             echo "  • PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true"
