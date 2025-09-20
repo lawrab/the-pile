@@ -3,7 +3,6 @@ Unit tests for StatsService - Shame score calculation and behavioral insights.
 """
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock
 
 import pytest
 

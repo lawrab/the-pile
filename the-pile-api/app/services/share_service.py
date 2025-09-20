@@ -25,12 +25,16 @@ class ShareService:
 
         # Generate a fun fact
         fun_facts = [
-            f"Could buy {reality_check.money_wasted / 5:.0f} coffees with money spent on unplayed games",
-            f"Has enough unplayed games to last until the year {2024 + int(reality_check.completion_years)}",
-            f"Shame score of {shame_score.score:.0f} puts them in the '{shame_score.rank}' category",
-            f"Only {reality_check.unplayed_games} games standing between them and victory",
-            f"Professional game collector, amateur game player",
-            f"Supports developers by buying games they'll never play",
+            f"Could buy {reality_check.money_wasted / 5:.0f} coffees with money "
+            "spent on unplayed games",
+            f"Has enough unplayed games to last until the year "
+            f"{2024 + int(reality_check.completion_years)}",
+            f"Shame score of {shame_score.score:.0f} puts them in the "
+            f"'{shame_score.rank}' category",
+            f"Only {reality_check.unplayed_games} games standing between them "
+            "and victory",
+            "Professional game collector, amateur game player",
+            "Supports developers by buying games they'll never play",
         ]
 
         fun_fact = random.choice(fun_facts)

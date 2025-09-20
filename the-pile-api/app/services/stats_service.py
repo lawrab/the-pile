@@ -1,15 +1,7 @@
-import random
-from collections import Counter
-from typing import Dict, List
+from sqlalchemy.orm import Session
 
-from sqlalchemy import func
-from sqlalchemy.orm import Session, joinedload
-
-from app.models.pile_entry import GameStatus, PileEntry
-from app.models.steam_game import SteamGame
-from app.models.user import User
 from app.schemas.stats import BehavioralInsights, RealityCheck, ShameScore
-from app.services.cache_service import cache_result, invalidate_cache_pattern
+from app.services.cache_service import cache_result
 
 
 class StatsService:
@@ -190,7 +182,8 @@ class StatsService:
 
         if genre_analysis["most_neglected_genre"]:
             recommendations.append(
-                f"Stop buying {genre_analysis['most_neglected_genre']} games until you play the ones you have"
+                f"Stop buying {genre_analysis['most_neglected_genre']} games "
+                "until you play the ones you have"
             )
 
         if completion_stats["total_games"] > 50:
@@ -199,8 +192,10 @@ class StatsService:
             )
 
         if financial_analysis["unplayed_value"] > 100:
+            unplayed_value = financial_analysis['unplayed_value']
             recommendations.append(
-                f"You have ${financial_analysis['unplayed_value']:.0f} worth of unplayed games. That's a nice vacation!"
+                f"You have ${unplayed_value:.0f} worth of unplayed games. "
+                "That's a nice vacation!"
             )
 
         return BehavioralInsights(

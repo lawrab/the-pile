@@ -6,7 +6,7 @@ from datetime import timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -15,7 +15,6 @@ from app.core.security import (
     Token,
     create_access_token,
     create_secure_cookie_params,
-    credentials_exception,
 )
 from app.db.base import get_db
 from app.services.steam_auth import SteamAuth
@@ -36,7 +35,7 @@ async def steam_login(request: Request):
     try:
         auth_url = steam_auth.get_auth_url()
         return RedirectResponse(auth_url, status_code=status.HTTP_302_FOUND)
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Steam authentication service unavailable",
@@ -93,8 +92,8 @@ async def steam_callback(request: Request, db: Annotated[Session, Depends(get_db
 
     # Get or create user securely
     try:
-        user = await user_service.get_or_create_user(steam_id, db)
-    except Exception as e:
+        await user_service.get_or_create_user(steam_id, db)
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="User creation failed",

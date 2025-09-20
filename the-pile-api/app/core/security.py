@@ -5,10 +5,10 @@ Following FastAPI security best practices.
 
 import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Union
+from typing import Optional
 
 from fastapi import HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel

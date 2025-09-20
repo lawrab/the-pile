@@ -4,7 +4,7 @@ Repository for pile-related database operations.
 
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, or_
+from sqlalchemy import and_
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.pile_entry import GameStatus, PileEntry

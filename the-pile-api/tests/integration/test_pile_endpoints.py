@@ -2,9 +2,7 @@
 Integration tests for Pile API endpoints.
 """
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from app.models.pile_entry import GameStatus
 
@@ -302,7 +300,7 @@ class TestPileEndpoints:
 
             assert (
                 response.status_code == 403
-            ), f"Endpoint {method} {endpoint} should require auth"  # FastAPI returns 403
+            ), f"Endpoint {method} {endpoint} should require auth"  # FastAPI: 403
 
     def test_cross_user_access_protection(
         self, client, auth_headers, db_session, mock_jwt_decode

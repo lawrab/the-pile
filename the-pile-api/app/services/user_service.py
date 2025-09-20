@@ -14,7 +14,6 @@ from app.core.config import settings
 from app.core.security import (
     credentials_exception,
     security,
-    verify_credentials_securely,
     verify_token,
 )
 from app.db.base import get_db
@@ -101,7 +100,7 @@ class UserService:
 
     async def get_steam_user_info(self, steam_id: str) -> dict:
         """Fetch user info from Steam Web API with proper error handling"""
-        url = f"https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/"
+        url = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/"
         params = {"key": settings.STEAM_API_KEY, "steamids": steam_id}
 
         timeout = httpx.Timeout(10.0, connect=5.0)

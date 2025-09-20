@@ -70,16 +70,21 @@ async def import_steam_library(
         if time_since_last_sync < timedelta(hours=24):
             hours_remaining = 24 - time_since_last_sync.total_seconds() / 3600
             logger.info(
-                f"Rate limit hit for user {current_user['id']}: {hours_remaining:.1f} hours remaining"
+                f"Rate limit hit for user {current_user['id']}: "
+                f"{hours_remaining:.1f} hours remaining"
             )
             return {
                 "error": "Rate limit exceeded",
-                "message": f"You can only sync once per day. Try again in {hours_remaining:.1f} hours.",
+                "message": (
+                    f"You can only sync once per day. Try again in "
+                    f"{hours_remaining:.1f} hours."
+                ),
                 "retry_after_hours": hours_remaining,
             }
 
     logger.info(
-        f"Adding background task for user {current_user['id']}, steam_id {current_user['steam_id']}"
+        f"Adding background task for user {current_user['id']}, "
+        f"steam_id {current_user['steam_id']}"
     )
 
     # Add background task to import library

@@ -1,10 +1,10 @@
 import asyncio
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import httpx
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 try:
     from dateutil import parser as dateutil_parser
@@ -16,7 +16,7 @@ from app.models.pile_entry import GameStatus, PileEntry
 from app.models.steam_game import SteamGame
 from app.models.user import User
 from app.schemas.pile import PileFilters
-from app.services.cache_service import cache_result, invalidate_cache_pattern
+from app.services.cache_service import invalidate_cache_pattern
 
 
 class RateLimiter:
@@ -70,7 +70,7 @@ class PileService:
             logger.error("STEAM_API_KEY is not configured")
             raise ValueError("Steam API key is not configured")
 
-        url = f"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
+        url = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
         params = {
             "key": api_key,
             "steamid": steam_id,
@@ -103,7 +103,7 @@ class PileService:
 
             except httpx.TimeoutException as e:
                 logger.error(f"Steam API timeout for steam_id {steam_id}: {e}")
-                raise ValueError(f"Steam API request timed out. Please try again.")
+                raise ValueError("Steam API request timed out. Please try again.")
             except httpx.HTTPStatusError as e:
                 logger.error(f"Steam API HTTP error for steam_id {steam_id}: {e}")
                 raise ValueError(f"Steam API returned error: {e.response.status_code}")
@@ -118,7 +118,7 @@ class PileService:
         # Apply rate limiting
         await self.rate_limiter.acquire()
 
-        url = f"https://store.steampowered.com/api/appdetails"
+        url = "https://store.steampowered.com/api/appdetails"
         params = {"appids": app_id, "l": "english"}
 
         # Configure timeout for Store API
@@ -201,7 +201,8 @@ class PileService:
         Detect if a game should be marked as abandoned based on playtime patterns.
 
         Abandoned game criteria (3 month timeframe):
-        1. Game was being played (status = PLAYING) but playtime hasn't increased in 3+ months
+        1. Game was being played (status = PLAYING) but playtime hasn't
+           increased in 3+ months
         2. Game has some playtime (> 0) but hasn't been touched in 3+ months
         3. Unplayed games that have been in pile for 3+ months
 
@@ -252,7 +253,8 @@ class PileService:
                 last_activity = last_activity.replace(tzinfo=timezone.utc)
         else:
             print(
-                f"Unexpected type for last_updated: {type(last_updated)} - {last_updated}"
+                f"Unexpected type for last_updated: {type(last_updated)} - "
+                f"{last_updated}"
             )
             last_activity = three_months_ago - timedelta(days=365)  # Fallback
 
@@ -288,7 +290,10 @@ class PileService:
     async def get_game_details_batch(
         self, app_ids: List[int], db: Session
     ) -> Dict[int, Dict[str, Any]]:
-        """Fetch game details for a batch of app IDs with parallel processing and error handling"""
+        """
+        Fetch game details for a batch of app IDs with parallel processing
+        and error handling
+        """
         import asyncio
 
         from app.services.cache_service import cache_service
@@ -415,7 +420,8 @@ class PileService:
                 batch_games = owned_games[batch_start:batch_end]
 
                 logger.info(
-                    f"Processing batch {batch_start//BATCH_SIZE + 1}: {len(batch_games)} games"
+                    f"Processing batch {batch_start//BATCH_SIZE + 1}: "
+                    f"{len(batch_games)} games"
                 )
 
                 # Extract app_ids for this batch
@@ -496,7 +502,10 @@ class PileService:
                 steam_game = SteamGame(
                     steam_app_id=app_id,
                     name=game_data.get("name", "Unknown Game"),
-                    image_url=f"https://steamcdn-a.akamaihd.net/steam/apps/{app_id}/header.jpg",
+                    image_url=(
+                        f"https://steamcdn-a.akamaihd.net/steam/apps/{app_id}/"
+                        "header.jpg"
+                    ),
                     genres=(
                         [g["description"] for g in details.get("genres", [])]
                         if details.get("genres")
@@ -621,7 +630,8 @@ class PileService:
                     user_id=user_id,
                     steam_game_id=steam_game.id,
                     playtime_minutes=current_playtime,
-                    purchase_price=game_price,  # Use current Steam price as purchase price
+                    # Use current Steam price as purchase price
+                    purchase_price=game_price,
                     status=(
                         GameStatus.UNPLAYED
                         if current_playtime == 0
@@ -630,7 +640,8 @@ class PileService:
                 )
                 db.add(pile_entry)
             else:
-                # Update existing entry - status will be computed dynamically when retrieved
+                # Update existing entry - status will be computed dynamically
+                # when retrieved
                 existing_entry.playtime_minutes = current_playtime
                 existing_entry.updated_at = datetime.now(timezone.utc)
 
@@ -638,7 +649,10 @@ class PileService:
         db.commit()
 
     async def sync_playtime(self, steam_id: str, user_id: int, db: Session):
-        """Sync playtime data from Steam with abandoned detection using Steam's last played data"""
+        """
+        Sync playtime data from Steam with abandoned detection using
+        Steam's last played data
+        """
         try:
             owned_games = await self.get_steam_owned_games(steam_id)
 
@@ -682,7 +696,8 @@ class PileService:
                 steam_last_played = last_played_map.get(app_id)
                 checked_count += 1
 
-                # Use Steam's last played time if available, otherwise fall back to database timestamps
+                # Use Steam's last played time if available, otherwise fall back
+                # to database timestamps
                 if steam_last_played:
                     last_activity_date = steam_last_played
                     activity_source = "Steam"
@@ -709,7 +724,10 @@ class PileService:
                 if new_status != entry.status and new_status == GameStatus.ABANDONED:
                     entry.status = new_status
                     entry.abandon_date = datetime.now(timezone.utc)
-                    entry.abandon_reason = f"Automatically detected during sync - no recent activity (using {activity_source} data)"
+                    entry.abandon_reason = (
+                        f"Automatically detected during sync - no recent activity "
+                        f"(using {activity_source} data)"
+                    )
                     entry.updated_at = datetime.now(timezone.utc)
                     abandoned_count += 1
 
@@ -721,7 +739,8 @@ class PileService:
             db.commit()
 
             print(
-                f"Checked {checked_count} games, updated playtime for {updated_count} games, marked {abandoned_count} games as abandoned"
+                f"Checked {checked_count} games, updated playtime for "
+                f"{updated_count} games, marked {abandoned_count} games as abandoned"
             )
 
         except Exception as e:
@@ -862,15 +881,15 @@ class PileService:
         return False
 
     async def clear_user_pile(self, user_id: int, db: Session) -> int:
-        """Clear all pile entries for a user (destructive operation) and reset import throttling"""
+        """
+        Clear all pile entries for a user (destructive operation) and reset
+        import throttling
+        """
         from app.models.user import User
         from app.repositories.pile_repository import PileRepository
         from app.services.cache_service import invalidate_cache_pattern
 
         pile_repo = PileRepository(db)
-
-        # Get count before deletion for return value
-        count = pile_repo.get_pile_count(user_id)
 
         # Delete all pile entries for the user
         deleted_count = pile_repo.clear_user_pile(user_id)

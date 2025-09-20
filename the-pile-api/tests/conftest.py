@@ -166,7 +166,9 @@ def mock_steam_app_details():
             "success": True,
             "data": {
                 "name": "Portal",
-                "short_description": "A puzzle-platform game that combines puzzles with action",
+                "short_description": (
+                    "A puzzle-platform game that combines puzzles with action"
+                ),
                 "developers": ["Valve Corporation"],
                 "publishers": ["Valve Corporation"],
                 "price_overview": {"initial": 999, "final": 999, "currency": "USD"},

@@ -2,8 +2,7 @@
 Unit tests for PileService - Core business logic for The Pile.
 """
 
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -217,7 +216,8 @@ class TestPileService:
         for i, status in enumerate(statuses):
             game = SteamGame(
                 steam_app_id=500
-                + i,  # Use different range to avoid conflicts with sample_steam_game (400)
+                + i,  # Use different range to avoid conflicts with
+                # sample_steam_game (400)
                 name=f"Filter Test Game {i}",
                 genres=["Action", "Adventure"],
                 price=19.99,
@@ -247,11 +247,13 @@ class TestPileService:
         assert len(result) == 1
         assert result[0].status == GameStatus.PLAYING
 
-        # Test filtering by genre - Note: genre filtering might not work with SQLite test DB
+        # Test filtering by genre - Note: genre filtering might not work
+        # with SQLite test DB
         # SQLite doesn't handle JSON array contains the same way as PostgreSQL
         filters = PileFilters(genre="Action")
         result = await pile_service.get_user_pile(sample_user.id, filters, db_session)
-        # In SQLite test environment, genre filtering may return 0 results due to JSON handling differences
+        # In SQLite test environment, genre filtering may return 0 results
+        # due to JSON handling differences
         assert len(result) >= 0  # Just ensure it doesn't crash
 
         # Test limit and offset
