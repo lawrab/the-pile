@@ -3,27 +3,21 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden group transform-gpu backface-visibility-hidden will-change-transform gap-2",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-2",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-yellow-600 to-yellow-700 text-black font-semibold hover:from-yellow-500 hover:to-yellow-600 hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/30 mystical-glow",
-        destructive:
-          "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-500 hover:to-red-600 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30",
-        outline:
-          "border-2 border-purple-700/40 bg-transparent text-gray-300 hover:bg-purple-950/30 hover:border-purple-600/60 hover:text-white hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 backdrop-blur-fix",
-        secondary:
-          "bg-gradient-to-r from-gray-700 to-gray-800 text-white hover:from-gray-600 hover:to-gray-700 hover:scale-105",
-        ghost: "text-gray-400 hover:bg-purple-950/30 hover:text-white transition-all duration-300",
-        link: "text-yellow-400 underline-offset-4 hover:underline hover:text-yellow-300",
-        // Atmospheric variants for game statuses
-        unplayed: "bg-gradient-to-r from-red-800 to-red-900 text-red-200 hover:from-red-700 hover:to-red-800 hover:scale-105 hover:glow-unplayed",
-        playing: "bg-gradient-to-r from-yellow-700 to-orange-700 text-yellow-100 hover:from-yellow-600 hover:to-orange-600 hover:scale-105 hover:glow-playing",
-        completed: "bg-gradient-to-r from-green-700 to-green-800 text-green-100 hover:from-green-600 hover:to-green-700 hover:scale-105 hover:glow-completed",
-        amnesty: "bg-gradient-to-r from-blue-800 to-slate-800 text-blue-200 hover:from-blue-700 hover:to-slate-700 hover:scale-105 hover:glow-amnesty",
-        // Legacy support
-        shame: "bg-gradient-to-r from-red-800 to-red-900 text-red-200 hover:from-red-700 hover:to-red-800 hover:scale-105 hover:glow-unplayed",
-        success: "bg-gradient-to-r from-green-700 to-green-800 text-green-100 hover:from-green-600 hover:to-green-700 hover:scale-105 hover:glow-completed",
+        default: "bg-yellow-600 text-black font-semibold hover:bg-yellow-500 focus-visible:ring-yellow-500",
+        destructive: "bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-500",
+        outline: "border border-slate-600 bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white focus-visible:ring-slate-500",
+        secondary: "bg-slate-700 text-white hover:bg-slate-600 focus-visible:ring-slate-500",
+        ghost: "text-slate-400 hover:bg-slate-800 hover:text-white",
+        link: "text-yellow-400 underline-offset-4 hover:underline",
+        // Simplified game status variants
+        unplayed: "bg-red-700 text-red-100 hover:bg-red-600",
+        playing: "bg-orange-600 text-orange-100 hover:bg-orange-500",
+        completed: "bg-green-600 text-green-100 hover:bg-green-500",
+        amnesty: "bg-blue-600 text-blue-100 hover:bg-blue-500",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -66,13 +60,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         {...props}
       >
-        {/* Mystical shimmer effect */}
-        <div className="absolute inset-0 -top-1 -bottom-1 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
-        
-        {/* Button content */}
-        <span className="relative z-10">
-          {props.children}
-        </span>
+        {props.children}
       </button>
     )
   }

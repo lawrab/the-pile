@@ -7,6 +7,7 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { useToast } from '@/lib/use-toast'
 import { ToastContainer } from '@/components/ui/toast'
 import { PileEntry, GameStatus } from '@/types'
+import { formatCurrency } from '@/lib/utils'
 import Image from 'next/image'
 import { 
   Play, 
@@ -151,6 +152,52 @@ export function ModernGameGrid({
     }
   }
 
+  // Extract just the roast message for the popover
+  const getStatusRoast = (status: GameStatus, game?: PileEntry) => {
+    if (status === GameStatus.UNPLAYED && game) {
+      const playtime = game.playtime_minutes || 0
+      const price = game.purchase_price || 0
+      
+      if (playtime === 0) {
+        if (price > 50) return 'Expensive regret'
+        if (price > 20) return 'Impulse buy?'
+        if (price > 0) return 'Still wrapped'
+        return 'Free & ignored'
+      }
+      
+      if (playtime < 60) {
+        return `${playtime}m then quit?` 
+      }
+      
+      return 'Never touched'
+    }
+    
+    if (status === GameStatus.ABANDONED && game) {
+      const playtime = game.playtime_minutes || 0
+      const hours = Math.floor(playtime / 60)
+      const price = game.purchase_price || 0
+      
+      if (hours < 1) {
+        return 'Under 1h'
+      }
+      if (hours < 5) {
+        return 'Weak commitment'
+      }
+      if (hours > 20) {
+        if (price > 30) return 'Expensive failure'
+        return 'So close, yet so far'
+      }
+      return 'Quitter!'
+    }
+    
+    switch (status) {
+      case GameStatus.PLAYING: return 'Finally making progress'
+      case GameStatus.COMPLETED: return 'Actually finished something!'
+      case GameStatus.AMNESTY_GRANTED: return 'Set free from shame'
+      default: return ''
+    }
+  }
+
   const formatReleaseDate = (dateString?: string) => {
     if (!dateString) return null
     try {
@@ -245,9 +292,9 @@ export function ModernGameGrid({
 
   const getSarcasticPrice = (price: number | null) => {
     if (!price || price === 0) return "FREE (and you still won't play it)"
-    if (price > 50) return `$${price.toFixed(2)} (Hope it was worth the groceries)`
-    if (price > 20) return `$${price.toFixed(2)} (Couldn't resist, could you?)`
-    return `$${price.toFixed(2)}`
+    if (price > 50) return `${formatCurrency(price)} (Hope it was worth the groceries)`
+    if (price > 20) return `${formatCurrency(price)} (Couldn't resist, could you?)`
+    return formatCurrency(price)
   }
 
   const getSarcasticPlaytime = (minutes: number, status: GameStatus, compact: boolean = false) => {
@@ -351,9 +398,9 @@ export function ModernGameGrid({
     
     // Enhanced fallback using more game-specific data
     if (game.status === GameStatus.UNPLAYED) {
-      if (price > 50) return `${gameName}: $${price} expensive mistake gathering dust`
-      if (price > 30) return `${gameName}: $${price} of regret sitting unplayed`
-      if (price > 10) return `${gameName}: $${price} impulse purchase you'll never touch`
+      if (price > 50) return `${gameName}: ${formatCurrency(price)} expensive mistake gathering dust`
+      if (price > 30) return `${gameName}: ${formatCurrency(price)} of regret sitting unplayed`
+      if (price > 10) return `${gameName}: ${formatCurrency(price)} impulse purchase you'll never touch`
       if (price > 0) return `You paid money for ${gameName} just to ignore it`
       return `${gameName} is free and you still won't play it`
     }
@@ -487,7 +534,7 @@ export function ModernGameGrid({
         if (price > 50) {
           return {
             title: "Finally giving up on this dream?",
-            message: `You're about to grant amnesty to ${gameName}. That's $${price} you'll never see again, but at least your conscience will be clear. Are you ready to admit defeat?`,
+            message: `You're about to grant amnesty to ${gameName}. That's ${formatCurrency(price)} you'll never see again, but at least your conscience will be clear. Are you ready to admit defeat?`,
             confirmText: "Yes, I'm a quitter",
             cancelText: "Maybe I'll play it someday"
           }
@@ -495,7 +542,7 @@ export function ModernGameGrid({
         if (price > 20) {
           return {
             title: "Time to face reality?",
-            message: `${gameName} has been judging you from your library. For $${price}, you could have had several nice coffees instead. Sure you want to set it free?`,
+            message: `${gameName} has been judging you from your library. For ${formatCurrency(price)}, you could have had several nice coffees instead. Sure you want to set it free?`,
             confirmText: "Free this poor game",
             cancelText: "I might play it... eventually"
           }
@@ -1259,10 +1306,16 @@ export function ModernGameGrid({
                 <h3 className="font-semibold text-sm text-white/95 line-clamp-2 mb-2 leading-snug">
                   {hoveredGame.steam_game.name}
                 </h3>
-                <div className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-medium backdrop-blur-sm ${
-                  getStatusColor(hoveredGame.status)
-                }`}>
-                  {getStatusLabel(hoveredGame.status, hoveredGame)}
+                <div className="text-center">
+                  <div className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-medium backdrop-blur-sm ${
+                    getStatusColor(hoveredGame.status)
+                  }`}>
+                    {hoveredGame.status.toUpperCase()}
+                  </div>
+                  {/* Roast message below the pill */}
+                  <div className="text-xs text-slate-400 mt-1.5 italic">
+                    {getStatusRoast(hoveredGame.status, hoveredGame)}
+                  </div>
                 </div>
               </div>
             </div>

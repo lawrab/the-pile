@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { PileEntry } from '@/types'
+import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -245,7 +246,7 @@ export function RecommendationModal({
               {game.purchase_price && (
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-slate-400" />
-                  <span>Paid: ${game.purchase_price.toFixed(2)}</span>
+                  <span>Paid: {formatCurrency(game.purchase_price)}</span>
                 </div>
               )}
 

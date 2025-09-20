@@ -6,6 +6,7 @@ import { Button } from './ui/button'
 import { IconButton } from './ui/icon-button'
 import { ToastContainer } from './ui/toast'
 import { useToast } from '@/lib/use-toast'
+import { formatCurrency } from '@/lib/utils'
 import Image from 'next/image'
 
 interface GameDetailModalProps {
@@ -176,7 +177,7 @@ export function GameDetailModal({
 
     if (game.status === 'unplayed') {
       if (game.playtime_minutes === 0) {
-        if (price > 40) return "Finally Launch Your $" + price + " Regret"
+        if (price > 40) return `Finally Launch Your ${formatCurrency(price)} Regret`
         if (daysSinceRelease > 730) return "It's About Time"
         return "Actually Play This?"
       }
@@ -199,7 +200,7 @@ export function GameDetailModal({
   const getInstallMotivation = () => {
     const price = game.steam_game.price || 0
     
-    if (price > 30) return "Download Your $" + price + " Shame"
+    if (price > 30) return `Download Your ${formatCurrency(price)} Shame`
     if (price === 0) return "Install Your Free Guilt"
     return "Finally Download This?"
   }
@@ -213,7 +214,7 @@ export function GameDetailModal({
 
     if (game.status === 'unplayed' && game.playtime_minutes === 0) {
       if (price > 40) {
-        return `You spent $${price} on this ${yearsSinceRelease > 0 ? yearsSinceRelease + ' year' + (yearsSinceRelease > 1 ? 's' : '') + ' ago' : 'recently'} and haven't even launched it once. Maybe today's the day you finally get your money's worth?`
+        return `You spent ${formatCurrency(price)} on this ${yearsSinceRelease > 0 ? yearsSinceRelease + ' year' + (yearsSinceRelease > 1 ? 's' : '') + ' ago' : 'recently'} and haven't even launched it once. Maybe today's the day you finally get your money's worth?`
       }
       if (daysSinceRelease > 730) {
         return `This game has been waiting ${yearsSinceRelease} year${yearsSinceRelease > 1 ? 's' : ''} for you to press play. Your Steam library is starting to feel like a digital graveyard.`
@@ -261,7 +262,7 @@ export function GameDetailModal({
     if (game.status === 'unplayed') {
       if (game.playtime_minutes === 0) {
         if (price > 30) {
-          return `Really? You're going to start playing "${game.steam_game.name}" after ignoring your $${price} investment? Bold move. Let's see if you actually follow through this time.`
+          return `Really? You're going to start playing "${game.steam_game.name}" after ignoring your ${formatCurrency(price)} investment? Bold move. Let's see if you actually follow through this time.`
         }
         if (daysSinceRelease > 365) {
           return `"${game.steam_game.name}" has been waiting ${Math.floor(daysSinceRelease/365)} year${Math.floor(daysSinceRelease/365) > 1 ? 's' : ''} for you. Think you're finally ready to commit?`
@@ -306,7 +307,7 @@ export function GameDetailModal({
 
     if (game.status === 'unplayed') {
       if (price > 30) {
-        return `Giving up on "${game.steam_game.name}" without even trying? That's $${price} down the drain. At least you're honest about your lack of commitment.`
+        return `Giving up on "${game.steam_game.name}" without even trying? That's ${formatCurrency(price)} down the drain. At least you're honest about your lack of commitment.`
       }
       return `Granting amnesty to "${game.steam_game.name}" without a single minute played? Sometimes acceptance is the first step to healing.`
     }
@@ -489,7 +490,7 @@ export function GameDetailModal({
                     )}
                     {game.steam_game?.price && (
                       <span className="bg-black/40 px-2 py-1 rounded backdrop-blur-sm text-yellow-300">
-                        ${game.steam_game.price.toFixed(2)}
+                        {formatCurrency(game.steam_game.price)}
                       </span>
                     )}
                   </div>

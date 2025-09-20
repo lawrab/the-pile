@@ -169,7 +169,7 @@ export function StickyHeader({
                 return (
                   <Link key={item.href} href={item.href}>
                     <Button
-                      variant={isActive ? 'default' : 'ghost'}
+                      variant={isActive ? 'secondary' : 'ghost'}
                       size="sm"
                       className="gap-2"
                     >
