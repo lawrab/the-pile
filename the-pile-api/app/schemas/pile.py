@@ -25,6 +25,7 @@ class GameBase(BaseModel):
     steam_review_count: Optional[int] = None
     steam_type: Optional[str] = None
     categories: Optional[List[str]] = None
+    rtime_last_played: Optional[int] = None  # Unix timestamp of when game was last played
     
     class Config:
         from_attributes = True
