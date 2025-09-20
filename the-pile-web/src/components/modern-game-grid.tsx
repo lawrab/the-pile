@@ -52,6 +52,7 @@ export function ModernGameGrid({
 }: ModernGameGridProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [internalSearchTerm, setInternalSearchTerm] = useState('')
+  const [expandedCard, setExpandedCard] = useState<number | null>(null)
   
   // Use external search term if provided, otherwise internal
   const searchTerm = onSearchTermChange ? externalSearchTerm : internalSearchTerm
@@ -275,6 +276,74 @@ export function ModernGameGrid({
     return 'text-red-400'
   }
 
+  const getDaysOwned = (game: PileEntry) => {
+    if (!game.purchase_date && !game.created_at) return null
+    
+    try {
+      const purchaseDate = new Date(game.purchase_date || game.created_at)
+      const now = new Date()
+      const diffTime = now.getTime() - purchaseDate.getTime()
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+      
+      if (diffDays < 0) return null
+      if (diffDays === 0) return 'Bought today'
+      if (diffDays === 1) return 'Bought yesterday'
+      if (diffDays < 30) return `Bought ${diffDays} days ago`
+      if (diffDays < 365) {
+        const months = Math.floor(diffDays / 30)
+        return `Bought ${months} month${months > 1 ? 's' : ''} ago`
+      }
+      const years = Math.floor(diffDays / 365)
+      return `Bought ${years} year${years > 1 ? 's' : ''} ago`
+    } catch {
+      return null
+    }
+  }
+
+  const getSarcasticOwnership = (game: PileEntry) => {
+    const daysOwned = getDaysOwned(game)
+    if (!daysOwned) return null
+    
+    const days = daysOwned.includes('year') ? 365 * parseInt(daysOwned.match(/\d+/)?.[0] || '0') :
+                daysOwned.includes('month') ? 30 * parseInt(daysOwned.match(/\d+/)?.[0] || '0') :
+                parseInt(daysOwned.match(/\d+/)?.[0] || '0')
+    
+    if (game.status === GameStatus.UNPLAYED) {
+      if (days > 730) return `${daysOwned} (That's ${Math.floor(days/365)} years of denial)`
+      if (days > 365) return `${daysOwned} (Over a year of procrastination)`
+      if (days > 180) return `${daysOwned} (Half a year of dust collecting)`
+      if (days > 30) return `${daysOwned} (Still in digital shrink wrap)`
+      return daysOwned
+    }
+    
+    if (game.status === GameStatus.ABANDONED) {
+      if (days > 365) return `${daysOwned} (Bought it, tried it, quit it)`
+      return `${daysOwned} (Brief relationship)`
+    }
+    
+    return daysOwned
+  }
+
+  const getGenreShame = (genres?: string[]) => {
+    if (!genres || genres.length === 0) return null
+    
+    const shameMap: Record<string, string> = {
+      'RPG': 'RPGs (Because 100-hour commitments are your specialty)',
+      'Action': 'Action (For when you want quick dopamine but choose Netflix instead)',
+      'Adventure': 'Adventure (Stories you\'ll never experience)',
+      'Indie': 'Indie (Supporting developers while ignoring their work)',
+      'Strategy': 'Strategy (Requires thinking, explains the avoidance)',
+      'Simulation': 'Simulation (Prefer virtual life to real productivity)',
+      'Puzzle': 'Puzzle (Ironic, since your backlog is the biggest puzzle)',
+      'Platformer': 'Platformer (Can\'t even jump into playing it)',
+      'Racing': 'Racing (The only race you\'re winning is to buy more games)',
+      'Sports': 'Sports (Virtual athletics while avoiding real exercise)'
+    }
+    
+    const shamefulGenre = genres.find(genre => shameMap[genre])
+    return shamefulGenre ? shameMap[shamefulGenre] : `${genres[0]} (Your taste is questionable)`
+  }
+
   const getSyncReminder = (lastUpdated?: string) => {
     if (!lastUpdated) return null
     
@@ -475,8 +544,17 @@ export function ModernGameGrid({
           {filteredGames.map((game) => (
             <Card 
               key={game.id} 
-              className="bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-all cursor-pointer group"
-              onClick={() => onGameClick(game)}
+              className={`bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-all cursor-pointer group ${
+                expandedCard === game.id ? 'ring-2 ring-blue-500/50 border-blue-500/50' : ''
+              }`}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (expandedCard === game.id) {
+                  setExpandedCard(null)
+                } else {
+                  setExpandedCard(game.id)
+                }
+              }}
             >
               <CardContent className="p-4">
                 <div className="aspect-[460/215] relative mb-3 rounded-lg overflow-hidden bg-slate-700">
@@ -589,6 +667,57 @@ export function ModernGameGrid({
                       </span>
                     </div>
                   )}
+                  
+                  {/* Expanded Content */}
+                  {expandedCard === game.id && (
+                    <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-3">
+                      <div className="text-xs space-y-2">
+                        {/* Brutal Ownership Truth */}
+                        {getSarcasticOwnership(game) && (
+                          <div className="bg-slate-900/50 p-2 rounded border border-red-500/20">
+                            <span className="text-red-300 font-medium">Ownership Shame: </span>
+                            <span className="text-slate-300">{getSarcasticOwnership(game)}</span>
+                          </div>
+                        )}
+                        
+                        {/* Genre Mockery */}
+                        {game.steam_game.genres && game.steam_game.genres.length > 0 && (
+                          <div className="bg-slate-900/50 p-2 rounded border border-yellow-500/20">
+                            <span className="text-yellow-300 font-medium">Genre Analysis: </span>
+                            <span className="text-slate-300">{getGenreShame(game.steam_game.genres)}</span>
+                          </div>
+                        )}
+                        
+                        {/* Developer Support Guilt */}
+                        {game.steam_game.developer && (
+                          <div className="bg-slate-900/50 p-2 rounded border border-purple-500/20">
+                            <span className="text-purple-300 font-medium">Developer: </span>
+                            <span className="text-slate-300">{game.steam_game.developer}</span>
+                            <div className="text-slate-400 text-[10px] mt-1">
+                              {game.status === GameStatus.UNPLAYED ? 
+                                'They worked hard, you bought it, now play it!' :
+                                game.status === GameStatus.ABANDONED ?
+                                'They put effort in, you gave up. Classic.' :
+                                'At least someone appreciates their work.'
+                              }
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Steam App ID for the tech-savvy shame */}
+                        <div className="text-[10px] text-slate-500 text-center pt-1">
+                          Steam ID: {game.steam_game.steam_app_id} • 
+                          <span className="hover:text-blue-400 cursor-pointer" 
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
+                                }}>
+                            View in Steam
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -599,8 +728,17 @@ export function ModernGameGrid({
           {filteredGames.map((game) => (
             <Card 
               key={game.id}
-              className="bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-all cursor-pointer"
-              onClick={() => onGameClick(game)}
+              className={`bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-all cursor-pointer ${
+                expandedCard === game.id ? 'ring-2 ring-blue-500/50 border-blue-500/50' : ''
+              }`}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (expandedCard === game.id) {
+                  setExpandedCard(null)
+                } else {
+                  setExpandedCard(game.id)
+                }
+              }}
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
@@ -683,6 +821,56 @@ export function ModernGameGrid({
                         </div>
                       )}
                     </div>
+                    
+                    {/* Expanded Content for List View */}
+                    {expandedCard === game.id && (
+                      <div className="mt-3 pt-3 border-t border-slate-700/50 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Ownership Shame */}
+                        {getSarcasticOwnership(game) && (
+                          <div className="bg-slate-900/50 p-3 rounded border border-red-500/20">
+                            <div className="text-red-300 font-medium text-sm mb-1">Ownership Truth</div>
+                            <div className="text-slate-300 text-sm">{getSarcasticOwnership(game)}</div>
+                          </div>
+                        )}
+                        
+                        {/* Genre Analysis */}
+                        {game.steam_game.genres && game.steam_game.genres.length > 0 && (
+                          <div className="bg-slate-900/50 p-3 rounded border border-yellow-500/20">
+                            <div className="text-yellow-300 font-medium text-sm mb-1">Genre Psychology</div>
+                            <div className="text-slate-300 text-sm">{getGenreShame(game.steam_game.genres)}</div>
+                          </div>
+                        )}
+                        
+                        {/* Developer Guilt - Full Width */}
+                        {game.steam_game.developer && (
+                          <div className="md:col-span-2 bg-slate-900/50 p-3 rounded border border-purple-500/20">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="text-purple-300 font-medium text-sm mb-1">Developer Support Status</div>
+                                <div className="text-slate-300 text-sm">{game.steam_game.developer}</div>
+                                <div className="text-slate-400 text-xs mt-1">
+                                  {game.status === GameStatus.UNPLAYED ? 
+                                    'They worked hard, you bought it, now actually play it!' :
+                                    game.status === GameStatus.ABANDONED ?
+                                    'They put their heart into this, you gave up. How does that feel?' :
+                                    'Finally, someone who appreciates good work.'
+                                  }
+                                </div>
+                              </div>
+                              <button
+                                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
+                                }}
+                              >
+                                View in Steam
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
