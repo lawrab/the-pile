@@ -192,7 +192,7 @@ class StatsService:
             )
 
         if financial_analysis["unplayed_value"] > 100:
-            unplayed_value = financial_analysis['unplayed_value']
+            unplayed_value = financial_analysis["unplayed_value"]
             recommendations.append(
                 f"You have ${unplayed_value:.0f} worth of unplayed games. "
                 "That's a nice vacation!"

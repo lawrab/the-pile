@@ -215,8 +215,7 @@ class TestPileService:
 
         for i, status in enumerate(statuses):
             game = SteamGame(
-                steam_app_id=500
-                + i,  # Use different range to avoid conflicts with
+                steam_app_id=500 + i,  # Use different range to avoid conflicts with
                 # sample_steam_game (400)
                 name=f"Filter Test Game {i}",
                 genres=["Action", "Adventure"],
