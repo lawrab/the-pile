@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "env": {
+        "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
+        "PUPPETEER_EXECUTABLE_PATH": "/nix/store/85dbph29a23yrrqs2dq5ax5xhs7pdxpd-chromium-140.0.7339.185/bin/chromium",
+        "PUPPETEER_HEADLESS": "false"
+      }
+    }
+  }
+}

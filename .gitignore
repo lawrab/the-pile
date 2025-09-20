@@ -79,5 +79,11 @@ pids
 *.tmp
 *.temp
 
-# Screenshots
+# Screenshots and browser automation files
 Screenshots/
+*.png
+*.jpg
+*.jpeg
+screenshot*.png
+*-screenshot.png
+puppeteer_*
