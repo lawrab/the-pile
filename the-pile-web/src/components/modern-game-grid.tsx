@@ -19,7 +19,8 @@ import {
   ArrowUp,
   ArrowDown,
   Calendar,
-  Activity
+  Activity,
+  ExternalLink
 } from 'lucide-react'
 
 interface ModernGameGridProps {
@@ -74,22 +75,22 @@ export function ModernGameGrid({
 
   const getStatusColor = (status: GameStatus) => {
     switch (status) {
-      case GameStatus.UNPLAYED: return 'bg-red-500/20 text-red-300 border-red-500/30'
-      case GameStatus.PLAYING: return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-      case GameStatus.COMPLETED: return 'bg-green-500/20 text-green-300 border-green-500/30'
+      case GameStatus.UNPLAYED: return 'bg-red-500/30 text-red-200 border-red-400/50 shadow-red-500/20 shadow-lg'
+      case GameStatus.PLAYING: return 'bg-yellow-500/20 text-yellow-200 border-yellow-400/40'
+      case GameStatus.COMPLETED: return 'bg-green-500/20 text-green-200 border-green-400/40'
       case GameStatus.ABANDONED: return 'bg-gray-500/20 text-gray-300 border-gray-500/30'
-      case GameStatus.AMNESTY_GRANTED: return 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+      case GameStatus.AMNESTY_GRANTED: return 'bg-purple-500/20 text-purple-200 border-purple-400/40'
       default: return 'bg-slate-500/20 text-slate-300 border-slate-500/30'
     }
   }
 
   const getStatusLabel = (status: GameStatus) => {
     switch (status) {
-      case GameStatus.UNPLAYED: return 'Not Started'
-      case GameStatus.PLAYING: return 'In Progress'
-      case GameStatus.COMPLETED: return 'Completed'
-      case GameStatus.ABANDONED: return 'Abandoned'
-      case GameStatus.AMNESTY_GRANTED: return 'Amnesty Granted'
+      case GameStatus.UNPLAYED: return 'UNTOUCHED'
+      case GameStatus.PLAYING: return 'Actually Playing'
+      case GameStatus.COMPLETED: return 'Conquered'
+      case GameStatus.ABANDONED: return 'Gave Up'
+      case GameStatus.AMNESTY_GRANTED: return 'Forgiven'
       default: return 'Unknown'
     }
   }
@@ -104,20 +105,128 @@ export function ModernGameGrid({
     }
   }
 
-  const formatLastActivity = (dateString?: string) => {
-    if (!dateString) return null
+  const formatLastPlayed = (timestamp: number) => {
+    const lastPlayed = new Date(timestamp * 1000)
+    const now = new Date()
+    const diffTime = now.getTime() - lastPlayed.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 0) return 'Today'
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays}d ago`
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
+    return `${Math.floor(diffDays / 365)}y ago`
+  }
+
+  const getShameIntensity = (game: PileEntry) => {
+    if (game.status !== GameStatus.UNPLAYED) return 'none'
+    
+    const playtime = game.playtime_minutes || 0
+    const price = game.purchase_price || 0
+    
+    // Zero playtime is maximum shame
+    if (playtime === 0) {
+      if (price > 30) return 'extreme' // Expensive + untouched = maximum shame
+      if (price > 0) return 'high' // Any paid game untouched
+      return 'medium' // Free game untouched
+    }
+    
+    // Very low playtime (< 1 hour) with purchase
+    if (playtime < 60 && price > 0) return 'medium'
+    
+    return 'low'
+  }
+
+  const getShameMessage = (game: PileEntry) => {
+    if (game.status !== GameStatus.UNPLAYED) return null
+    
+    const playtime = game.playtime_minutes || 0
+    const price = game.purchase_price || 0
+    const shameLevel = getShameIntensity(game)
+    
+    if (playtime === 0) {
+      if (price > 50) return 'Expensive regret'
+      if (price > 20) return 'Impulse purchase?'
+      if (price > 0) return 'Still wrapped'
+      return "Free & ignored"
+    }
+    
+    if (playtime < 60) {
+      return `${playtime}m (then quit?)`
+    }
+    
+    return null
+  }
+
+  const getSarcasticPrice = (price: number | null) => {
+    if (!price || price === 0) return "FREE (and you still won't play it)"
+    if (price > 50) return `$${price.toFixed(2)} (Hope it was worth the groceries)`
+    if (price > 20) return `$${price.toFixed(2)} (Couldn't resist, could you?)`
+    return `$${price.toFixed(2)}`
+  }
+
+  const getSarcasticPlaytime = (minutes: number, status: GameStatus) => {
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    
+    if (status === GameStatus.UNPLAYED && minutes === 0) {
+      return '0 minutes (Ouch)'
+    }
+    
+    if (status === GameStatus.UNPLAYED && minutes < 60) {
+      return `${minutes}m (then quit?)` 
+    }
+    
+    if (hours > 100) {
+      return `${hours}h ${mins}m (You could've learned a language)`
+    }
+    
+    if (hours > 50) {
+      return `${hours}h ${mins}m (Impressive commitment)`
+    }
+    
+    return `${hours}h ${mins}m`
+  }
+
+  const getSarcasticReview = (percentage: number, summary?: string) => {
+    if (percentage >= 90) {
+      return `${percentage}% (Everyone but you loves this)`
+    }
+    if (percentage >= 80) {
+      return `${percentage}% (This is amazing and you're ignoring it)`
+    }
+    if (percentage >= 70) {
+      return `${percentage}% (Pretty good, but who's counting?)`
+    }
+    if (percentage >= 60) {
+      return `${percentage}% (Meh, like your commitment)`
+    }
+    return `${percentage}% (Even this trash got more attention)`
+  }
+
+  const getReviewColor = (percentage: number) => {
+    if (percentage >= 80) return 'text-green-400'
+    if (percentage >= 60) return 'text-yellow-400'
+    return 'text-red-400'
+  }
+
+  const getSyncReminder = (lastUpdated?: string) => {
+    if (!lastUpdated) return null
+    
     try {
-      const date = new Date(dateString)
+      const lastSync = new Date(lastUpdated)
       const now = new Date()
-      const diffMs = now.getTime() - date.getTime()
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      const diffHours = Math.floor((now.getTime() - lastSync.getTime()) / (1000 * 60 * 60))
       
-      if (diffDays === 0) return 'Today'
-      if (diffDays === 1) return 'Yesterday'
-      if (diffDays < 7) return `${diffDays} days ago`
-      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
-      if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
-      return `${Math.floor(diffDays / 365)} years ago`
+      // Only show reminder if data is more than 24 hours old
+      if (diffHours < 24) return null
+      
+      const diffDays = Math.floor(diffHours / 24)
+      if (diffDays === 1) return 'Sync 1 day old'
+      if (diffDays < 7) return `Sync ${diffDays}d old`
+      if (diffDays < 30) return `Sync ${Math.floor(diffDays / 7)}w old`
+      return 'Sync very old'
     } catch {
       return null
     }
@@ -321,20 +430,35 @@ export function ModernGameGrid({
                   )}
                 </div>
 
-                <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                <h3 className={`mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors ${
+                  game.status === GameStatus.UNPLAYED 
+                    ? 'font-bold text-base text-red-200' 
+                    : 'font-semibold text-sm'
+                }`}>
                   {game.steam_game.name}
                 </h3>
 
                 <div className="space-y-3 text-xs text-slate-400">
                   {/* Status Badge - Full Width */}
                   <div className="space-y-1">
-                    <div className={`inline-block px-2 py-1 rounded-full border text-xs ${getStatusColor(game.status)}`}>
+                    <div className={`inline-block px-2 py-1 rounded-full border text-xs font-bold ${
+                      getStatusColor(game.status)
+                    } ${
+                      game.status === GameStatus.UNPLAYED && getShameIntensity(game) === 'extreme' 
+                        ? 'animate-pulse' 
+                        : ''
+                    }`}>
                       {getStatusLabel(game.status)}
+                      {game.status === GameStatus.UNPLAYED && getShameMessage(game) && (
+                        <div className="text-[10px] mt-0.5 opacity-90">
+                          {getShameMessage(game)}
+                        </div>
+                      )}
                     </div>
-                    {/* Show last played for In Progress and Completed games */}
-                    {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED) && formatLastActivity(game.updated_at) && (
+                    {/* Show last played for In Progress, Completed, and Abandoned games */}
+                    {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) && game.steam_game.rtime_last_played && (
                       <div className="text-[10px] text-slate-500">
-                        Last played: {formatLastActivity(game.updated_at)}
+                        Last played: {formatLastPlayed(game.steam_game.rtime_last_played)}
                       </div>
                     )}
                   </div>
@@ -343,21 +467,28 @@ export function ModernGameGrid({
                   <div className="grid grid-cols-2 gap-x-2 gap-y-2">
                     {/* Row 1: Playtime | Price */}
                     <div className="flex items-center gap-1 min-h-[16px]">
-                      <Clock className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">{Math.floor((game.playtime_minutes || 0) / 60)}h {(game.playtime_minutes || 0) % 60}m</span>
+                      <Clock className={`h-3 w-3 flex-shrink-0 ${
+                        game.status === GameStatus.UNPLAYED && (game.playtime_minutes || 0) === 0 
+                          ? 'text-red-400' 
+                          : ''
+                      }`} />
+                      <span className={`truncate text-xs ${
+                        game.status === GameStatus.UNPLAYED 
+                          ? 'font-medium text-blue-300' 
+                          : ''
+                      }`}>
+                        {getSarcasticPlaytime(game.playtime_minutes || 0, game.status)}
+                      </span>
                     </div>
                     
                     <div className="flex items-center gap-1 min-h-[16px]">
                       <DollarSign className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">
-                        {game.purchase_price && game.purchase_price > 0 
-                          ? `$${game.purchase_price.toFixed(2)}`
-                          : 'Free'
-                        }
+                      <span className="truncate text-xs">
+                        {getSarcasticPrice(game.purchase_price)}
                       </span>
                     </div>
                     
-                    {/* Row 2: Release Date | Last Activity */}
+                    {/* Row 2: Release Date | Sync Reminder or Last Played */}
                     <div className="flex items-center gap-1 min-h-[16px]">
                       <Calendar className="h-3 w-3 flex-shrink-0" />
                       <span className="truncate">
@@ -366,21 +497,37 @@ export function ModernGameGrid({
                     </div>
                     
                     <div className="flex items-center gap-1 min-h-[16px]">
-                      <Activity className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate text-[10px] leading-tight">
-                        {formatLastActivity(game.updated_at) || '—'}
-                      </span>
+                      {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) && game.steam_game.rtime_last_played ? (
+                        <>
+                          <Activity className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate text-[10px] leading-tight">
+                            Last played: {formatLastPlayed(game.steam_game.rtime_last_played)}
+                          </span>
+                        </>
+                      ) : getSyncReminder(game.updated_at) ? (
+                        <>
+                          <Activity className="h-3 w-3 flex-shrink-0 text-yellow-400" />
+                          <span className="truncate text-[10px] leading-tight text-yellow-400 font-medium">
+                            {getSyncReminder(game.updated_at)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-[10px] leading-tight text-slate-500">—</span>
+                      )}
                     </div>
                   </div>
                   
                   {/* Reviews - Full Width */}
                   {game.steam_game.steam_rating_percent && (
                     <div className="flex items-center gap-2 pt-1 border-t border-slate-700/50">
-                      <ThumbsUp className="h-3 w-3 flex-shrink-0" />
-                      <span className="font-medium">{game.steam_game.steam_rating_percent}%</span>
-                      {game.steam_game.steam_review_summary && (
-                        <span className="text-[10px] text-slate-500 truncate">({game.steam_game.steam_review_summary})</span>
-                      )}
+                      <div className="flex items-center gap-1">
+                        {/* Steam logo placeholder - using external link icon */}
+                        <ExternalLink className="h-3 w-3 flex-shrink-0 text-blue-400" />
+                        <ThumbsUp className={`h-3 w-3 flex-shrink-0 ${getReviewColor(game.steam_game.steam_rating_percent)}`} />
+                      </div>
+                      <span className={`font-medium text-[10px] leading-tight ${getReviewColor(game.steam_game.steam_rating_percent)}`} title="Yes, real people actually played this">
+                        {getSarcasticReview(game.steam_game.steam_rating_percent, game.steam_game.steam_review_summary)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -414,32 +561,50 @@ export function ModernGameGrid({
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-base mb-1 truncate hover:text-blue-400 transition-colors">
+                    <h3 className={`mb-1 truncate hover:text-blue-400 transition-colors ${
+                      game.status === GameStatus.UNPLAYED 
+                        ? 'font-bold text-lg text-red-200' 
+                        : 'font-semibold text-base'
+                    }`}>
                       {game.steam_game.name}
                     </h3>
                     <div className="space-y-1">
                       <div className="flex items-center gap-4 text-sm text-slate-400">
                         <div className="flex flex-col gap-1">
-                          <div className={`px-2 py-1 rounded-full border text-xs ${getStatusColor(game.status)}`}>
+                          <div className={`px-2 py-1 rounded-full border text-xs font-bold ${
+                            getStatusColor(game.status)
+                          } ${
+                            game.status === GameStatus.UNPLAYED && getShameIntensity(game) === 'extreme' 
+                              ? 'animate-pulse' 
+                              : ''
+                          }`}>
                             {getStatusLabel(game.status)}
+                            {game.status === GameStatus.UNPLAYED && getShameMessage(game) && (
+                              <div className="text-[10px] mt-0.5 opacity-90">
+                                {getShameMessage(game)}
+                              </div>
+                            )}
                           </div>
-                          {/* Show last played for In Progress and Completed games */}
-                          {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED) && formatLastActivity(game.updated_at) && (
+                          {/* Show last played for In Progress, Completed, and Abandoned games */}
+                          {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) && game.steam_game.rtime_last_played && (
                             <div className="text-[10px] text-slate-500 px-2">
-                              Last played: {formatLastActivity(game.updated_at)}
+                              Last played: {formatLastPlayed(game.steam_game.rtime_last_played)}
                             </div>
                           )}
                         </div>
                         <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {Math.floor((game.playtime_minutes || 0) / 60)}h {(game.playtime_minutes || 0) % 60}m
+                          <Clock className={`h-3 w-3 ${
+                            game.status === GameStatus.UNPLAYED && (game.playtime_minutes || 0) === 0 
+                              ? 'text-red-400' 
+                              : ''
+                          }`} />
+                          <span className={game.status === GameStatus.UNPLAYED ? 'font-medium text-blue-300' : ''}>
+                            {getSarcasticPlaytime(game.playtime_minutes || 0, game.status)}
+                          </span>
                         </span>
                         <span className="flex items-center gap-1">
                           <DollarSign className="h-3 w-3" />
-                          {game.purchase_price && game.purchase_price > 0 
-                            ? `$${game.purchase_price.toFixed(2)}`
-                            : 'Free'
-                          }
+                          {getSarcasticPrice(game.purchase_price)}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -447,13 +612,20 @@ export function ModernGameGrid({
                         </span>
                         <span className="flex items-center gap-1">
                           <Activity className="h-3 w-3" />
-                          {formatLastActivity(game.updated_at) || '—'}
+                          {getSyncReminder(game.updated_at) ? (
+                            <span className="text-yellow-400 font-medium">{getSyncReminder(game.updated_at)}</span>
+                          ) : '—'}
                         </span>
                       </div>
                       {game.steam_game.steam_rating_percent && (
-                        <div className="flex items-center gap-1 text-xs text-slate-500 pl-2">
-                          <ThumbsUp className="h-3 w-3" />
-                          <span className="font-medium">{game.steam_game.steam_rating_percent}% {game.steam_game.steam_review_summary && `(${game.steam_game.steam_review_summary})`}</span>
+                        <div className="flex items-center gap-2 text-xs pl-2">
+                          <div className="flex items-center gap-1">
+                            <ExternalLink className="h-3 w-3 text-blue-400" title="Steam Reviews" />
+                            <ThumbsUp className={`h-3 w-3 ${getReviewColor(game.steam_game.steam_rating_percent)}`} />
+                          </div>
+                          <span className={`font-medium ${getReviewColor(game.steam_game.steam_rating_percent)}`} title="Yes, real people actually played this">
+                            {getSarcasticReview(game.steam_game.steam_rating_percent, game.steam_game.steam_review_summary)}
+                          </span>
                         </div>
                       )}
                     </div>
