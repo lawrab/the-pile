@@ -13,6 +13,7 @@ const buttonVariants = cva(
         secondary: "bg-slate-700 text-white hover:bg-slate-600 focus-visible:ring-slate-500",
         ghost: "text-slate-400 hover:bg-slate-800 hover:text-white",
         link: "text-yellow-400 underline-offset-4 hover:underline",
+        steam: "bg-[#171a21] text-white hover:bg-[#1b2838] border border-[#2a475e] focus-visible:ring-[#2a475e]",
         // Simplified game status variants
         unplayed: "bg-red-700 text-red-100 hover:bg-red-600",
         playing: "bg-orange-600 text-orange-100 hover:bg-orange-500",
