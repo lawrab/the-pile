@@ -441,7 +441,7 @@ export function ModernGameGrid({
                 <div className="space-y-3 text-xs text-slate-400">
                   {/* Status Badge - Full Width */}
                   <div className="space-y-1">
-                    <div className={`inline-block px-2 py-1 rounded-full border text-xs font-bold ${
+                    <div className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium ${
                       getStatusColor(game.status)
                     } ${
                       game.status === GameStatus.UNPLAYED && getShameIntensity(game) === 'extreme' 
@@ -450,7 +450,7 @@ export function ModernGameGrid({
                     }`}>
                       {getStatusLabel(game.status)}
                       {game.status === GameStatus.UNPLAYED && getShameMessage(game) && (
-                        <div className="text-[10px] mt-0.5 opacity-90">
+                        <div className="text-[9px] mt-0.5 opacity-80">
                           {getShameMessage(game)}
                         </div>
                       )}
@@ -571,7 +571,7 @@ export function ModernGameGrid({
                     <div className="space-y-1">
                       <div className="flex items-center gap-4 text-sm text-slate-400">
                         <div className="flex flex-col gap-1">
-                          <div className={`px-2 py-1 rounded-full border text-xs font-bold ${
+                          <div className={`px-2 py-1 rounded border text-xs font-medium ${
                             getStatusColor(game.status)
                           } ${
                             game.status === GameStatus.UNPLAYED && getShameIntensity(game) === 'extreme' 
@@ -580,7 +580,7 @@ export function ModernGameGrid({
                           }`}>
                             {getStatusLabel(game.status)}
                             {game.status === GameStatus.UNPLAYED && getShameMessage(game) && (
-                              <div className="text-[10px] mt-0.5 opacity-90">
+                              <div className="text-[10px] mt-0.5 opacity-80">
                                 {getShameMessage(game)}
                               </div>
                             )}
