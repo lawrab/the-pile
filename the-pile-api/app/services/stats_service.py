@@ -65,11 +65,19 @@ class StatsService:
         """Calculate user's shame score with breakdown using repository pattern"""
         from app.repositories.stats_repository import StatsRepository
         from app.repositories.user_repository import UserRepository
+        from app.schemas.stats_schemas import RealityCheck
         
         stats_repo = StatsRepository(db)
         user_repo = UserRepository(db)
         
-        reality_check = await self.calculate_reality_check(user_id, db)
+        reality_check_result = await self.calculate_reality_check(user_id, db)
+        
+        # Handle cached result that might be a dict instead of RealityCheck object
+        if isinstance(reality_check_result, dict):
+            reality_check = RealityCheck(**reality_check_result)
+        else:
+            reality_check = reality_check_result
+            
         shame_data = stats_repo.get_shame_score_data(user_id)
         
         # Score components
