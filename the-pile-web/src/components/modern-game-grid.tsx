@@ -78,7 +78,7 @@ export function ModernGameGrid({
       case GameStatus.UNPLAYED: return 'bg-red-500/30 text-red-200 border-red-400/50 shadow-red-500/20 shadow-lg'
       case GameStatus.PLAYING: return 'bg-yellow-500/20 text-yellow-200 border-yellow-400/40'
       case GameStatus.COMPLETED: return 'bg-green-500/20 text-green-200 border-green-400/40'
-      case GameStatus.ABANDONED: return 'bg-gray-500/20 text-gray-300 border-gray-500/30'
+      case GameStatus.ABANDONED: return 'bg-orange-600/30 text-orange-200 border-orange-500/50 shadow-orange-600/20 shadow-md'
       case GameStatus.AMNESTY_GRANTED: return 'bg-purple-500/20 text-purple-200 border-purple-400/40'
       default: return 'bg-slate-500/20 text-slate-300 border-slate-500/30'
     }
@@ -103,11 +103,29 @@ export function ModernGameGrid({
       return 'UNTOUCHED'
     }
     
+    if (status === GameStatus.ABANDONED && game) {
+      const playtime = game.playtime_minutes || 0
+      const hours = Math.floor(playtime / 60)
+      const price = game.purchase_price || 0
+      
+      if (hours < 1) {
+        return 'RAGE QUIT (Under 1h)'
+      }
+      if (hours < 5) {
+        return 'GAVE UP (Weak commitment)'
+      }
+      if (hours > 20) {
+        if (price > 30) return 'ABANDONED (Expensive failure)'
+        return 'ABANDONED (So close, yet so far)'
+      }
+      return 'ABANDONED (Quitter!)'
+    }
+    
     switch (status) {
       case GameStatus.UNPLAYED: return 'UNTOUCHED'
       case GameStatus.PLAYING: return 'Actually Playing'
       case GameStatus.COMPLETED: return 'Conquered'
-      case GameStatus.ABANDONED: return 'Gave Up'
+      case GameStatus.ABANDONED: return 'ABANDONED'
       case GameStatus.AMNESTY_GRANTED: return 'Forgiven'
       default: return 'Unknown'
     }
@@ -149,22 +167,39 @@ export function ModernGameGrid({
   }
 
   const getShameIntensity = (game: PileEntry) => {
-    if (game.status !== GameStatus.UNPLAYED) return 'none'
-    
     const playtime = game.playtime_minutes || 0
     const price = game.purchase_price || 0
     
-    // Zero playtime is maximum shame
-    if (playtime === 0) {
-      if (price > 30) return 'extreme' // Expensive + untouched = maximum shame
-      if (price > 0) return 'high' // Any paid game untouched
-      return 'medium' // Free game untouched
+    if (game.status === GameStatus.UNPLAYED) {
+      // Zero playtime is maximum shame
+      if (playtime === 0) {
+        if (price > 30) return 'extreme' // Expensive + untouched = maximum shame
+        if (price > 0) return 'high' // Any paid game untouched
+        return 'medium' // Free game untouched
+      }
+      
+      // Very low playtime (< 1 hour) with purchase
+      if (playtime < 60 && price > 0) return 'medium'
+      
+      return 'low'
     }
     
-    // Very low playtime (< 1 hour) with purchase
-    if (playtime < 60 && price > 0) return 'medium'
+    if (game.status === GameStatus.ABANDONED) {
+      const hours = Math.floor(playtime / 60)
+      
+      // Rage quits deserve maximum shame
+      if (hours < 1) return 'extreme'
+      
+      // Expensive abandons are high shame
+      if (price > 30 && hours < 10) return 'high'
+      
+      // Long playtime abandons are medium shame (at least you tried)
+      if (hours > 20) return 'medium'
+      
+      return 'high'
+    }
     
-    return 'low'
+    return 'none'
   }
 
   const getShameMessage = (game: PileEntry) => {
