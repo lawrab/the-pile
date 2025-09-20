@@ -1,0 +1,20 @@
+[flake8]
+max-line-length = 88
+extend-ignore = 
+    E203,  # whitespace before ':' (conflicts with black)
+    W503,  # line break before binary operator (conflicts with black)
+    E501   # line too long (handled by black)
+
+import-order-style = google
+application-import-names = app
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .mypy_cache,
+    .pytest_cache,
+    alembic/versions
+
+per-file-ignores =
+    __init__.py:F401  # Allow unused imports in __init__.py files
