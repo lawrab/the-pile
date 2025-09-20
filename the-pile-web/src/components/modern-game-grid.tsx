@@ -166,24 +166,24 @@ export function ModernGameGrid({
     return `$${price.toFixed(2)}`
   }
 
-  const getSarcasticPlaytime = (minutes: number, status: GameStatus) => {
+  const getSarcasticPlaytime = (minutes: number, status: GameStatus, compact: boolean = false) => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     
     if (status === GameStatus.UNPLAYED && minutes === 0) {
-      return '0 minutes (Ouch)'
+      return compact ? '0m 😬' : '0 minutes (Ouch)'
     }
     
     if (status === GameStatus.UNPLAYED && minutes < 60) {
-      return `${minutes}m (then quit?)` 
+      return compact ? `${minutes}m 🤔` : `${minutes}m (then quit?)` 
     }
     
     if (hours > 100) {
-      return `${hours}h ${mins}m (You could've learned a language)`
+      return compact ? `${hours}h+ 📚` : `${hours}h ${mins}m (You could've learned a language)`
     }
     
     if (hours > 50) {
-      return `${hours}h ${mins}m (Impressive commitment)`
+      return compact ? `${hours}h+ 👏` : `${hours}h ${mins}m (Impressive commitment)`
     }
     
     return `${hours}h ${mins}m`
@@ -472,12 +472,12 @@ export function ModernGameGrid({
                           ? 'text-red-400' 
                           : ''
                       }`} />
-                      <span className={`truncate text-xs ${
+                      <span className={`text-xs leading-tight ${
                         game.status === GameStatus.UNPLAYED 
                           ? 'font-medium text-blue-300' 
                           : ''
                       }`}>
-                        {getSarcasticPlaytime(game.playtime_minutes || 0, game.status)}
+                        {getSarcasticPlaytime(game.playtime_minutes || 0, game.status, true)}
                       </span>
                     </div>
                     
@@ -599,7 +599,7 @@ export function ModernGameGrid({
                               : ''
                           }`} />
                           <span className={game.status === GameStatus.UNPLAYED ? 'font-medium text-blue-300' : ''}>
-                            {getSarcasticPlaytime(game.playtime_minutes || 0, game.status)}
+                            {getSarcasticPlaytime(game.playtime_minutes || 0, game.status, false)}
                           </span>
                         </span>
                         <span className="flex items-center gap-1">
