@@ -277,10 +277,11 @@ export function ModernGameGrid({
   }
 
   const getDaysOwned = (game: PileEntry) => {
-    if (!game.purchase_date && !game.created_at) return null
+    // Only use actual purchase_date, not created_at which is import date
+    if (!game.purchase_date) return null
     
     try {
-      const purchaseDate = new Date(game.purchase_date || game.created_at)
+      const purchaseDate = new Date(game.purchase_date)
       const now = new Date()
       const diffTime = now.getTime() - purchaseDate.getTime()
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
@@ -301,47 +302,137 @@ export function ModernGameGrid({
   }
 
   const getSarcasticOwnership = (game: PileEntry) => {
+    // Use game name in messages to make them unique and specific
+    const gameName = game.steam_game.name || 'this game'
     const daysOwned = getDaysOwned(game)
-    if (!daysOwned) return null
+    const playtime = game.playtime_minutes || 0
+    const price = game.purchase_price || 0
     
-    const days = daysOwned.includes('year') ? 365 * parseInt(daysOwned.match(/\d+/)?.[0] || '0') :
-                daysOwned.includes('month') ? 30 * parseInt(daysOwned.match(/\d+/)?.[0] || '0') :
-                parseInt(daysOwned.match(/\d+/)?.[0] || '0')
+    // If we have purchase date, use it for detailed shame
+    if (daysOwned) {
+      const days = daysOwned.includes('year') ? 365 * parseInt(daysOwned.match(/\d+/)?.[0] || '0') :
+                  daysOwned.includes('month') ? 30 * parseInt(daysOwned.match(/\d+/)?.[0] || '0') :
+                  parseInt(daysOwned.match(/\d+/)?.[0] || '0')
+      
+      if (game.status === GameStatus.UNPLAYED) {
+        if (days > 730) return `${daysOwned} of owning ${gameName} without playing it (That's ${Math.floor(days/365)} years of denial)`
+        if (days > 365) return `${daysOwned} and ${gameName} is still untouched (Over a year of procrastination)`
+        if (days > 180) return `${gameName} has been collecting digital dust for ${daysOwned}`
+        if (days > 30) return `${gameName} is ${daysOwned} old and still in digital shrink wrap`
+        return `You just bought ${gameName} ${daysOwned}`
+      }
+      
+      if (game.status === GameStatus.ABANDONED) {
+        if (days > 365) return `${gameName}: ${daysOwned} (Bought it, tried it, quit it)`
+        return `${gameName}: ${daysOwned} (Brief but disappointing relationship)`
+      }
+      
+      return `${gameName} owned for ${daysOwned}`
+    }
     
+    // Enhanced fallback using more game-specific data
     if (game.status === GameStatus.UNPLAYED) {
-      if (days > 730) return `${daysOwned} (That's ${Math.floor(days/365)} years of denial)`
-      if (days > 365) return `${daysOwned} (Over a year of procrastination)`
-      if (days > 180) return `${daysOwned} (Half a year of dust collecting)`
-      if (days > 30) return `${daysOwned} (Still in digital shrink wrap)`
-      return daysOwned
+      if (price > 50) return `${gameName}: $${price} expensive mistake gathering dust`
+      if (price > 30) return `${gameName}: $${price} of regret sitting unplayed`
+      if (price > 10) return `${gameName}: $${price} impulse purchase you'll never touch`
+      if (price > 0) return `You paid money for ${gameName} just to ignore it`
+      return `${gameName} is free and you still won't play it`
     }
     
     if (game.status === GameStatus.ABANDONED) {
-      if (days > 365) return `${daysOwned} (Bought it, tried it, quit it)`
-      return `${daysOwned} (Brief relationship)`
+      const hours = Math.floor(playtime / 60)
+      if (hours < 1) return `${gameName}: Bought it, opened it, immediately noped out`
+      if (hours < 5) return `${gameName}: ${hours}h before giving up (classic you)`
+      if (hours < 20) return `${gameName}: ${hours}h investment wasted (commitment issues much?)`
+      return `${gameName}: ${hours}h down the drain (started strong, finished weak)`
     }
     
-    return daysOwned
+    if (game.status === GameStatus.PLAYING) {
+      const hours = Math.floor(playtime / 60)
+      return hours > 0 ? 
+        `${gameName}: ${hours}h in and actually still going (miracle!)` :
+        `${gameName}: Currently in your backlog... wait, you're playing this?`
+    }
+    
+    if (game.status === GameStatus.COMPLETED) {
+      const hours = Math.floor(playtime / 60)
+      return hours > 0 ?
+        `${gameName}: ${hours}h well spent (congratulations, you actually finished something!)` :
+        `${gameName}: Somehow completed with no recorded playtime (suspicious...)`
+    }
+    
+    return `${gameName}: Part of your ever-growing digital hoard`
   }
 
-  const getGenreShame = (genres?: string[]) => {
-    if (!genres || genres.length === 0) return null
+  const getGenreShame = (genres?: string[], gameName?: string) => {
+    if (!genres || genres.length === 0) return `No genres listed (even Steam gave up categorizing this)`
     
-    const shameMap: Record<string, string> = {
-      'RPG': 'RPGs (Because 100-hour commitments are your specialty)',
-      'Action': 'Action (For when you want quick dopamine but choose Netflix instead)',
-      'Adventure': 'Adventure (Stories you\'ll never experience)',
-      'Indie': 'Indie (Supporting developers while ignoring their work)',
-      'Strategy': 'Strategy (Requires thinking, explains the avoidance)',
-      'Simulation': 'Simulation (Prefer virtual life to real productivity)',
-      'Puzzle': 'Puzzle (Ironic, since your backlog is the biggest puzzle)',
-      'Platformer': 'Platformer (Can\'t even jump into playing it)',
-      'Racing': 'Racing (The only race you\'re winning is to buy more games)',
-      'Sports': 'Sports (Virtual athletics while avoiding real exercise)'
+    const shortName = gameName ? gameName.split(' ')[0] : 'this game'
+    
+    const shameMap: Record<string, string[]> = {
+      'RPG': [
+        `RPG (Because 100-hour ${shortName} commitments are totally your thing)`,
+        `RPG (${shortName} will sit there for years waiting for "the right time")`,
+        `RPG (You'll start ${shortName} someday when you have 200+ hours free)`
+      ],
+      'Action': [
+        `Action (${shortName} wants quick reflexes, you want Netflix)`,
+        `Action (Too much action for your sedentary lifestyle)`,
+        `Action (${shortName} requires movement, explains the avoidance)`
+      ],
+      'Adventure': [
+        `Adventure (${shortName} offers epic journeys you'll never take)`,
+        `Adventure (The only adventure is adding it to your pile)`,
+        `Adventure (${shortName}: Stories you'll never experience)`
+      ],
+      'Indie': [
+        `Indie (Supporting ${shortName}'s developers while ignoring their work)`,
+        `Indie (You love the concept of ${shortName}, hate actually playing it)`,
+        `Indie (${shortName} deserves better than your neglect)`
+      ],
+      'Strategy': [
+        `Strategy (${shortName} requires thinking, explains everything)`,
+        `Strategy (Too much strategy, not enough clicking "Add to Cart")`,
+        `Strategy (Your only strategy with ${shortName} is avoiding it)`
+      ],
+      'Simulation': [
+        `Simulation (${shortName}: Virtual life because real life is too real)`,
+        `Simulation (Simulating owning games without playing them)`,
+        `Simulation (${shortName} simulates productivity while you avoid both)`
+      ],
+      'Puzzle': [
+        `Puzzle (Ironic, since your backlog is the biggest puzzle)`,
+        `Puzzle (${shortName} wants to challenge your mind, but here we are)`,
+        `Puzzle (The real puzzle is why you bought ${shortName})`
+      ],
+      'Platformer': [
+        `Platformer (Can't even jump into playing ${shortName})`,
+        `Platformer (${shortName} involves jumping, you specialize in skipping)`,
+        `Platformer (The only platform ${shortName} sees is your desktop)`
+      ],
+      'Racing': [
+        `Racing (The only race you're winning is collecting more games)`,
+        `Racing (${shortName} wants speed, you prefer procrastination)`,
+        `Racing (Racing to buy ${shortName}, walking away from playing it)`
+      ],
+      'Sports': [
+        `Sports (Virtual ${shortName} athletics while avoiding real exercise)`,
+        `Sports (${shortName}: The closest you get to physical activity)`,
+        `Sports (Sporty ${shortName} for your decidedly unsporty lifestyle)`
+      ]
     }
     
-    const shamefulGenre = genres.find(genre => shameMap[genre])
-    return shamefulGenre ? shameMap[shamefulGenre] : `${genres[0]} (Your taste is questionable)`
+    // Find matching genre and return random shame message
+    for (const genre of genres) {
+      if (shameMap[genre]) {
+        const messages = shameMap[genre]
+        return messages[Math.floor(Math.random() * messages.length)]
+      }
+    }
+    
+    // Fallback for unrecognized genres
+    const genreList = genres.slice(0, 2).join(', ')
+    return `${genreList} (Your questionable taste in ${shortName} is showing)`
   }
 
   const getSyncReminder = (lastUpdated?: string) => {
@@ -681,28 +772,26 @@ export function ModernGameGrid({
                         )}
                         
                         {/* Genre Mockery */}
-                        {game.steam_game.genres && game.steam_game.genres.length > 0 && (
-                          <div className="bg-slate-900/50 p-2 rounded border border-yellow-500/20">
-                            <span className="text-yellow-300 font-medium">Genre Analysis: </span>
-                            <span className="text-slate-300">{getGenreShame(game.steam_game.genres)}</span>
-                          </div>
-                        )}
+                        <div className="bg-slate-900/50 p-2 rounded border border-yellow-500/20">
+                          <span className="text-yellow-300 font-medium">Genre Analysis: </span>
+                          <span className="text-slate-300">{getGenreShame(game.steam_game.genres, game.steam_game.name)}</span>
+                        </div>
                         
                         {/* Developer Support Guilt */}
-                        {game.steam_game.developer && (
-                          <div className="bg-slate-900/50 p-2 rounded border border-purple-500/20">
-                            <span className="text-purple-300 font-medium">Developer: </span>
-                            <span className="text-slate-300">{game.steam_game.developer}</span>
-                            <div className="text-slate-400 text-[10px] mt-1">
-                              {game.status === GameStatus.UNPLAYED ? 
-                                'They worked hard, you bought it, now play it!' :
-                                game.status === GameStatus.ABANDONED ?
-                                'They put effort in, you gave up. Classic.' :
-                                'At least someone appreciates their work.'
-                              }
-                            </div>
+                        <div className="bg-slate-900/50 p-2 rounded border border-purple-500/20">
+                          <span className="text-purple-300 font-medium">Developer: </span>
+                          <span className="text-slate-300">{game.steam_game.developer || 'Unknown (even more shameful)'}</span>
+                          <div className="text-slate-400 text-[10px] mt-1">
+                            {game.status === GameStatus.UNPLAYED ? 
+                              'They worked hard, you bought it, now play it!' :
+                              game.status === GameStatus.ABANDONED ?
+                              'They put effort in, you gave up. Classic.' :
+                              game.status === GameStatus.COMPLETED ?
+                              'Finally, someone who appreciates good work!' :
+                              'At least you\'re making progress.'
+                            }
                           </div>
-                        )}
+                        </div>
                         
                         {/* Steam App ID for the tech-savvy shame */}
                         <div className="flex justify-between items-center pt-2">
@@ -849,52 +938,50 @@ export function ModernGameGrid({
                         )}
                         
                         {/* Genre Analysis */}
-                        {game.steam_game.genres && game.steam_game.genres.length > 0 && (
-                          <div className="bg-slate-900/50 p-3 rounded border border-yellow-500/20">
-                            <div className="text-yellow-300 font-medium text-sm mb-1">Genre Psychology</div>
-                            <div className="text-slate-300 text-sm">{getGenreShame(game.steam_game.genres)}</div>
-                          </div>
-                        )}
+                        <div className="bg-slate-900/50 p-3 rounded border border-yellow-500/20">
+                          <div className="text-yellow-300 font-medium text-sm mb-1">Genre Psychology</div>
+                          <div className="text-slate-300 text-sm">{getGenreShame(game.steam_game.genres, game.steam_game.name)}</div>
+                        </div>
                         
                         {/* Developer Guilt - Full Width */}
-                        {game.steam_game.developer && (
-                          <div className="md:col-span-2 bg-slate-900/50 p-3 rounded border border-purple-500/20">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <div className="text-purple-300 font-medium text-sm mb-1">Developer Support Status</div>
-                                <div className="text-slate-300 text-sm">{game.steam_game.developer}</div>
-                                <div className="text-slate-400 text-xs mt-1">
-                                  {game.status === GameStatus.UNPLAYED ? 
-                                    'They worked hard, you bought it, now actually play it!' :
-                                    game.status === GameStatus.ABANDONED ?
-                                    'They put their heart into this, you gave up. How does that feel?' :
-                                    'Finally, someone who appreciates good work.'
-                                  }
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <button
-                                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 bg-blue-500/10 rounded"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
-                                  }}
-                                >
-                                  Steam
-                                </button>
-                                <button
-                                  className="text-xs text-green-400 hover:text-green-300 transition-colors px-2 py-1 bg-green-500/10 rounded"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    onGameClick(game)
-                                  }}
-                                >
-                                  Details
-                                </button>
+                        <div className="md:col-span-2 bg-slate-900/50 p-3 rounded border border-purple-500/20">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="text-purple-300 font-medium text-sm mb-1">Developer Support Status</div>
+                              <div className="text-slate-300 text-sm">{game.steam_game.developer || 'Unknown (even more shameful)'}</div>
+                              <div className="text-slate-400 text-xs mt-1">
+                                {game.status === GameStatus.UNPLAYED ? 
+                                  'They worked hard, you bought it, now actually play it!' :
+                                  game.status === GameStatus.ABANDONED ?
+                                  'They put their heart into this, you gave up. How does that feel?' :
+                                  game.status === GameStatus.COMPLETED ?
+                                  'Finally, someone who appreciates good work!' :
+                                  'At least you\'re making progress.'
+                                }
                               </div>
                             </div>
+                            <div className="flex gap-2">
+                              <button
+                                className="text-xs text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 bg-blue-500/10 rounded"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
+                                }}
+                              >
+                                Steam
+                              </button>
+                              <button
+                                className="text-xs text-green-400 hover:text-green-300 transition-colors px-2 py-1 bg-green-500/10 rounded"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onGameClick(game)
+                                }}
+                              >
+                                Details
+                              </button>
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </div>
                     )}
                   </div>
