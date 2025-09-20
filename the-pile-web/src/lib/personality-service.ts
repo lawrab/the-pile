@@ -1,4 +1,5 @@
 import { PileEntry, GameStatus } from '@/types'
+import { formatCurrency } from '@/lib/utils'
 
 interface PersonalityMessage {
   greeting: string
@@ -122,7 +123,7 @@ export class PersonalityService {
     if (totalValue > 1000) {
       return {
         greeting: "That's a mortgage payment worth of games.",
-        subtext: `$${totalValue.toFixed(2)} invested in future disappointment.`,
+        subtext: `${formatCurrency(totalValue)} invested in future disappointment.`,
         emoji: "💸"
       }
     }

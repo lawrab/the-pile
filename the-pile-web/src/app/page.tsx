@@ -126,34 +126,38 @@ export default function HomePage() {
           <div className="flex gap-4 justify-center items-center flex-wrap">
             {user ? (
               <>
-                <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-xl">
-                  <ArrowRight className="mr-2 h-5 w-5" />
-                  Continue to Dashboard
-                  <Link href="/pile" className="absolute inset-0" />
-                </Button>
-                <Button variant="outline" size="lg" className="border-slate-600 hover:bg-slate-800">
-                  <BarChart3 className="mr-2 h-5 w-5" />
-                  View Your Stats
-                  <Link href="/stats" className="absolute inset-0" />
-                </Button>
+                <Link href="/pile">
+                  <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-xl">
+                    <ArrowRight className="mr-2 h-5 w-5" />
+                    Continue to Dashboard
+                  </Button>
+                </Link>
+                <Link href="/stats">
+                  <Button variant="outline" size="lg" className="border-slate-600 hover:bg-slate-800">
+                    <BarChart3 className="mr-2 h-5 w-5" />
+                    View Your Stats
+                  </Button>
+                </Link>
               </>
             ) : (
               <>
-                <Button size="lg" className="bg-[#171a21] hover:bg-[#1b2838] border border-[#2a475e] shadow-xl group">
-                  <div className="flex items-center gap-2">
-                    {/* Steam logo SVG */}
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10c0-5.52-4.48-10-10-10zm-1 15.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zm6-5.5c-1.38 0-2.5-1.12-2.5-2.5S15.62 7 17 7s2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                    <span className="font-semibold">Login with Steam</span>
-                  </div>
-                  <Link href="/auth/steam" className="absolute inset-0" />
-                </Button>
-                <Button variant="outline" size="lg" className="border-slate-600 hover:bg-slate-800 group">
-                  <Sparkles className="mr-2 h-5 w-5 text-yellow-400 group-hover:animate-spin" />
-                  See Live Demo
-                  <Link href="#demo" className="absolute inset-0" />
-                </Button>
+                <Link href="/auth/steam">
+                  <Button variant="steam" size="lg" className="shadow-xl group">
+                    <div className="flex items-center gap-2">
+                      {/* Steam logo SVG */}
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10c0-5.52-4.48-10-10-10zm-1 15.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zm6-5.5c-1.38 0-2.5-1.12-2.5-2.5S15.62 7 17 7s2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                      </svg>
+                      <span className="font-semibold">Login with Steam</span>
+                    </div>
+                  </Button>
+                </Link>
+                <Link href="#demo">
+                  <Button variant="outline" size="lg" className="border-slate-600 hover:bg-slate-800 group">
+                    <Sparkles className="mr-2 h-5 w-5 text-yellow-400 group-hover:animate-spin" />
+                    See Live Demo
+                  </Button>
+                </Link>
               </>
             )}
           </div>

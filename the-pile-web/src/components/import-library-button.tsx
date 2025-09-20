@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from './ui/button'
+import { IconButton } from './ui/icon-button'
 import { Download, Loader2, CheckCircle, AlertCircle, X, RefreshCw } from 'lucide-react'
 import { pileApi } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
@@ -40,8 +41,12 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
               message: `${status.operation_type === 'import' ? 'Steam library imported' : 'Steam data synced'} successfully!`
             })
             
-            // Refresh pile data
+            // Refresh all data since sync/import affects stats too
             await queryClient.invalidateQueries({ queryKey: ['pile'] })
+            await queryClient.invalidateQueries({ queryKey: ['shameScore'] })
+            await queryClient.invalidateQueries({ queryKey: ['shame-score'] })
+            await queryClient.invalidateQueries({ queryKey: ['reality-check'] })
+            await queryClient.invalidateQueries({ queryKey: ['insights'] })
             await queryClient.refetchQueries({ queryKey: ['pile'] })
             
             setIsImporting(false)
@@ -80,14 +85,34 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
     setImportProgress(null)
     
     try {
-      await pileApi.importSteamLibrary()
+      const response = await pileApi.importSteamLibrary()
+      
+      // Check if response contains rate limit error
+      if (response.data?.error === 'Rate limit exceeded') {
+        setNotification({
+          type: 'error',
+          message: response.data.message || 'Rate limit exceeded. Please try again later.'
+        })
+        setIsImporting(false)
+        return
+      }
+      
       // Don't set isImporting to false here - polling will handle it
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to start Steam library import:', error)
-      setNotification({
-        type: 'error',
-        message: 'Failed to start import. Please try again.'
-      })
+      
+      // Check if error response contains rate limit info
+      if (error.response?.data?.error === 'Rate limit exceeded') {
+        setNotification({
+          type: 'error',
+          message: error.response.data.message || 'Rate limit exceeded. Please try again later.'
+        })
+      } else {
+        setNotification({
+          type: 'error',
+          message: error.response?.data?.detail || 'Failed to start import. Please try again.'
+        })
+      }
       setIsImporting(false)
     }
   }
@@ -118,54 +143,32 @@ export function ImportLibraryButton({ hasPile = false }: ImportLibraryButtonProp
   return (
     <div className="relative">
       <div className="flex gap-2">
-        {!hasPile ? (
-          <Button 
+          <IconButton 
             onClick={handleImport}
             disabled={isLoading}
             className={isLoading ? 'cursor-not-allowed' : ''}
+            variant={hasPile ? "outline" : "default"}
+            icon={isImporting ? Loader2 : Download}
+            iconSize="md"
           >
-            {isImporting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
             {isImporting 
               ? `${loadingMessage || 'Importing...'} ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
-              : 'Import Steam Library'}
-          </Button>
-        ) : (
-          <>
-            <Button 
-              onClick={handleImport}
-              disabled={isLoading}
-              className={isLoading ? 'cursor-not-allowed' : ''}
-              variant="outline"
-            >
-              {isImporting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              {isImporting 
-                ? `${loadingMessage || 'Re-importing...'} ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
-                : 'Re-import Library'}
-            </Button>
-            <Button 
+              : (hasPile ? 'Import More Games' : 'Import Steam Library')}
+          </IconButton>
+          
+          {hasPile && (
+            <IconButton 
               onClick={handleSync}
               disabled={isLoading}
               className={isLoading ? 'cursor-not-allowed' : ''}
+              icon={isSyncing ? Loader2 : RefreshCw}
+              iconSize="md"
             >
-              {isSyncing ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
-              )}
               {isSyncing 
                 ? `Syncing... ${importProgress ? `(${importProgress.progress_current}/${importProgress.progress_total})` : ''}`
                 : 'Sync Steam Data'}
-            </Button>
-          </>
-        )}
+            </IconButton>
+          )}
       </div>
       
       {notification && (

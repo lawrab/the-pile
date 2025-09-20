@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, computed_field
 from typing import Optional, List
 from datetime import datetime
 from app.models.pile_entry import GameStatus
@@ -25,6 +25,7 @@ class GameBase(BaseModel):
     steam_review_count: Optional[int] = None
     steam_type: Optional[str] = None
     categories: Optional[List[str]] = None
+    rtime_last_played: Optional[int] = None  # Unix timestamp of when game was last played
     
     class Config:
         from_attributes = True
@@ -44,6 +45,25 @@ class PileEntryResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime]
     steam_game: GameBase
+    
+    @classmethod
+    def from_pile_entry(cls, pile_entry):
+        """Custom factory method to ensure effective_status is used"""
+        return cls(
+            id=pile_entry.id,
+            status=pile_entry.effective_status,  # Use computed effective status
+            playtime_minutes=pile_entry.playtime_minutes,
+            purchase_date=pile_entry.purchase_date,
+            purchase_price=pile_entry.purchase_price,
+            completion_date=pile_entry.completion_date,
+            abandon_date=pile_entry.abandon_date,
+            abandon_reason=pile_entry.abandon_reason,
+            amnesty_date=pile_entry.amnesty_date,
+            amnesty_reason=pile_entry.amnesty_reason,
+            created_at=pile_entry.created_at,
+            updated_at=pile_entry.updated_at,
+            steam_game=GameBase.model_validate(pile_entry.steam_game)
+        )
     
     class Config:
         from_attributes = True

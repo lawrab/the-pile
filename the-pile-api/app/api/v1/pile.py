@@ -38,7 +38,8 @@ async def get_pile(
         current_user["id"], filters, db
     )
     
-    return pile_entries
+    # Use custom factory method to ensure effective_status is used
+    return [PileEntryResponse.from_pile_entry(entry) for entry in pile_entries]
 
 
 @router.post("/import")
@@ -49,6 +50,10 @@ async def import_steam_library(
 ):
     """Import user's Steam library"""
     from datetime import datetime, timedelta, timezone
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"Import endpoint called for user {current_user['id']}")
     
     # Check if user has imported in the last 24 hours
     user = db.query(User).filter(User.id == current_user["id"]).first()
@@ -64,21 +69,45 @@ async def import_steam_library(
         time_since_last_sync = now_utc - last_sync
         if time_since_last_sync < timedelta(hours=24):
             hours_remaining = 24 - time_since_last_sync.total_seconds() / 3600
+            logger.info(f"Rate limit hit for user {current_user['id']}: {hours_remaining:.1f} hours remaining")
             return {
                 "error": "Rate limit exceeded", 
                 "message": f"You can only sync once per day. Try again in {hours_remaining:.1f} hours.",
                 "retry_after_hours": hours_remaining
             }
     
+    logger.info(f"Adding background task for user {current_user['id']}, steam_id {current_user['steam_id']}")
+    
     # Add background task to import library
+    # Note: Don't pass the db session - let the background task create its own
     background_tasks.add_task(
-        pile_service.import_steam_library,
+        _import_steam_library_task,
         current_user["steam_id"],
-        current_user["id"],
-        db
+        current_user["id"]
     )
     
+    logger.info(f"Background task added successfully for user {current_user['id']}")
+    
     return {"message": "Steam library import started", "status": "processing"}
+
+
+async def _import_steam_library_task(steam_id: str, user_id: int):
+    """Background task wrapper that creates its own database session"""
+    from app.db.base import get_db_session
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"Starting import for user {user_id}, steam_id {steam_id}")
+    
+    db = get_db_session()
+    try:
+        await pile_service.import_steam_library(steam_id, user_id, db)
+        logger.info(f"Import completed successfully for user {user_id}")
+    except Exception as e:
+        logger.error(f"Import failed for user {user_id}: {str(e)}")
+        raise
+    finally:
+        db.close()
 
 
 @router.post("/sync")
@@ -89,13 +118,31 @@ async def sync_playtime(
 ):
     """Sync playtime data from Steam"""
     background_tasks.add_task(
-        pile_service.sync_playtime,
+        _sync_playtime_task,
         current_user["steam_id"],
-        current_user["id"],
-        db
+        current_user["id"]
     )
     
     return {"message": "Playtime sync started", "status": "processing"}
+
+
+async def _sync_playtime_task(steam_id: str, user_id: int):
+    """Background task wrapper that creates its own database session"""
+    from app.db.base import get_db_session
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"Starting sync for user {user_id}, steam_id {steam_id}")
+    
+    db = get_db_session()
+    try:
+        await pile_service.sync_playtime(steam_id, user_id, db)
+        logger.info(f"Sync completed successfully for user {user_id}")
+    except Exception as e:
+        logger.error(f"Sync failed for user {user_id}: {str(e)}")
+        raise
+    finally:
+        db.close()
 
 
 @router.get("/import/status")
@@ -236,3 +283,13 @@ async def update_status(
         )
     
     return {"message": f"Game status updated to {status_value}", "game_id": game_id}
+
+@router.delete("/clear")
+async def clear_pile(
+    current_user: dict = Depends(user_service.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Clear all pile entries for the user (destructive operation)"""
+    result = await pile_service.clear_user_pile(current_user["id"], db)
+    
+    return {"message": f"Cleared {result} games from your pile", "cleared_count": result}

@@ -1,8 +1,10 @@
 from sqlalchemy import Column, String, Integer, DateTime, Float, ForeignKey, Enum
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.db.base import Base
 import enum
+from datetime import datetime, timezone, timedelta
 
 
 class GameStatus(str, enum.Enum):
@@ -36,3 +38,63 @@ class PileEntry(Base):
     # Relationships
     user = relationship("User", back_populates="pile_entries")
     steam_game = relationship("SteamGame", back_populates="pile_entries")
+    
+    @hybrid_property
+    def effective_status(self):
+        """
+        Compute the effective status with automatic abandoned detection.
+        This is the domain logic that determines the true status of a game.
+        """
+        # Completed, amnesty granted, and manually abandoned games keep their status
+        if self.status in [GameStatus.COMPLETED, GameStatus.AMNESTY_GRANTED]:
+            return self.status
+        
+        # If manually marked as abandoned, respect that
+        if self.status == GameStatus.ABANDONED and self.abandon_reason and not self.abandon_reason.startswith("Automatically detected"):
+            return self.status
+            
+        # Apply automatic abandoned detection for unplayed and playing games
+        if self.status in [GameStatus.UNPLAYED, GameStatus.PLAYING, GameStatus.ABANDONED]:
+            current_time = datetime.now(timezone.utc)
+            three_months_ago = current_time - timedelta(days=90)
+            
+            # Determine the most recent activity date
+            activity_date = None
+            
+            # Prefer Steam's last played time if available and recent
+            if (hasattr(self, 'steam_game') and self.steam_game and 
+                hasattr(self.steam_game, 'rtime_last_played') and self.steam_game.rtime_last_played):
+                try:
+                    if isinstance(self.steam_game.rtime_last_played, int):
+                        activity_date = datetime.fromtimestamp(self.steam_game.rtime_last_played, tz=timezone.utc)
+                    elif isinstance(self.steam_game.rtime_last_played, datetime):
+                        activity_date = self.steam_game.rtime_last_played
+                        if activity_date.tzinfo is None:
+                            activity_date = activity_date.replace(tzinfo=timezone.utc)
+                except (ValueError, TypeError, OSError):
+                    activity_date = None
+            
+            # Fallback to database timestamps
+            if not activity_date:
+                activity_date = self.updated_at or self.created_at
+                if activity_date and activity_date.tzinfo is None:
+                    activity_date = activity_date.replace(tzinfo=timezone.utc)
+            
+            # If still no activity date, assume very old
+            if not activity_date:
+                activity_date = three_months_ago - timedelta(days=365)
+            
+            # Apply abandonment criteria
+            # 1. Unplayed games older than 3 months
+            if (self.status == GameStatus.UNPLAYED and 
+                self.playtime_minutes == 0 and 
+                activity_date < three_months_ago):
+                return GameStatus.ABANDONED
+            
+            # 2. Games with playtime but no activity in 3+ months
+            if (self.playtime_minutes > 0 and 
+                activity_date < three_months_ago):
+                return GameStatus.ABANDONED
+        
+        # Return stored status if no abandonment criteria met
+        return self.status

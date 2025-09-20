@@ -4,6 +4,11 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 import time
+
+try:
+    from dateutil import parser as dateutil_parser
+except ImportError:
+    dateutil_parser = None
 from app.models.user import User
 from app.models.steam_game import SteamGame
 from app.models.pile_entry import PileEntry, GameStatus
@@ -48,170 +53,303 @@ class PileService:
             requests_per_second=10,  # Conservative rate limit
             burst_size=20           # Allow small bursts
         )
-    @cache_result(expiration=900, key_prefix="steam_owned_games")  # 15 minutes
-    async def get_steam_owned_games(self, steam_id: str) -> List[dict]:
-        """Fetch owned games from Steam Web API"""
-        url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
+    async def get_steam_owned_games(self, steam_id: str):
+        """Fetch owned games from Steam API with rate limiting and timeout handling"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Apply rate limiting
+        await self.rate_limiter.acquire()
+        
+        api_key = settings.STEAM_API_KEY
+        if not api_key:
+            logger.error("STEAM_API_KEY is not configured")
+            raise ValueError("Steam API key is not configured")
+        
+        url = f"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
         params = {
-            "key": settings.STEAM_API_KEY,
+            "key": api_key,
             "steamid": steam_id,
-            "format": "json",
-            "include_appinfo": True,
-            "include_played_free_games": True,
-            "include_extended_appinfo": True
+            "include_appinfo": 1,
+            "format": "json"
         }
         
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=params)
-            data = response.json()
-            
-            return data.get("response", {}).get("games", [])
-    
-    @cache_result(expiration=86400, key_prefix="steam_app_details")  # 24 hours
-    async def get_steam_app_details(self, app_id: int) -> dict:
-        """Fetch game details from Steam Store API"""
-        url = f"https://store.steampowered.com/api/appdetails"
-        params = {"appids": app_id, "filters": "basic,genres,categories,price_overview,screenshots,release_date"}
+        logger.info(f"Making Steam API call to GetOwnedGames for steam_id: {steam_id}")
         
-        try:
-            async with httpx.AsyncClient() as client:
+        # Configure timeout - Steam API can be slow
+        timeout = httpx.Timeout(30.0, connect=10.0)  # 30s total, 10s connect
+        
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            try:
                 response = await client.get(url, params=params)
+                response.raise_for_status()
                 data = response.json()
                 
-                app_data = data.get(str(app_id), {})
-                if app_data.get("success") and app_data.get("data"):
-                    return app_data["data"]
-                return {}
-        except Exception as e:
-            print(f"Error fetching Steam app details for {app_id}: {e}")
-            return {}
+                logger.info(f"Steam API response status: {response.status_code}")
+                logger.info(f"Steam API response data keys: {list(data.keys())}")
+                
+                if "response" not in data:
+                    logger.error(f"No 'response' key in Steam API data: {data}")
+                    return []
+                
+                games = data["response"].get("games", [])
+                logger.info(f"Found {len(games)} games in Steam API response")
+                
+                return games
+                
+            except httpx.TimeoutException as e:
+                logger.error(f"Steam API timeout for steam_id {steam_id}: {e}")
+                raise ValueError(f"Steam API request timed out. Please try again.")
+            except httpx.HTTPStatusError as e:
+                logger.error(f"Steam API HTTP error for steam_id {steam_id}: {e}")
+                raise ValueError(f"Steam API returned error: {e.response.status_code}")
+            except Exception as e:
+                logger.error(f"Unexpected error calling Steam API for steam_id {steam_id}: {e}")
+                raise ValueError(f"Failed to fetch games from Steam: {str(e)}")
     
-    @cache_result(expiration=86400, key_prefix="steam_reviews")  # 24 hours
-    async def get_steam_reviews(self, app_id: int) -> dict:
-        """Fetch review summary from Steam Reviews API"""
+    async def get_steam_app_details(self, app_id: int):
+        """Fetch app details from Steam Store API with timeout handling"""
+        # Apply rate limiting
+        await self.rate_limiter.acquire()
+        
+        url = f"https://store.steampowered.com/api/appdetails"
+        params = {
+            "appids": app_id,
+            "l": "english"
+        }
+        
+        # Configure timeout for Store API
+        timeout = httpx.Timeout(20.0, connect=5.0)  # 20s total, 5s connect
+        
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            try:
+                response = await client.get(url, params=params)
+                response.raise_for_status()
+                data = response.json()
+                
+                if str(app_id) in data and data[str(app_id)]["success"]:
+                    return data[str(app_id)]["data"]
+                return {}
+                
+            except (httpx.TimeoutException, httpx.HTTPStatusError, Exception):
+                # Store API failures are non-critical, just return empty data
+                return {}
+    
+    async def get_steam_reviews(self, app_id: int):
+        """Fetch review summary from Steam API with timeout handling"""
+        # Apply rate limiting
+        await self.rate_limiter.acquire()
+        
         url = f"https://store.steampowered.com/appreviews/{app_id}"
         params = {
             "json": 1,
-            "num_per_page": 0,  # We only want the query summary, not actual reviews
-            "language": "english"
+            "language": "all",
+            "review_type": "all",
+            "purchase_type": "all",
+            "num_per_page": 0  # We only want the summary data
         }
         
-        try:
-            async with httpx.AsyncClient() as client:
+        # Configure timeout for Reviews API
+        timeout = httpx.Timeout(15.0, connect=5.0)  # 15s total, 5s connect
+        
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            try:
                 response = await client.get(url, params=params)
+                response.raise_for_status()
                 data = response.json()
                 
                 if data.get("success") == 1 and "query_summary" in data:
                     query_summary = data["query_summary"]
-                    return {
-                        "total_reviews": query_summary.get("total_reviews", 0),
-                        "total_positive": query_summary.get("total_positive", 0),
-                        "total_negative": query_summary.get("total_negative", 0),
-                        "review_score_desc": query_summary.get("review_score_desc", "No user reviews"),
-                        "rating_percent": self._calculate_rating_percentage(
-                            query_summary.get("total_positive", 0),
-                            query_summary.get("total_reviews", 0)
-                        )
-                    }
+                    total_reviews = query_summary.get("total_reviews", 0)
+                    
+                    if total_reviews > 0:
+                        positive_reviews = query_summary.get("total_positive", 0)
+                        rating_percent = self._calculate_rating_percentage(positive_reviews, total_reviews)
+                        
+                        return {
+                            "total_reviews": total_reviews,
+                            "positive_reviews": positive_reviews,
+                            "rating_percent": rating_percent,
+                            "review_score_desc": query_summary.get("review_score_desc")
+                        }
+                
                 return {}
-        except Exception as e:
-            print(f"Error fetching Steam reviews for {app_id}: {e}")
-            return {}
+                
+            except (httpx.TimeoutException, httpx.HTTPStatusError, Exception):
+                # Reviews API failures are non-critical, just return empty data
+                return {}
     
     def _calculate_rating_percentage(self, positive: int, total: int) -> int:
         """Calculate positive review percentage"""
         if total == 0:
             return 0
         return int((positive / total) * 100)
-    
-    async def get_game_details_batch(self, app_ids: List[int], db: Session = None) -> Dict[int, Dict[str, Any]]:
-        """Fetch game details for multiple games in parallel with rate limiting and smart caching"""
-        semaphore = asyncio.Semaphore(10)  # Max 10 concurrent requests
+
+    def _detect_abandoned_status(self, current_playtime: int, stored_playtime: int, current_status: GameStatus, last_updated: datetime = None) -> GameStatus:
+        """
+        Detect if a game should be marked as abandoned based on playtime patterns.
         
-        # Smart caching: Check which games already exist and were recently updated
-        cached_data = {}
-        games_to_fetch = []
+        Abandoned game criteria (3 month timeframe):
+        1. Game was being played (status = PLAYING) but playtime hasn't increased in 3+ months
+        2. Game has some playtime (> 0) but hasn't been touched in 3+ months
+        3. Unplayed games that have been in pile for 3+ months
         
-        if db:
-            # Consider games fresh if updated within the last 7 days
-            cache_cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+        Args:
+            current_playtime: Current playtime from Steam (minutes)
+            stored_playtime: Previously stored playtime (minutes)
+            current_status: Current game status
+            last_updated: When the entry was last updated
             
-            # Query existing games that are still fresh
-            cached_games = db.query(SteamGame).filter(
-                SteamGame.steam_app_id.in_(app_ids),
-                SteamGame.last_updated >= cache_cutoff
-            ).all()
+        Returns:
+            GameStatus.ABANDONED if criteria met, otherwise the current status
+        """
+        # Only auto-abandon games that are currently unplayed or playing
+        if current_status not in [GameStatus.UNPLAYED, GameStatus.PLAYING]:
+            return current_status
             
-            # Build cached data from database
-            for game in cached_games:
-                cached_data[game.steam_app_id] = {
-                    "details": {
-                        "name": game.name,
-                        "short_description": game.description,
-                        "genres": [{"description": genre} for genre in game.genres] if game.genres else [],
-                        "categories": [{"description": cat} for cat in game.categories] if game.categories else [],
-                        "price_overview": {"initial": int(game.price * 100)} if game.price else {},
-                        "release_date": {"date": game.release_date} if game.release_date else {},
-                        "developers": game.developer.split(", ") if game.developer else [],
-                        "publishers": game.publisher.split(", ") if game.publisher else [],
-                        "screenshots": [{"path_full": url} for url in game.screenshots] if game.screenshots else [],
-                        "type": game.steam_type
-                    },
-                    "reviews": {
-                        "rating_percent": game.steam_rating_percent,
-                        "review_score_desc": game.steam_review_summary,
-                        "total_reviews": game.steam_review_count
-                    }
-                }
-            
-            # Only fetch games that aren't cached or are stale
-            cached_app_ids = set(game.steam_app_id for game in cached_games)
-            games_to_fetch = [app_id for app_id in app_ids if app_id not in cached_app_ids]
-            
-            print(f"Smart caching: Using cached data for {len(cached_app_ids)} games, fetching {len(games_to_fetch)} games")
+        # If playtime hasn't changed, this suggests the game hasn't been played recently
+        playtime_unchanged = current_playtime == stored_playtime
+        
+        # Get time thresholds - 3 months for all criteria
+        now = datetime.now(timezone.utc)
+        three_months_ago = now - timedelta(days=90)
+        
+        # Ensure we have a valid datetime object for comparison
+        if last_updated is None:
+            # If no last_updated, assume it's very old (fallback to long ago)
+            last_activity = three_months_ago - timedelta(days=365)  # Over a year ago
+        elif isinstance(last_updated, str):
+            # If it's a string, try to parse it
+            try:
+                if dateutil_parser:
+                    last_activity = dateutil_parser.parse(last_updated)
+                else:
+                    # Fallback to basic datetime parsing
+                    last_activity = datetime.fromisoformat(last_updated.replace('Z', '+00:00'))
+                # Ensure it's timezone-aware
+                if last_activity.tzinfo is None:
+                    last_activity = last_activity.replace(tzinfo=timezone.utc)
+            except Exception as e:
+                print(f"Error parsing datetime string '{last_updated}': {e}")
+                last_activity = three_months_ago - timedelta(days=365)  # Fallback
+        elif isinstance(last_updated, datetime):
+            last_activity = last_updated
+            # Ensure it's timezone-aware
+            if last_activity.tzinfo is None:
+                last_activity = last_activity.replace(tzinfo=timezone.utc)
         else:
-            games_to_fetch = app_ids
+            print(f"Unexpected type for last_updated: {type(last_updated)} - {last_updated}")
+            last_activity = three_months_ago - timedelta(days=365)  # Fallback
         
-        async def fetch_single_game(app_id: int) -> tuple[int, Dict[str, Any]]:
+        # 3-month criteria:
+        
+        # Criterion 1: Unplayed games older than 3 months
+        if (current_status == GameStatus.UNPLAYED and
+            current_playtime == 0 and
+            last_activity < three_months_ago):
+            return GameStatus.ABANDONED
+        
+        # Criterion 2: Games with any playtime but not touched in 3+ months
+        if (current_playtime > 0 and 
+            playtime_unchanged and
+            last_activity < three_months_ago):
+            return GameStatus.ABANDONED
+            
+        # Criterion 3: Playing games with no playtime increase in 3+ months
+        if (current_status == GameStatus.PLAYING and 
+            playtime_unchanged and 
+            current_playtime > 0 and
+            last_activity < three_months_ago):
+            return GameStatus.ABANDONED
+            
+        return current_status
+    
+    async def get_game_details_batch(self, app_ids: List[int], db: Session) -> Dict[int, Dict[str, Any]]:
+        """Fetch game details for a batch of app IDs with parallel processing and error handling"""
+        import asyncio
+        from app.services.cache_service import cache_service
+        
+        results = {}
+        semaphore = asyncio.Semaphore(10)  # Limit concurrent requests
+        
+        async def fetch_game_data(app_id: int):
+            """Fetch data for a single game with error handling"""
             async with semaphore:
-                await self.rate_limiter.acquire()
-                
-                # Get both app details and reviews concurrently for this game
-                details_task = self.get_steam_app_details(app_id)
-                reviews_task = self.get_steam_reviews(app_id)
-                
-                details, reviews = await asyncio.gather(
-                    details_task, reviews_task, return_exceptions=True
-                )
-                
-                # Handle exceptions
-                if isinstance(details, Exception):
-                    details = {}
-                if isinstance(reviews, Exception):
-                    reviews = {}
-                
-                return app_id, {"details": details, "reviews": reviews}
+                try:
+                    # Check cache first
+                    cache_key = f"game_details:{app_id}"
+                    cached_data = cache_service.get(cache_key)
+                    if cached_data:
+                        return app_id, cached_data
+                    
+                    # Fetch fresh data with timeout handling
+                    details_task = self.get_steam_app_details(app_id)
+                    reviews_task = self.get_steam_reviews(app_id)
+                    
+                    # Run both requests concurrently with timeout
+                    try:
+                        details, reviews = await asyncio.wait_for(
+                            asyncio.gather(details_task, reviews_task, return_exceptions=True),
+                            timeout=35.0  # Overall timeout for both requests
+                        )
+                        
+                        # Handle exceptions from individual requests
+                        if isinstance(details, Exception):
+                            print(f"Details fetch failed for app {app_id}: {details}")
+                            details = {}
+                        if isinstance(reviews, Exception):
+                            print(f"Reviews fetch failed for app {app_id}: {reviews}")
+                            reviews = {}
+                            
+                    except asyncio.TimeoutError:
+                        print(f"Overall timeout for app {app_id}, using empty data")
+                        details, reviews = {}, {}
+                    
+                    game_data = {
+                        "details": details,
+                        "reviews": reviews
+                    }
+                    
+                    # Cache successful results for 7 days
+                    if details or reviews:
+                        cache_service.set(cache_key, game_data, expiration=604800)
+                    
+                    return app_id, game_data
+                    
+                except Exception as e:
+                    print(f"Error fetching data for app {app_id}: {e}")
+                    return app_id, {"details": {}, "reviews": {}}
         
-        # Process only games that need fetching in parallel
-        fetched_data = {}
-        if games_to_fetch:
-            tasks = [fetch_single_game(app_id) for app_id in games_to_fetch]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Process all games concurrently
+        tasks = [fetch_game_data(app_id) for app_id in app_ids]
+        
+        try:
+            # Wait for all tasks with a generous timeout
+            completed_tasks = await asyncio.wait_for(
+                asyncio.gather(*tasks, return_exceptions=True),
+                timeout=120.0  # 2 minutes for entire batch
+            )
             
-            # Convert to dict, filtering out exceptions
-            for result in results:
+            for result in completed_tasks:
                 if isinstance(result, Exception):
+                    print(f"Batch task failed: {result}")
                     continue
-                app_id, data = result
-                fetched_data[app_id] = data
-        
-        # Combine cached and fetched data
-        game_data = {**cached_data, **fetched_data}
+                app_id, game_data = result
+                results[app_id] = game_data
+                
+        except asyncio.TimeoutError:
+            print(f"Batch processing timed out for {len(app_ids)} apps")
+            # Return partial results
             
-        return game_data
+        return results
     
     async def import_steam_library(self, steam_id: str, user_id: int, db: Session):
         """Import user's Steam library with parallel processing"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"Starting import_steam_library for user {user_id}, steam_id {steam_id}")
+        
         # Create import status record
         import_status = ImportStatus(
             user_id=user_id,
@@ -223,13 +361,24 @@ class PileService:
         db.commit()
         db.refresh(import_status)
         
+        logger.info(f"Created import status record {import_status.id}")
+        
         try:
             # Fetch owned games from Steam
+            logger.info(f"Fetching owned games from Steam for {steam_id}")
             owned_games = await self.get_steam_owned_games(steam_id)
+            logger.info(f"Retrieved {len(owned_games)} games from Steam")
             
             # Update progress with total count
             import_status.progress_total = len(owned_games)
             db.commit()
+            
+            if len(owned_games) == 0:
+                logger.warning(f"No games found for Steam ID {steam_id}")
+                import_status.status = 'completed'
+                import_status.completed_at = datetime.now(timezone.utc)
+                db.commit()
+                return
             
             # Process games in batches for better performance
             BATCH_SIZE = 50  # Process 50 games at a time
@@ -238,6 +387,8 @@ class PileService:
             for batch_start in range(0, len(owned_games), BATCH_SIZE):
                 batch_end = min(batch_start + BATCH_SIZE, len(owned_games))
                 batch_games = owned_games[batch_start:batch_end]
+                
+                logger.info(f"Processing batch {batch_start//BATCH_SIZE + 1}: {len(batch_games)} games")
                 
                 # Extract app_ids for this batch
                 batch_app_ids = [game["appid"] for game in batch_games]
@@ -252,19 +403,25 @@ class PileService:
                 total_processed += len(batch_games)
                 import_status.progress_current = total_processed
                 db.commit()
+                
+                logger.info(f"Processed {total_processed}/{len(owned_games)} games")
             
             # Update user's last sync time
             user = db.query(User).filter(User.id == user_id).first()
             if user:
                 user.last_sync_at = datetime.now(timezone.utc)
                 db.commit()
+                logger.info(f"Updated last_sync_at for user {user_id}")
             
             # Mark import as completed
             import_status.status = 'completed'
             import_status.completed_at = datetime.now(timezone.utc)
             db.commit()
+            
+            logger.info(f"Import completed successfully for user {user_id}")
                 
         except Exception as e:
+            logger.error(f"Error importing Steam library for user {user_id}: {str(e)}")
             db.rollback()
             # Mark import as failed
             import_status.status = 'failed'
@@ -282,6 +439,10 @@ class PileService:
             # Get the fetched details for this game
             details = game_details.get(app_id, {}).get("details", {})
             reviews = game_details.get(app_id, {}).get("reviews", {})
+            
+            # Ensure reviews is never None
+            if reviews is None:
+                reviews = {}
             
             # Check if Steam game already exists in database
             steam_game = db.query(SteamGame).filter(SteamGame.steam_app_id == app_id).first()
@@ -310,10 +471,12 @@ class PileService:
                     publisher=", ".join(details.get("publishers", [])) if details.get("publishers") else "",
                     screenshots=[s["path_full"] for s in details.get("screenshots", [])] if details.get("screenshots") else [],
                     # Steam review/rating data
-                    steam_rating_percent=reviews.get("rating_percent") if reviews.get("total_reviews", 0) > 0 else None,
-                    steam_review_summary=reviews.get("review_score_desc") if reviews.get("total_reviews", 0) > 0 else None,
-                    steam_review_count=reviews.get("total_reviews") if reviews.get("total_reviews", 0) > 0 else None,
-                    steam_type=details.get("type")
+                    steam_rating_percent=reviews.get("rating_percent") if reviews and reviews.get("total_reviews", 0) and reviews.get("total_reviews", 0) > 0 else None,
+                    steam_review_summary=reviews.get("review_score_desc") if reviews and reviews.get("total_reviews", 0) and reviews.get("total_reviews", 0) > 0 else None,
+                    steam_review_count=reviews.get("total_reviews") if reviews and reviews.get("total_reviews", 0) and reviews.get("total_reviews", 0) > 0 else None,
+                    steam_type=details.get("type"),
+                    # Store Steam's last played time
+                    rtime_last_played=game_data.get("rtime_last_played")
                 )
                 db.add(steam_game)
                 db.flush()  # Get ID without committing
@@ -339,14 +502,18 @@ class PileService:
                     steam_game.screenshots = [s["path_full"] for s in details.get("screenshots", [])]
                 
                 # Update Steam review/rating data if available
-                if reviews.get("total_reviews", 0) > 0:
+                total_reviews = reviews.get("total_reviews") if reviews else None
+                if total_reviews and total_reviews > 0:
                     steam_game.steam_rating_percent = reviews.get("rating_percent")
                     steam_game.steam_review_summary = reviews.get("review_score_desc")
                     steam_game.steam_review_count = reviews.get("total_reviews")
                 
-                # Update Steam type
+                # Update Steam type and last played time
                 if details.get("type"):
                     steam_game.steam_type = details.get("type")
+                
+                # Update Steam's last played time
+                steam_game.rtime_last_played = game_data.get("rtime_last_played")
                 
                 steam_game.last_updated = datetime.now(timezone.utc)
             
@@ -356,35 +523,103 @@ class PileService:
                 PileEntry.steam_game_id == steam_game.id
             ).first()
             
+            current_playtime = game_data.get("playtime_forever", 0)
+            
             if not existing_entry:
-                # Create pile entry with purchase price from Steam game
+                # Create pile entry - status will be computed dynamically when retrieved
                 pile_entry = PileEntry(
                     user_id=user_id,
                     steam_game_id=steam_game.id,
-                    playtime_minutes=game_data.get("playtime_forever", 0),
+                    playtime_minutes=current_playtime,
                     purchase_price=game_price,  # Use current Steam price as purchase price
-                    status=GameStatus.UNPLAYED if game_data.get("playtime_forever", 0) == 0 else GameStatus.PLAYING
+                    status=GameStatus.UNPLAYED if current_playtime == 0 else GameStatus.PLAYING
                 )
                 db.add(pile_entry)
+            else:
+                # Update existing entry - status will be computed dynamically when retrieved
+                existing_entry.playtime_minutes = current_playtime
+                existing_entry.updated_at = datetime.now(timezone.utc)
         
         # Commit the entire batch at once for better performance
         db.commit()
     
     async def sync_playtime(self, steam_id: str, user_id: int, db: Session):
-        """Sync playtime data from Steam using repository pattern"""
-        from app.repositories.pile_repository import PileRepository
-        
+        """Sync playtime data from Steam with abandoned detection using Steam's last played data"""
         try:
             owned_games = await self.get_steam_owned_games(steam_id)
             
-            # Build a map of app_id -> playtime for efficient lookup
-            playtime_map = {game_data["appid"]: game_data.get("playtime_forever", 0) for game_data in owned_games}
+            # Build maps for efficient lookup
+            playtime_map = {}
+            last_played_map = {}
             
-            # Use repository's bulk update method
-            pile_repo = PileRepository(db)
-            updated_count = pile_repo.bulk_update_playtime(user_id, playtime_map)
+            for game_data in owned_games:
+                app_id = game_data["appid"]
+                playtime_map[app_id] = game_data.get("playtime_forever", 0)
+                
+                # Get last played time from Steam (Unix timestamp)
+                rtime_last_played = game_data.get("rtime_last_played")
+                if rtime_last_played and rtime_last_played > 0:
+                    # Convert Unix timestamp to datetime
+                    last_played_map[app_id] = datetime.fromtimestamp(rtime_last_played, tz=timezone.utc)
+                else:
+                    last_played_map[app_id] = None
             
-            print(f"Updated playtime for {updated_count} games")
+            # Get all pile entries for this user with their steam games
+            pile_entries = db.query(PileEntry).join(SteamGame).filter(
+                PileEntry.user_id == user_id,
+                SteamGame.steam_app_id.in_(list(playtime_map.keys()))
+            ).all()
+            
+            updated_count = 0
+            abandoned_count = 0
+            checked_count = 0
+            
+            for entry in pile_entries:
+                app_id = entry.steam_game.steam_app_id
+                current_playtime = playtime_map.get(app_id, 0)
+                stored_playtime = entry.playtime_minutes
+                steam_last_played = last_played_map.get(app_id)
+                checked_count += 1
+                
+                # Use Steam's last played time if available, otherwise fall back to database timestamps
+                if steam_last_played:
+                    last_activity_date = steam_last_played
+                    activity_source = "Steam"
+                else:
+                    last_activity_date = entry.updated_at or entry.created_at
+                    activity_source = "Database"
+                
+                # Always check if game should be marked as abandoned
+                new_status = self._detect_abandoned_status(
+                    current_playtime=current_playtime,
+                    stored_playtime=stored_playtime,
+                    current_status=entry.status,
+                    last_updated=last_activity_date
+                )
+                
+                # Update playtime if it changed
+                playtime_changed = current_playtime != stored_playtime
+                if playtime_changed:
+                    entry.playtime_minutes = current_playtime
+                    entry.updated_at = datetime.now(timezone.utc)
+                    updated_count += 1
+                
+                # Update status if abandoned detection triggered
+                if new_status != entry.status and new_status == GameStatus.ABANDONED:
+                    entry.status = new_status
+                    entry.abandon_date = datetime.now(timezone.utc)
+                    entry.abandon_reason = f"Automatically detected during sync - no recent activity (using {activity_source} data)"
+                    entry.updated_at = datetime.now(timezone.utc)
+                    abandoned_count += 1
+                
+                # If either playtime or status changed, mark as updated
+                if playtime_changed or (new_status != entry.status):
+                    entry.updated_at = datetime.now(timezone.utc)
+            
+            # Commit all changes
+            db.commit()
+            
+            print(f"Checked {checked_count} games, updated playtime for {updated_count} games, marked {abandoned_count} games as abandoned")
             
         except Exception as e:
             db.rollback()
@@ -507,3 +742,29 @@ class PileService:
                 return True
         
         return False
+
+    async def clear_user_pile(self, user_id: int, db: Session) -> int:
+        """Clear all pile entries for a user (destructive operation) and reset import throttling"""
+        from app.repositories.pile_repository import PileRepository
+        from app.services.cache_service import invalidate_cache_pattern
+        from app.models.user import User
+        
+        pile_repo = PileRepository(db)
+        
+        # Get count before deletion for return value
+        count = pile_repo.get_pile_count(user_id)
+        
+        # Delete all pile entries for the user
+        deleted_count = pile_repo.clear_user_pile(user_id)
+        
+        # Reset the user's last_sync_at to allow immediate reimport
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.last_sync_at = None
+            db.commit()
+        
+        # Clear related caches
+        invalidate_cache_pattern(f"reality_check:{user_id}")
+        invalidate_cache_pattern(f"behavioral_insights:{user_id}")
+        
+        return deleted_count

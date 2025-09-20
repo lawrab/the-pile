@@ -31,6 +31,9 @@ class SteamGame(Base):
     steam_review_summary = Column(String(50))  # "Very Positive", "Mixed", etc.
     steam_review_count = Column(Integer)  # Total number of reviews
     
+    # Steam playtime data
+    rtime_last_played = Column(Integer)  # Unix timestamp of when game was last played
+    
     # Tracking
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())

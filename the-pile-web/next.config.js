@@ -26,6 +26,12 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'shared.akamai.steamstatic.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'steam.com',
         port: '',
         pathname: '/**',
@@ -33,6 +39,18 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'avatars.steamstatic.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'store.akamai.steamstatic.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'steamcommunity.com',
         port: '',
         pathname: '/**',
       },

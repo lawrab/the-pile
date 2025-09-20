@@ -29,7 +29,11 @@ class StatsService:
         most_expensive = None
         max_price = 0
         for entry in reality_data["unplayed_entries"]:
-            price = entry.purchase_price or entry.steam_game.price or 0
+            # Handle None values explicitly
+            purchase_price = entry.purchase_price if entry.purchase_price is not None else 0
+            steam_price = entry.steam_game.price if entry.steam_game.price is not None else 0
+            price = purchase_price or steam_price
+            
             if price > max_price:
                 max_price = price
                 most_expensive = entry.steam_game.name

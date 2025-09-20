@@ -111,6 +111,57 @@ export default function StatsPage() {
           </Card>
         )}
 
+        {/* Shame Score Breakdown */}
+        {shameScore && shameScore.breakdown && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-xl">🧮 Shame Score Breakdown</CardTitle>
+              <p className="text-sm text-slate-400">
+                Understanding how your shame score is calculated
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 bg-red-900/20 rounded border border-red-500/20">
+                    <div className="font-semibold text-red-400 text-sm">Unplayed Games</div>
+                    <div className="text-xl font-bold">+{shameScore.breakdown.unplayed_games?.toFixed(1) || 0}</div>
+                    <div className="text-xs text-slate-400">2 points per unplayed game</div>
+                  </div>
+                  
+                  <div className="p-4 bg-green-900/20 rounded border border-green-500/20">
+                    <div className="font-semibold text-green-400 text-sm">Money Wasted</div>
+                    <div className="text-xl font-bold">+{shameScore.breakdown.money_wasted?.toFixed(1) || 0}</div>
+                    <div className="text-xs text-slate-400">0.5 points per dollar wasted</div>
+                  </div>
+                  
+                  <div className="p-4 bg-yellow-900/20 rounded border border-yellow-500/20">
+                    <div className="font-semibold text-yellow-400 text-sm">Time to Complete</div>
+                    <div className="text-xl font-bold">+{shameScore.breakdown.time_to_complete?.toFixed(1) || 0}</div>
+                    <div className="text-xs text-slate-400">10 points per year (max 100)</div>
+                  </div>
+                  
+                  <div className="p-4 bg-purple-900/20 rounded border border-purple-500/20">
+                    <div className="font-semibold text-purple-400 text-sm">Never Played</div>
+                    <div className="text-xl font-bold">+{shameScore.breakdown.never_played?.toFixed(1) || 0}</div>
+                    <div className="text-xs text-slate-400">3 points per 0-minute game</div>
+                  </div>
+                </div>
+                
+                <div className="border-t border-slate-600 pt-4">
+                  <div className="flex justify-between items-center text-lg font-semibold">
+                    <span>Total Shame Score:</span>
+                    <span className="text-red-400">{shameScore.score.toFixed(1)}</span>
+                  </div>
+                  <div className="text-sm text-slate-400 mt-1">
+                    {shameScore.message}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Core Stats Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>

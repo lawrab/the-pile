@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { formatCurrency } from '@/lib/utils'
 import { Button } from './ui/button'
 import { Clock, Zap, Crown, Feather, Play, X } from 'lucide-react'
 import Image from 'next/image'
@@ -178,7 +179,7 @@ export function GameTombstone({
           
           {entry.steam_game.price && (
             <span className="text-yellow-600 font-medium">
-              ${entry.steam_game.price.toFixed(2)}
+              {formatCurrency(entry.steam_game.price)}
             </span>
           )}
         </div>

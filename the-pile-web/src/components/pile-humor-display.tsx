@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { PILE_MESSAGES, AMNESTY_REASONS, BEHAVIORAL_INSIGHTS, getRandomItem, formatInsight } from '@/lib/humor-constants'
 import { RefreshCw, Sparkles, Brain, Heart } from 'lucide-react'
 
@@ -25,13 +25,13 @@ export function PileHumorDisplay({
   const [messageIndex, setMessageIndex] = useState(0)
 
   // Get pile category based on counts
-  const getPileCategory = (): keyof typeof PILE_MESSAGES => {
+  const getPileCategory = useCallback((): keyof typeof PILE_MESSAGES => {
     if (unplayedCount === 0) return 'empty'
     if (unplayedCount < 10) return 'small'
     if (unplayedCount < 50) return 'medium'
     if (unplayedCount < 100) return 'large'
     return 'massive'
-  }
+  }, [unplayedCount])
 
   // Initialize messages
   useEffect(() => {
@@ -58,7 +58,7 @@ export function PileHumorDisplay({
       
       setCurrentInsight(formatInsight(template, variables))
     }
-  }, [unplayedCount, shameScore, showAmnestyReasons, showBehavioralInsights])
+  }, [unplayedCount, shameScore, showAmnestyReasons, showBehavioralInsights, getPileCategory])
 
   const refreshMessages = () => {
     const category = getPileCategory()

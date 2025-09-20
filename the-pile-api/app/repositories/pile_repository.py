@@ -168,3 +168,22 @@ class PileRepository(BaseRepository[PileEntry]):
             status_counts[status] = count
         
         return status_counts
+
+    def get_pile_count(self, user_id: int) -> int:
+        """Get total count of pile entries for a user"""
+        return self.db.query(PileEntry).filter(
+            PileEntry.user_id == user_id
+        ).count()
+    
+    def clear_user_pile(self, user_id: int) -> int:
+        """Clear all pile entries for a user and return count of deleted entries"""
+        # Get count before deletion
+        count = self.get_pile_count(user_id)
+        
+        # Delete all entries
+        self.db.query(PileEntry).filter(
+            PileEntry.user_id == user_id
+        ).delete()
+        
+        self.db.commit()
+        return count
