@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 
 from app.models.pile_entry import GameStatus
+from app.services.validation_service import InputValidationService
 
 
 class GameBase(BaseModel):
@@ -76,11 +77,57 @@ class PileEntryResponse(BaseModel):
 class PileFilters(BaseModel):
     status: Optional[str] = None
     genre: Optional[str] = None
-    sort_by: Optional[str] = "playtime"  # playtime, rating, default: playtime
-    sort_direction: Optional[str] = "asc"  # asc, desc, default: asc (unplayed first)
-    limit: int = 100
-    offset: int = 0
+    sort_by: Optional[str] = Field(default="playtime", description="Field to sort by")
+    sort_direction: Optional[str] = Field(
+        default="asc", description="Sort direction (asc/desc)"
+    )
+    limit: int = Field(
+        default=100, ge=1, le=1000, description="Number of results to return"
+    )
+    offset: int = Field(default=0, ge=0, description="Number of results to skip")
+
+    @validator("sort_by")
+    def validate_sort_field(cls, v):
+        if v is None:
+            return "playtime"
+        allowed_fields = ["playtime", "rating", "purchase_date", "name", "release_date"]
+        return InputValidationService.validate_sort_field(v, allowed_fields)
+
+    @validator("sort_direction")
+    def validate_sort_direction(cls, v):
+        if v is None:
+            return "asc"
+        return InputValidationService.validate_sort_order(v)
+
+    @validator("status")
+    def validate_status(cls, v):
+        if v is None:
+            return None
+        allowed_statuses = [
+            "unplayed",
+            "playing",
+            "completed",
+            "abandoned",
+            "amnesty_granted",
+        ]
+        if v not in allowed_statuses:
+            raise ValueError(
+                f"Invalid status. Allowed values: {', '.join(allowed_statuses)}"
+            )
+        return v
+
+    @validator("genre")
+    def validate_genre(cls, v):
+        if v is None:
+            return None
+        return InputValidationService.sanitize_text_input(v, max_length=100)
 
 
 class AmnestyRequest(BaseModel):
-    reason: str
+    reason: str = Field(description="Reason for granting amnesty", max_length=500)
+
+    @validator("reason")
+    def validate_reason(cls, v):
+        if not v or len(v.strip()) == 0:
+            raise ValueError("Amnesty reason cannot be empty")
+        return InputValidationService.validate_amnesty_reason(v)
