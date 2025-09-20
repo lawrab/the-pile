@@ -18,7 +18,8 @@ import {
   Target,
   LogOut,
   ChevronDown,
-  User
+  User,
+  Settings
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -245,8 +246,8 @@ export function StickyHeader({
                             size="sm"
                             className="w-full justify-start gap-2 text-slate-300 hover:text-white"
                           >
-                            <User className="h-4 w-4" />
-                            Profile Settings
+                            <Settings className="h-4 w-4" />
+                            Advanced Settings
                           </Button>
                         </Link>
                         

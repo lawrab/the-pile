@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user, 
     isLoading, 
     error,
-    refetch: checkAuth
+    refetch
   } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -65,6 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Call backend logout endpoint to clear httpOnly cookie
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/logout`
+  }
+
+  const checkAuth = async (): Promise<void> => {
+    await refetch()
   }
 
   const value: AuthContextType = {

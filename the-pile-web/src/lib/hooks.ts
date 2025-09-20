@@ -101,3 +101,70 @@ export const useGameStatusMutations = () => {
     updateStatus,
   }
 }
+
+export const useSyncMutations = () => {
+  const queryClient = useQueryClient()
+  
+  const invalidateAllData = () => {
+    queryClient.invalidateQueries({ queryKey: ['pile'] })
+    queryClient.invalidateQueries({ queryKey: ['shameScore'] })
+    queryClient.invalidateQueries({ queryKey: ['shame-score'] })
+    queryClient.invalidateQueries({ queryKey: ['reality-check'] })
+    queryClient.invalidateQueries({ queryKey: ['insights'] })
+  }
+
+  const syncPlaytime = useMutation({
+    mutationFn: () => pileApi.syncPlaytime(),
+    onSuccess: () => {
+      invalidateAllData()
+      toast.success('Playtime sync completed.')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to sync playtime')
+    },
+  })
+
+  const importSteamLibrary = useMutation({
+    mutationFn: () => pileApi.importSteamLibrary(),
+    onSuccess: () => {
+      invalidateAllData()
+      toast.success('Steam library import completed.')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to import Steam library')
+    },
+  })
+
+  const clearPile = useMutation({
+    mutationFn: () => pileApi.clearPile(),
+    onSuccess: () => {
+      invalidateAllData()
+      toast.success('Pile cleared successfully.')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to clear pile')
+    },
+  })
+
+  const reimportLibrary = useMutation({
+    mutationFn: async () => {
+      // First clear, then import
+      await pileApi.clearPile()
+      await pileApi.importSteamLibrary()
+    },
+    onSuccess: () => {
+      invalidateAllData()
+      toast.success('Library reimport started successfully.')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to reimport library')
+    },
+  })
+
+  return {
+    syncPlaytime,
+    importSteamLibrary,
+    clearPile,
+    reimportLibrary,
+  }
+}

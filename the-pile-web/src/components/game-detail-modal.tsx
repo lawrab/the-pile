@@ -1,9 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink, Trophy, AlertTriangle, GamepadIcon, Download, Activity } from 'lucide-react'
+import { X, Calendar, Clock, DollarSign, Tag, Star, Play, Feather, ExternalLink, Trophy, AlertTriangle, GamepadIcon, Download, Activity, Edit3, Save, FileText } from 'lucide-react'
 import { Button } from './ui/button'
 import { IconButton } from './ui/icon-button'
+import { ToastContainer } from './ui/toast'
+import { useToast } from '@/lib/use-toast'
 import Image from 'next/image'
 
 interface GameDetailModalProps {
@@ -14,6 +16,7 @@ interface GameDetailModalProps {
     status: 'unplayed' | 'playing' | 'completed' | 'abandoned' | 'amnesty_granted'
     playtime_minutes: number
     purchase_date?: string
+    notes?: string
     steam_game: {
       steam_app_id: number
       name: string
@@ -24,6 +27,7 @@ interface GameDetailModalProps {
       developer?: string
       publisher?: string
       release_date?: string
+      rtime_last_played?: number
       tags?: string[]
       screenshots?: string[]
       achievements_total?: number
@@ -35,6 +39,7 @@ interface GameDetailModalProps {
   onGrantAmnesty?: (gameId: string) => void
   onStartPlaying?: (gameId: string) => void
   onMarkCompleted?: (gameId: string) => void
+  onUpdateNotes?: (gameId: string, notes: string) => void
 }
 
 const statusConfig = {
@@ -81,13 +86,30 @@ export function GameDetailModal({
   game, 
   onGrantAmnesty, 
   onStartPlaying, 
-  onMarkCompleted
+  onMarkCompleted,
+  onUpdateNotes
 }: GameDetailModalProps) {
   const [confirmDialog, setConfirmDialog] = useState<{
     type: 'playing' | 'completed' | 'amnesty' | null,
     message: string,
     action: () => void
   } | null>(null)
+  
+  // Notes functionality
+  const [notes, setNotes] = useState(game.notes || '')
+  const [isEditingNotes, setIsEditingNotes] = useState(false)
+  const [notesBeingEdited, setNotesBeingEdited] = useState('')
+  const [isSavingNotes, setIsSavingNotes] = useState(false)
+  
+  // Action loading states
+  const [actionLoading, setActionLoading] = useState<{
+    playing?: boolean
+    completed?: boolean
+    amnesty?: boolean
+  }>({})
+  
+  // Toast notifications
+  const { toasts, success, error, dismissToast } = useToast()
 
   // Close on Escape key
   useEffect(() => {
@@ -301,20 +323,50 @@ export function GameDetailModal({
 
   const handleActionWithConfirm = (type: 'playing' | 'completed' | 'amnesty') => {
     let message = ''
-    let action = () => {}
+    let action = async () => {}
 
     switch(type) {
       case 'playing':
         message = getSarcasticPlayingConfirm()
-        action = () => onStartPlaying?.(game.id)
+        action = async () => {
+          setActionLoading(prev => ({ ...prev, playing: true }))
+          try {
+            await onStartPlaying?.(game.id)
+            success('Status updated', `"${game.steam_game.name}" marked as playing. Time to actually play it!`)
+          } catch (err) {
+            error('Failed to update status', 'Please try again.')
+          } finally {
+            setActionLoading(prev => ({ ...prev, playing: false }))
+          }
+        }
         break
       case 'completed':
         message = getSarcasticCompletedConfirm()
-        action = () => onMarkCompleted?.(game.id)
+        action = async () => {
+          setActionLoading(prev => ({ ...prev, completed: true }))
+          try {
+            await onMarkCompleted?.(game.id)
+            success('Game completed!', `Congratulations on finishing "${game.steam_game.name}"! 🎉`)
+          } catch (err) {
+            error('Failed to update status', 'Please try again.')
+          } finally {
+            setActionLoading(prev => ({ ...prev, completed: false }))
+          }
+        }
         break
       case 'amnesty':
         message = getSarcasticAmnestyConfirm()
-        action = () => onGrantAmnesty?.(game.id)
+        action = async () => {
+          setActionLoading(prev => ({ ...prev, amnesty: true }))
+          try {
+            await onGrantAmnesty?.(game.id)
+            success('Amnesty granted', `"${game.steam_game.name}" has been set free from your pile. Peace at last. 🕊️`)
+          } catch (err) {
+            error('Failed to grant amnesty', 'Please try again.')
+          } finally {
+            setActionLoading(prev => ({ ...prev, amnesty: false }))
+          }
+        }
         break
     }
 
@@ -328,9 +380,39 @@ export function GameDetailModal({
     }
   }
 
+  // Notes handling functions
+  const startEditingNotes = () => {
+    setNotesBeingEdited(notes)
+    setIsEditingNotes(true)
+  }
+
+  const cancelEditingNotes = () => {
+    setNotesBeingEdited('')
+    setIsEditingNotes(false)
+  }
+
+  const saveNotes = async () => {
+    setIsSavingNotes(true)
+    try {
+      setNotes(notesBeingEdited)
+      await onUpdateNotes?.(game.id, notesBeingEdited)
+      setIsEditingNotes(false)
+      setNotesBeingEdited('')
+      success('Notes saved', 'Your personal notes have been updated successfully.')
+    } catch (err) {
+      error('Failed to save notes', 'Please try again.')
+    } finally {
+      setIsSavingNotes(false)
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
+    <>
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-fix"
         onClick={onClose}
@@ -479,6 +561,8 @@ export function GameDetailModal({
                     title="Mark this game as currently playing in your pile"
                     icon={Activity}
                     iconSize="sm"
+                    loading={actionLoading.playing}
+                    loadingText="Updating..."
                   >
                     {getSarcasticPlayingButton()}
                   </IconButton>
@@ -492,6 +576,8 @@ export function GameDetailModal({
                     className="text-green-400 hover:text-green-300 hover:bg-green-400/10 border border-green-600/30 hover:border-green-500/50"
                     icon={Trophy}
                     iconSize="sm"
+                    loading={actionLoading.completed}
+                    loadingText="Updating..."
                   >
                     {getSarcasticCompletedButton()}
                   </IconButton>
@@ -505,6 +591,8 @@ export function GameDetailModal({
                     className="text-purple-400 hover:text-purple-300 hover:bg-purple-400/10 border border-purple-600/30 hover:border-purple-500/50"
                     icon={Feather}
                     iconSize="sm"
+                    loading={actionLoading.amnesty}
+                    loadingText="Granting..."
                   >
                     {getSarcasticAmnestyButton()}
                   </IconButton>
@@ -524,7 +612,7 @@ export function GameDetailModal({
                     <span className="text-white font-medium">{formatPlaytime(game.playtime_minutes)}</span>
                   </div>
                   
-                  {game.steam_game?.rtime_last_played && (
+                  {game.steam_game.rtime_last_played && (
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400">Last Played:</span>
                       <span className="text-gray-300">
@@ -697,6 +785,76 @@ export function GameDetailModal({
               </div>
             )}
 
+            {/* Personal Notes Section */}
+            <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-200 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-400" />
+                  Personal Notes
+                </h3>
+                {!isEditingNotes && (
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    onClick={startEditingNotes}
+                    className="text-gray-400 hover:text-gray-200"
+                    icon={Edit3}
+                    iconSize="sm"
+                  >
+                    {notes ? 'Edit' : 'Add Note'}
+                  </IconButton>
+                )}
+              </div>
+
+              {isEditingNotes ? (
+                <div className="space-y-3">
+                  <textarea
+                    value={notesBeingEdited}
+                    onChange={(e) => setNotesBeingEdited(e.target.value)}
+                    placeholder="Add your thoughts about this game... Maybe why you bought it, what you hope to get from it, or reminders for when you play..."
+                    className="w-full p-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px] resize-none"
+                    autoFocus
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <IconButton
+                      variant="ghost"
+                      size="sm"
+                      onClick={cancelEditingNotes}
+                      className="text-gray-400 hover:text-gray-200"
+                      icon={X}
+                      iconSize="sm"
+                    >
+                      Cancel
+                    </IconButton>
+                    <IconButton
+                      variant="outline"
+                      size="sm"
+                      onClick={saveNotes}
+                      className="text-blue-400 border-blue-600/30 hover:bg-blue-600/10"
+                      icon={Save}
+                      iconSize="sm"
+                      loading={isSavingNotes}
+                      loadingText="Saving..."
+                    >
+                      Save Note
+                    </IconButton>
+                  </div>
+                </div>
+              ) : (
+                <div className="min-h-[60px] flex items-center">
+                  {notes ? (
+                    <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+                      {notes}
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 italic">
+                      No notes yet. Click &quot;Add Note&quot; to record your thoughts about this game.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Screenshots */}
             {game.steam_game?.screenshots && game.steam_game.screenshots.length > 0 && (
               <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
@@ -786,5 +944,6 @@ export function GameDetailModal({
         </div>
       )}
     </div>
+    </>
   )
 }

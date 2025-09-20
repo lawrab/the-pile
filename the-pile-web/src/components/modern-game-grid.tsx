@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { useToast } from '@/lib/use-toast'
+import { ToastContainer } from '@/components/ui/toast'
 import { PileEntry, GameStatus } from '@/types'
 import Image from 'next/image'
 import { 
@@ -20,7 +23,9 @@ import {
   ArrowDown,
   Calendar,
   Activity,
-  ExternalLink
+  ExternalLink,
+  Heart,
+  Trash2
 } from 'lucide-react'
 
 interface ModernGameGridProps {
@@ -57,6 +62,16 @@ export function ModernGameGrid({
   const [lastTapTime, setLastTapTime] = useState<number>(0)
   const [tapTimeout, setTapTimeout] = useState<NodeJS.Timeout | null>(null)
   const [popoverPosition, setPopoverPosition] = useState<{x: number, y: number} | null>(null)
+  
+  // Confirmation dialog state
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    isOpen: boolean
+    action: 'amnesty' | 'play' | 'complete' | 'abandon' | null
+    game: PileEntry | null
+  }>({ isOpen: false, action: null, game: null })
+  
+  // Toast system
+  const { toasts, dismissToast, success, warning, error } = useToast()
   
   // Use external search term if provided, otherwise internal
   const searchTerm = onSearchTermChange ? externalSearchTerm : internalSearchTerm
@@ -460,6 +475,122 @@ export function ModernGameGrid({
     }
   }
 
+  // Sarcastic confirmation message generators
+  const getSarcasticConfirmation = (action: 'amnesty' | 'play' | 'complete' | 'abandon', game: PileEntry) => {
+    const gameName = game.steam_game.name
+    const price = game.purchase_price || 0
+    const playtime = game.playtime_minutes || 0
+    const hours = Math.floor(playtime / 60)
+    
+    switch (action) {
+      case 'amnesty':
+        if (price > 50) {
+          return {
+            title: "Finally giving up on this dream?",
+            message: `You're about to grant amnesty to ${gameName}. That's $${price} you'll never see again, but at least your conscience will be clear. Are you ready to admit defeat?`,
+            confirmText: "Yes, I'm a quitter",
+            cancelText: "Maybe I'll play it someday"
+          }
+        }
+        if (price > 20) {
+          return {
+            title: "Time to face reality?",
+            message: `${gameName} has been judging you from your library. For $${price}, you could have had several nice coffees instead. Sure you want to set it free?`,
+            confirmText: "Free this poor game",
+            cancelText: "I might play it... eventually"
+          }
+        }
+        return {
+          title: "Giving up the ghost?",
+          message: `${gameName} has been patiently waiting in your library. It's time to admit you'll never touch it. Ready to grant mercy?`,
+          confirmText: "Put it out of its misery",
+          cancelText: "Keep the false hope alive"
+        }
+        
+      case 'play':
+        if (game.status === GameStatus.UNPLAYED && playtime === 0) {
+          return {
+            title: "Actually going to commit this time?",
+            message: `Mark ${gameName} as "Currently Playing"? This means people might actually expect you to play it. Are you prepared for that kind of pressure?`,
+            confirmText: "I'll try to commit",
+            cancelText: "Too much pressure"
+          }
+        }
+        return {
+          title: "Back for round two?",
+          message: `You've already spent ${hours}h on ${gameName}. Marking it as "Playing" again? Optimistic of you.`,
+          confirmText: "Third time's the charm",
+          cancelText: "Who am I kidding?"
+        }
+        
+      case 'complete':
+        if (hours < 5) {
+          return {
+            title: "Did you really, though?",
+            message: `Only ${hours}h on ${gameName} and you're calling it complete? Some people speedrun, others just... speed-quit. You sure about this?`,
+            confirmText: "I saw the credits",
+            cancelText: "Maybe I rushed it"
+          }
+        }
+        return {
+          title: "Congratulations, you actually finished something!",
+          message: `After ${hours}h, you conquered ${gameName}! This is a rare moment of completion in your gaming career. Savor it.`,
+          confirmText: "I'm proud of myself",
+          cancelText: "Wait, let me double-check"
+        }
+        
+      case 'abandon':
+        if (hours < 2) {
+          return {
+            title: "That was quick!",
+            message: `${hours}h on ${gameName} and you're already throwing in the towel? That's faster than your usual abandonment rate. Efficiency!`,
+            confirmText: "Cut my losses",
+            cancelText: "Give it one more hour"
+          }
+        }
+        return {
+          title: "Classic commitment issues",
+          message: `${hours}h invested in ${gameName} and now you want to abandon it? Just like that relationship in college, huh?`,
+          confirmText: "It's not me, it's the game",
+          cancelText: "Maybe we can work it out"
+        }
+        
+      default:
+        return {
+          title: "Are you sure?",
+          message: "This action cannot be undone.",
+          confirmText: "Confirm",
+          cancelText: "Cancel"
+        }
+    }
+  }
+
+  // Confirmation dialog handlers
+  const showConfirmation = (action: 'amnesty' | 'play' | 'complete' | 'abandon', game: PileEntry) => {
+    setConfirmationDialog({ isOpen: true, action, game })
+  }
+
+  const handleConfirmAction = () => {
+    if (!confirmationDialog.game || !confirmationDialog.action) return
+    
+    const game = confirmationDialog.game
+    const action = confirmationDialog.action
+    
+    switch (action) {
+      case 'amnesty':
+        onGrantAmnesty(game.id)
+        success("Amnesty Granted", `${game.steam_game.name} has been set free from your pile of shame`)
+        break
+      case 'play':
+        onStartPlaying(game.id)
+        warning("Status Updated", `${game.steam_game.name} is now marked as playing. The pressure is on!`)
+        break
+      // Add more cases as needed for complete/abandon if those handlers exist
+    }
+    
+    setConfirmationDialog({ isOpen: false, action: null, game: null })
+  }
+
   // Smart interaction handler for mobile and desktop
   const handleCardInteraction = (game: PileEntry, event: React.MouseEvent | React.TouchEvent) => {
     event.preventDefault()
@@ -773,7 +904,7 @@ export function ModernGameGrid({
                     <div className="flex items-center gap-1 min-h-[16px]">
                       <DollarSign className="h-3 w-3 flex-shrink-0" />
                       <span className="truncate text-xs">
-                        {getSarcasticPrice(game.purchase_price)}
+                        {getSarcasticPrice(game.purchase_price ?? null)}
                       </span>
                     </div>
                     
@@ -854,20 +985,20 @@ export function ModernGameGrid({
                           </div>
                         </div>
                         
-                        {/* Steam App ID for the tech-savvy shame */}
+                        {/* Mobile Actions */}
                         <div className="flex justify-between items-center pt-2">
                           <div className="text-[10px] text-slate-500">
                             Steam ID: {game.steam_game.steam_app_id}
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1">
                             <button
                               className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors px-2 py-1 bg-blue-500/10 rounded"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                window.open(`steam://nav/games/details/${game.steam_game.steam_app_id}`, '_blank')
+                                window.open(`https://store.steampowered.com/app/${game.steam_game.steam_app_id}`, '_blank')
                               }}
                             >
-                              Steam
+                              Steam Store
                             </button>
                             <button
                               className="text-[10px] text-green-400 hover:text-green-300 transition-colors px-2 py-1 bg-green-500/10 rounded"
@@ -956,7 +1087,7 @@ export function ModernGameGrid({
                         </span>
                         <span className="flex items-center gap-1">
                           <DollarSign className="h-3 w-3" />
-                          {getSarcasticPrice(game.purchase_price)}
+                          {getSarcasticPrice(game.purchase_price ?? null)}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -972,7 +1103,7 @@ export function ModernGameGrid({
                       {game.steam_game.steam_rating_percent && (
                         <div className="flex items-center gap-2 text-xs pl-2">
                           <div className="flex items-center gap-1">
-                            <ExternalLink className="h-3 w-3 text-blue-400" title="Steam Reviews" />
+                            <ExternalLink className="h-3 w-3 text-blue-400" />
                             <ThumbsUp className={`h-3 w-3 ${getReviewColor(game.steam_game.steam_rating_percent)}`} />
                           </div>
                           <span className={`font-medium ${getReviewColor(game.steam_game.steam_rating_percent)}`} title="Yes, real people actually played this">
@@ -1021,16 +1152,48 @@ export function ModernGameGrid({
                   </div>
 
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Play Now in Steam - Launch game directly */}
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.location.href = `steam://run/${game.steam_game.steam_app_id}`
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      title={`Launch ${game.steam_game.name} in Steam - Stop avoiding your library`}
+                    >
+                      <Play className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Mark as Playing - Update pile status */}
                     {game.status === GameStatus.UNPLAYED && (
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation()
-                          onStartPlaying(game.id)
+                          showConfirmation('play', game)
                         }}
+                        title="Mark as 'Currently Playing' in your pile (doesn't launch game)"
+                        className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10"
                       >
-                        <Play className="h-4 w-4" />
+                        <Activity className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    {/* Grant Amnesty - Free yourself from the guilt */}
+                    {game.status === GameStatus.UNPLAYED && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          showConfirmation('amnesty', game)
+                        }}
+                        title="Grant amnesty and free yourself from the guilt"
+                        className="text-purple-400 hover:text-purple-300 hover:bg-purple-400/10"
+                      >
+                        <Heart className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
@@ -1146,6 +1309,20 @@ export function ModernGameGrid({
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      {confirmationDialog.isOpen && confirmationDialog.game && confirmationDialog.action && (
+        <ConfirmationDialog
+          isOpen={confirmationDialog.isOpen}
+          onClose={() => setConfirmationDialog({ isOpen: false, action: null, game: null })}
+          onConfirm={handleConfirmAction}
+          type="warning"
+          {...getSarcasticConfirmation(confirmationDialog.action, confirmationDialog.game)}
+        />
+      )}
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   )
 }

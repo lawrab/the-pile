@@ -154,12 +154,56 @@ function PilePageContent() {
   if (!pile || pile.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
-        <div className="text-center max-w-md">
-          <h1 className="text-4xl font-bold mb-6">🎮 Your Pile is Empty</h1>
-          <p className="text-slate-300 text-lg mb-8">
-            Import your Steam library to start tracking your games and build your pile of shame!
-          </p>
-          <ImportLibraryButton />
+        <div className="text-center max-w-2xl px-6">
+          <div className="mb-8">
+            <h1 className="text-5xl font-bold mb-4">🎮 Welcome to The Pile</h1>
+            <h2 className="text-2xl text-slate-300 mb-6">Time to confront your gaming backlog</h2>
+            <p className="text-slate-400 text-lg leading-relaxed mb-8">
+              Connect your Steam account to import your game library and discover the truth about your unplayed games. 
+              We&apos;ll calculate your shame score, provide reality checks, and help you make peace with your pile.
+            </p>
+          </div>
+          
+          <div className="bg-slate-800/50 rounded-xl p-8 mb-8 backdrop-blur">
+            <h3 className="text-xl font-semibold mb-4">What happens next?</h3>
+            <div className="space-y-4 text-left">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">1</div>
+                <div>
+                  <div className="font-medium">Import Your Steam Library</div>
+                  <div className="text-slate-400 text-sm">Securely fetch your game collection and playtime data</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">2</div>
+                <div>
+                  <div className="font-medium">Calculate Your Shame Score</div>
+                  <div className="text-slate-400 text-sm">See exactly how much money and time your backlog represents</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">3</div>
+                <div>
+                  <div className="font-medium">Get Behavioral Insights</div>
+                  <div className="text-slate-400 text-sm">Understand your buying patterns and gaming preferences</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">4</div>
+                <div>
+                  <div className="font-medium">Grant Amnesty or Start Playing</div>
+                  <div className="text-slate-400 text-sm">Make peace with your pile through strategic forgiveness</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <ImportLibraryButton />
+            <p className="text-sm text-slate-500">
+              🔒 We only access your public Steam profile and game library. Your data stays private and secure.
+            </p>
+          </div>
         </div>
       </div>
     )

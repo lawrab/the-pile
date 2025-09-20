@@ -9,17 +9,22 @@ interface IconButtonProps extends ButtonProps {
   iconPosition?: "left" | "right"
   iconSize?: "sm" | "md" | "lg"
   iconClassName?: string
+  loading?: boolean
+  loadingText?: string
   children?: React.ReactNode
 }
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ icon, iconPosition = "left", iconSize, iconClassName, children, className, size, ...props }, ref) => {
+  ({ icon, iconPosition = "left", iconSize, iconClassName, loading, loadingText, children, className, size, disabled, ...props }, ref) => {
     // Auto-size icons based on button size
     const defaultIconSize = size === "sm" ? "sm" : size === "lg" ? "lg" : "md"
     const finalIconSize = iconSize || defaultIconSize
 
-    // Handle loading icon special case
-    const isLoading = icon === Loader2
+    // Handle loading state
+    const isLoading = loading || icon === Loader2
+    const displayIcon = loading ? Loader2 : icon
+    const displayText = loading && loadingText ? loadingText : children
+    
     const finalIconClassName = cn(
       isLoading && "animate-spin",
       iconClassName
@@ -29,18 +34,20 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
       <Button
         ref={ref}
         size={size}
+        disabled={disabled || loading}
         className={cn(
           // Keep default centering behavior for buttons
+          loading && "cursor-not-allowed",
           className
         )}
         {...props}
       >
         {iconPosition === "left" && (
-          <ButtonIcon icon={icon} size={finalIconSize} className={finalIconClassName} />
+          <ButtonIcon icon={displayIcon} size={finalIconSize} className={finalIconClassName} />
         )}
-        {children}
+        {displayText}
         {iconPosition === "right" && (
-          <ButtonIcon icon={icon} size={finalIconSize} className={finalIconClassName} />
+          <ButtonIcon icon={displayIcon} size={finalIconSize} className={finalIconClassName} />
         )}
       </Button>
     )
