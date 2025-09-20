@@ -24,30 +24,31 @@ class StatsRepository(BaseRepository[PileEntry]):
         ).filter(PileEntry.user_id == user_id).all()
     
     def get_reality_check_data(self, user_id: int) -> Dict[str, Any]:
-        """Get all data needed for reality check calculations"""
-        # Count queries for basic stats
-        total_games = self.db.query(PileEntry).filter(PileEntry.user_id == user_id).count()
-        unplayed_games = self.db.query(PileEntry).filter(
-            PileEntry.user_id == user_id,
-            PileEntry.status == GameStatus.UNPLAYED
-        ).count()
-        
-        # Get unplayed entries with game data
-        unplayed_entries = self.db.query(PileEntry).options(
+        """Get all data needed for reality check calculations using effective status"""
+        # Get all pile entries with steam game data for effective status calculation
+        all_entries = self.db.query(PileEntry).options(
             joinedload(PileEntry.steam_game)
-        ).filter(
-            PileEntry.user_id == user_id,
-            PileEntry.status == GameStatus.UNPLAYED
-        ).all()
+        ).filter(PileEntry.user_id == user_id).all()
         
-        # Find oldest unplayed game
-        oldest_entry = self.db.query(PileEntry).options(
-            joinedload(PileEntry.steam_game)
-        ).filter(
-            PileEntry.user_id == user_id,
-            PileEntry.status == GameStatus.UNPLAYED,
-            PileEntry.purchase_date.isnot(None)
-        ).order_by(PileEntry.purchase_date).first()
+        # Calculate effective statuses for all entries
+        unplayed_entries = []
+        total_games = len(all_entries)
+        
+        for entry in all_entries:
+            effective_status = entry.effective_status
+            if effective_status == GameStatus.UNPLAYED:
+                unplayed_entries.append(entry)
+        
+        unplayed_games = len(unplayed_entries)
+        
+        # Find oldest unplayed game (by effective status)
+        oldest_entry = None
+        oldest_date = None
+        
+        for entry in unplayed_entries:
+            if entry.purchase_date and (oldest_date is None or entry.purchase_date < oldest_date):
+                oldest_date = entry.purchase_date
+                oldest_entry = entry
         
         return {
             "total_games": total_games,
@@ -57,12 +58,17 @@ class StatsRepository(BaseRepository[PileEntry]):
         }
     
     def get_shame_score_data(self, user_id: int) -> Dict[str, Any]:
-        """Get data needed for shame score calculation"""
-        # Get zero playtime count efficiently
-        zero_playtime_count = self.db.query(PileEntry).filter(
-            PileEntry.user_id == user_id,
-            PileEntry.playtime_minutes == 0
-        ).count()
+        """Get data needed for shame score calculation using effective status"""
+        # Get all entries to calculate effective statuses
+        all_entries = self.db.query(PileEntry).options(
+            joinedload(PileEntry.steam_game)
+        ).filter(PileEntry.user_id == user_id).all()
+        
+        # Count zero playtime games that are effectively unplayed (not abandoned)
+        zero_playtime_count = 0
+        for entry in all_entries:
+            if entry.playtime_minutes == 0 and entry.effective_status == GameStatus.UNPLAYED:
+                zero_playtime_count += 1
         
         return {
             "zero_playtime_count": zero_playtime_count
@@ -70,7 +76,9 @@ class StatsRepository(BaseRepository[PileEntry]):
     
     def get_genre_analysis(self, user_id: int) -> Dict[str, Any]:
         """Analyze genre preferences - what they buy vs what they play"""
-        pile_entries = self.get_by_user_id(user_id)
+        pile_entries = self.db.query(PileEntry).options(
+            joinedload(PileEntry.steam_game)
+        ).filter(PileEntry.user_id == user_id).all()
         
         bought_genres = []
         played_genres = []
@@ -78,7 +86,10 @@ class StatsRepository(BaseRepository[PileEntry]):
         for entry in pile_entries:
             if entry.steam_game.genres:
                 bought_genres.extend(entry.steam_game.genres)
-                if entry.playtime_minutes > 60:  # Played for more than 1 hour
+                # Use effective_status to determine what counts as "played"
+                effective_status = entry.effective_status
+                if (entry.playtime_minutes > 60 and 
+                    effective_status not in [GameStatus.UNPLAYED, GameStatus.ABANDONED]):
                     played_genres.extend(entry.steam_game.genres)
         
         bought_counter = Counter(bought_genres)
@@ -103,8 +114,11 @@ class StatsRepository(BaseRepository[PileEntry]):
         }
     
     def get_completion_stats(self, user_id: int) -> Dict[str, Any]:
-        """Get completion and engagement statistics"""
-        pile_entries = self.get_by_user_id(user_id)
+        """Get completion and engagement statistics using effective status"""
+        # Get all entries with steam game data for effective status calculation
+        pile_entries = self.db.query(PileEntry).options(
+            joinedload(PileEntry.steam_game)
+        ).filter(PileEntry.user_id == user_id).all()
         
         if not pile_entries:
             return {
@@ -115,8 +129,17 @@ class StatsRepository(BaseRepository[PileEntry]):
                 "free_games": 0
             }
         
-        played_games = sum(1 for entry in pile_entries if entry.playtime_minutes > 0)
-        completion_rate = (played_games / len(pile_entries)) * 100
+        # Count games by effective status
+        played_games = 0
+        completed_games = 0
+        
+        for entry in pile_entries:
+            if entry.playtime_minutes > 0:
+                played_games += 1
+            if entry.effective_status == GameStatus.COMPLETED:
+                completed_games += 1
+        
+        completion_rate = (completed_games / len(pile_entries)) * 100 if len(pile_entries) > 0 else 0
         
         # Analyze purchase patterns
         indie_bought = sum(1 for entry in pile_entries if entry.purchase_price and entry.purchase_price < 20)
@@ -134,23 +157,21 @@ class StatsRepository(BaseRepository[PileEntry]):
     
     def get_financial_analysis(self, user_id: int) -> Dict[str, float]:
         """Analyze financial aspects of the pile"""
-        pile_entries = self.get_by_user_id(user_id)
+        pile_entries = self.db.query(PileEntry).options(
+            joinedload(PileEntry.steam_game)
+        ).filter(PileEntry.user_id == user_id).all()
         
         total_spent = sum((entry.purchase_price or entry.steam_game.price or 0) for entry in pile_entries)
-        unplayed_value = sum(
-            (entry.purchase_price or entry.steam_game.price or 0) 
-            for entry in pile_entries 
-            if entry.playtime_minutes == 0
-        )
         
-        # Find most expensive unplayed
+        # Calculate unplayed value using effective_status
+        unplayed_value = 0
         most_expensive_unplayed = {"game": None, "price": 0}
+        
         for entry in pile_entries:
-            if entry.playtime_minutes == 0:
-                # Handle None values explicitly
-                purchase_price = entry.purchase_price if entry.purchase_price is not None else 0
-                steam_price = entry.steam_game.price if entry.steam_game.price is not None else 0
-                price = purchase_price or steam_price
+            effective_status = entry.effective_status
+            if effective_status == GameStatus.UNPLAYED:
+                price = entry.purchase_price or entry.steam_game.price or 0
+                unplayed_value += price
                 
                 if price > most_expensive_unplayed["price"]:
                     most_expensive_unplayed = {
@@ -217,7 +238,7 @@ class StatsRepository(BaseRepository[PileEntry]):
                 "playtime_minutes": entry.playtime_minutes,
                 "purchase_price": entry.purchase_price,
                 "steam_rating": entry.steam_game.steam_rating_percent,
-                "status": entry.status.value
+                "status": entry.effective_status.value  # Use effective_status
             }
             for entry in entries
         ]
