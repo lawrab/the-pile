@@ -111,17 +111,17 @@ export function ModernGameGrid({
       const price = game.purchase_price || 0
       
       if (playtime === 0) {
-        if (price > 50) return 'UNTOUCHED (Expensive regret)'
-        if (price > 20) return 'UNTOUCHED (Impulse buy?)'
-        if (price > 0) return 'UNTOUCHED (Still wrapped)'
-        return 'UNTOUCHED (Free & ignored)'
+        if (price > 50) return 'Untouched (Expensive regret)'
+        if (price > 20) return 'Untouched (Impulse buy?)'
+        if (price > 0) return 'Untouched (Still wrapped)'
+        return 'Untouched (Free & ignored)'
       }
       
       if (playtime < 60) {
-        return `UNTOUCHED (${playtime}m then quit?)` 
+        return `Untouched (${playtime}m then quit?)` 
       }
       
-      return 'UNTOUCHED'
+      return 'Untouched'
     }
     
     if (status === GameStatus.ABANDONED && game) {
@@ -130,23 +130,23 @@ export function ModernGameGrid({
       const price = game.purchase_price || 0
       
       if (hours < 1) {
-        return 'RAGE QUIT (Under 1h)'
+        return 'Rage Quit (Under 1h)'
       }
       if (hours < 5) {
-        return 'GAVE UP (Weak commitment)'
+        return 'Gave Up (Weak commitment)'
       }
       if (hours > 20) {
-        if (price > 30) return 'ABANDONED (Expensive failure)'
-        return 'ABANDONED (So close, yet so far)'
+        if (price > 30) return 'Abandoned (Expensive failure)'
+        return 'Abandoned (So close, yet so far)'
       }
-      return 'ABANDONED (Quitter!)'
+      return 'Abandoned (Quitter!)'
     }
     
     switch (status) {
-      case GameStatus.UNPLAYED: return 'UNTOUCHED'
+      case GameStatus.UNPLAYED: return 'Untouched'
       case GameStatus.PLAYING: return 'Actually Playing'
       case GameStatus.COMPLETED: return 'Conquered'
-      case GameStatus.ABANDONED: return 'ABANDONED'
+      case GameStatus.ABANDONED: return 'Abandoned'
       case GameStatus.AMNESTY_GRANTED: return 'Forgiven'
       default: return 'Unknown'
     }
@@ -832,7 +832,17 @@ export function ModernGameGrid({
               size="sm"
               onClick={(e) => {
                 e.preventDefault()
+                e.stopPropagation()
                 onFilterChange(null)
+                // Scroll to show the controls section from the top
+                requestAnimationFrame(() => {
+                  const controlsElement = e.currentTarget.closest('.space-y-8')
+                  if (controlsElement) {
+                    const rect = controlsElement.getBoundingClientRect()
+                    const offsetTop = window.scrollY + rect.top - 20 // 20px padding from top
+                    window.scrollTo({ top: offsetTop, behavior: 'smooth' })
+                  }
+                })
               }}
               className="text-sm"
             >
@@ -840,8 +850,8 @@ export function ModernGameGrid({
             </Button>
             
             {Object.entries(statusCounts).map(([status, count]) => {
-              // Always show abandoned filter, hide others if count is 0
-              const shouldShow = status === GameStatus.ABANDONED || count > 0;
+              // Only show filters with games in them
+              const shouldShow = count > 0;
               return shouldShow && (
                 <Button
                   key={status}
@@ -849,7 +859,17 @@ export function ModernGameGrid({
                   size="sm"
                   onClick={(e) => {
                     e.preventDefault()
+                    e.stopPropagation()
                     onFilterChange(activeFilter === status ? null : status)
+                    // Scroll to show the controls section from the top
+                    requestAnimationFrame(() => {
+                      const controlsElement = e.currentTarget.closest('.space-y-8')
+                      if (controlsElement) {
+                        const rect = controlsElement.getBoundingClientRect()
+                        const offsetTop = window.scrollY + rect.top - 20 // 20px padding from top
+                        window.scrollTo({ top: offsetTop, behavior: 'smooth' })
+                      }
+                    })
                   }}
                   className="text-sm"
                 >
@@ -1310,7 +1330,7 @@ export function ModernGameGrid({
                   <div className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-medium backdrop-blur-sm ${
                     getStatusColor(hoveredGame.status)
                   }`}>
-                    {hoveredGame.status.toUpperCase()}
+                    {hoveredGame.status.charAt(0).toUpperCase() + hoveredGame.status.slice(1).toLowerCase().replace('_', ' ')}
                   </div>
                   {/* Roast message below the pill */}
                   <div className="text-xs text-slate-400 mt-1.5 italic">
