@@ -102,7 +102,8 @@ async def import_steam_library(
                 return {
                     "error": "Rate limit exceeded",
                     "message": (
-                        f"You can only sync once every {settings.IMPORT_RATE_LIMIT_HOURS} {time_unit}. "
+                        f"You can only sync once every "
+                        f"{settings.IMPORT_RATE_LIMIT_HOURS} {time_unit}. "
                         f"Try again in {hours_remaining:.1f} hours."
                     ),
                     "retry_after_hours": hours_remaining,

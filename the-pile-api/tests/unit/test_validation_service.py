@@ -44,7 +44,7 @@ class TestSteamIdValidation:
             with pytest.raises(HTTPException) as exc_info:
                 InputValidationService.validate_steam_id(steam_id)
             assert exc_info.value.status_code == 400
-            # Empty string gives "Steam ID is required", others give "Invalid Steam ID format"
+            # Empty string gives "Steam ID is required", others give format error
             assert "Invalid Steam ID format" in str(
                 exc_info.value.detail
             ) or "Steam ID is required" in str(exc_info.value.detail)

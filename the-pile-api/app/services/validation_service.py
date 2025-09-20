@@ -56,7 +56,10 @@ class InputValidationService:
         if not InputValidationService.STEAM_ID_PATTERN.match(steam_id):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid Steam ID format. Must be 17-digit number starting with 76561198",
+                detail=(
+                    "Invalid Steam ID format. Must be 17-digit number "
+                    "starting with 76561198"
+                ),
             )
 
         return steam_id
@@ -142,7 +145,7 @@ class InputValidationService:
             )
 
         # First, remove dangerous characters that could be used for attacks
-        # Remove characters that are commonly used in injections but preserve basic punctuation
+        # Remove characters commonly used in injections but preserve basic punctuation
         sanitized = re.sub(r"[<>{}[\]\\|`~@#$%^&*()+=;:/\-]", "", text)
 
         # HTML escape to prevent XSS (after character removal to avoid double escaping)
@@ -224,7 +227,9 @@ class InputValidationService:
         if sort_field not in allowed_fields:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid sort field. Allowed fields: {', '.join(allowed_fields)}",
+                detail=(
+                    f"Invalid sort field. Allowed fields: {', '.join(allowed_fields)}"
+                ),
             )
 
         return sort_field
