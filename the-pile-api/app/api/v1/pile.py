@@ -179,16 +179,29 @@ async def get_import_status(
     }
 
 
-@router.post("/amnesty/{game_id}")
+@router.post("/amnesty/{pile_entry_id}")
 async def grant_amnesty(
-    game_id: int,
+    pile_entry_id: int,
     amnesty_data: AmnestyRequest,
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
 ):
     """Grant amnesty to a game (give up without guilt)"""
+    # Get the pile entry to find the steam_game_id
+    from app.models.pile_entry import PileEntry
+    
+    pile_entry = db.query(PileEntry).filter(
+        PileEntry.id == pile_entry_id,
+        PileEntry.user_id == current_user["id"]
+    ).first()
+    
+    if not pile_entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
+        )
+    
     result = await pile_service.grant_amnesty(
-        current_user["id"], game_id, amnesty_data.reason, db
+        current_user["id"], pile_entry.steam_game_id, amnesty_data.reason, db
     )
 
     if not result:
@@ -196,53 +209,92 @@ async def grant_amnesty(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": "Amnesty granted", "game_id": game_id}
+    return {"message": "Amnesty granted", "pile_entry_id": pile_entry_id}
 
 
-@router.post("/start-playing/{game_id}")
+@router.post("/start-playing/{pile_entry_id}")
 async def start_playing(
-    game_id: int,
+    pile_entry_id: int,
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
 ):
     """Mark a game as currently being played"""
-    result = await pile_service.start_playing(current_user["id"], game_id, db)
+    # Get the pile entry to find the steam_game_id
+    from app.models.pile_entry import PileEntry
+    
+    pile_entry = db.query(PileEntry).filter(
+        PileEntry.id == pile_entry_id,
+        PileEntry.user_id == current_user["id"]
+    ).first()
+    
+    if not pile_entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
+        )
+    
+    result = await pile_service.start_playing(current_user["id"], pile_entry.steam_game_id, db)
 
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": "Game marked as playing", "game_id": game_id}
+    return {"message": "Game marked as playing", "pile_entry_id": pile_entry_id}
 
 
-@router.post("/complete/{game_id}")
+@router.post("/complete/{pile_entry_id}")
 async def mark_completed(
-    game_id: int,
+    pile_entry_id: int,
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
 ):
     """Mark a game as completed"""
-    result = await pile_service.mark_completed(current_user["id"], game_id, db)
+    # Get the pile entry to find the steam_game_id
+    from app.models.pile_entry import PileEntry
+    
+    pile_entry = db.query(PileEntry).filter(
+        PileEntry.id == pile_entry_id,
+        PileEntry.user_id == current_user["id"]
+    ).first()
+    
+    if not pile_entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
+        )
+    
+    result = await pile_service.mark_completed(current_user["id"], pile_entry.steam_game_id, db)
 
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": "Game marked as completed", "game_id": game_id}
+    return {"message": "Game marked as completed", "pile_entry_id": pile_entry_id}
 
 
-@router.post("/abandon/{game_id}")
+@router.post("/abandon/{pile_entry_id}")
 async def mark_abandoned(
-    game_id: int,
+    pile_entry_id: int,
     abandon_data: AmnestyRequest,  # Reuse the same schema for reason
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
 ):
     """Mark a game as abandoned"""
+    # Get the pile entry to find the steam_game_id
+    from app.models.pile_entry import PileEntry
+    
+    pile_entry = db.query(PileEntry).filter(
+        PileEntry.id == pile_entry_id,
+        PileEntry.user_id == current_user["id"]
+    ).first()
+    
+    if not pile_entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
+        )
+    
     result = await pile_service.mark_abandoned(
-        current_user["id"], game_id, abandon_data.reason, db
+        current_user["id"], pile_entry.steam_game_id, abandon_data.reason, db
     )
 
     if not result:
@@ -250,17 +302,30 @@ async def mark_abandoned(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": "Game marked as abandoned", "game_id": game_id}
+    return {"message": "Game marked as abandoned", "pile_entry_id": pile_entry_id}
 
 
-@router.post("/status/{game_id}")
+@router.post("/status/{pile_entry_id}")
 async def update_status(
-    game_id: int,
+    pile_entry_id: int,
     status_data: dict,  # Expect {"status": "playing"/"completed"/etc}
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
 ):
     """Update game status directly"""
+    # Get the pile entry to find the steam_game_id
+    from app.models.pile_entry import PileEntry
+    
+    pile_entry = db.query(PileEntry).filter(
+        PileEntry.id == pile_entry_id,
+        PileEntry.user_id == current_user["id"]
+    ).first()
+    
+    if not pile_entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
+        )
+    
     status_value = status_data.get("status")
     if not status_value:
         raise HTTPException(
@@ -281,7 +346,7 @@ async def update_status(
         )
 
     result = await pile_service.update_status(
-        current_user["id"], game_id, status_value, db
+        current_user["id"], pile_entry.steam_game_id, status_value, db
     )
 
     if not result:
@@ -289,7 +354,7 @@ async def update_status(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in your pile"
         )
 
-    return {"message": f"Game status updated to {status_value}", "game_id": game_id}
+    return {"message": f"Game status updated to {status_value}", "pile_entry_id": pile_entry_id}
 
 
 @router.delete("/clear")
