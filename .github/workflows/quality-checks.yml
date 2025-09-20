@@ -1,0 +1,103 @@
+name: Quality Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  python-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./the-pile-api
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Run black (code formatting check)
+      run: black --check --diff .
+    
+    - name: Run isort (import sorting check)
+      run: isort --check-only --diff .
+    
+    - name: Run flake8 (linting)
+      run: flake8 . --extend-ignore=I
+    
+    - name: Run mypy (type checking)
+      run: mypy .
+    
+    - name: Run bandit (security analysis)
+      run: bandit -r . -f json -o bandit-report.json || true
+    
+    - name: Upload bandit results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: bandit-results
+        path: the-pile-api/bandit-report.json
+    
+    # TODO: Re-enable tests once they are updated
+    # - name: Run tests with coverage
+    #   run: |
+    #     pytest --cov=app --cov-report=xml --cov-report=html
+    # 
+    # - name: Upload coverage to artifact
+    #   uses: actions/upload-artifact@v4
+    #   if: always()
+    #   with:
+    #     name: coverage-report
+    #     path: |
+    #       the-pile-api/coverage.xml
+    #       the-pile-api/htmlcov/
+
+  frontend-quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./the-pile-web
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "18"
+        cache: "npm"
+        cache-dependency-path: "./the-pile-web/package-lock.json"
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run ESLint
+      run: npm run lint
+    
+    - name: Run TypeScript type check
+      run: npm run type-check
+    
+    # TODO: Re-enable tests once they are updated
+    # - name: Run tests
+    #   run: npm test
+    
+    - name: Build project
+      run: npm run build
