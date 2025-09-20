@@ -3,6 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.base import get_db
 from app.models.import_status import ImportStatus
 from app.models.user import User
@@ -69,32 +70,36 @@ async def import_steam_library(
     logger = logging.getLogger(__name__)
     logger.info(f"Import endpoint called for user {current_user['id']}")
 
-    # Check if user has imported in the last 24 hours
-    user = db.query(User).filter(User.id == current_user["id"]).first()
-    if user and user.last_sync_at:
-        # Ensure both datetimes are timezone-aware for comparison
-        now_utc = datetime.now(timezone.utc)
-        last_sync = user.last_sync_at
+    # Check rate limit if enabled
+    if settings.IMPORT_RATE_LIMIT_HOURS > 0:
+        user = db.query(User).filter(User.id == current_user["id"]).first()
+        if user and user.last_sync_at:
+            # Ensure both datetimes are timezone-aware for comparison
+            now_utc = datetime.now(timezone.utc)
+            last_sync = user.last_sync_at
 
-        # If last_sync is timezone-naive, assume it's UTC
-        if last_sync.tzinfo is None:
-            last_sync = last_sync.replace(tzinfo=timezone.utc)
+            # If last_sync is timezone-naive, assume it's UTC
+            if last_sync.tzinfo is None:
+                last_sync = last_sync.replace(tzinfo=timezone.utc)
 
-        time_since_last_sync = now_utc - last_sync
-        if time_since_last_sync < timedelta(hours=24):
-            hours_remaining = 24 - time_since_last_sync.total_seconds() / 3600
-            logger.info(
-                f"Rate limit hit for user {current_user['id']}: "
-                f"{hours_remaining:.1f} hours remaining"
-            )
-            return {
-                "error": "Rate limit exceeded",
-                "message": (
-                    f"You can only sync once per day. Try again in "
-                    f"{hours_remaining:.1f} hours."
-                ),
-                "retry_after_hours": hours_remaining,
-            }
+            time_since_last_sync = now_utc - last_sync
+            rate_limit_delta = timedelta(hours=settings.IMPORT_RATE_LIMIT_HOURS)
+            
+            if time_since_last_sync < rate_limit_delta:
+                hours_remaining = settings.IMPORT_RATE_LIMIT_HOURS - time_since_last_sync.total_seconds() / 3600
+                logger.info(
+                    f"Rate limit hit for user {current_user['id']}: "
+                    f"{hours_remaining:.1f} hours remaining"
+                )
+                time_unit = "hours" if settings.IMPORT_RATE_LIMIT_HOURS != 1 else "hour"
+                return {
+                    "error": "Rate limit exceeded",
+                    "message": (
+                        f"You can only sync once every {settings.IMPORT_RATE_LIMIT_HOURS} {time_unit}. "
+                        f"Try again in {hours_remaining:.1f} hours."
+                    ),
+                    "retry_after_hours": hours_remaining,
+                }
 
     logger.info(
         f"Adding background task for user {current_user['id']}, "

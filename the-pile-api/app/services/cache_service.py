@@ -11,21 +11,27 @@ import redis
 
 from app.core.config import settings
 
-# Initialize Redis client
-try:
-    redis_client = redis.from_url(
-        settings.REDIS_URL,
-        decode_responses=True,
-        socket_connect_timeout=5,
-        socket_timeout=5,
-        retry_on_timeout=True,
-        health_check_interval=30,
-    )
-    # Test connection
-    redis_client.ping()
-    REDIS_AVAILABLE = True
-except Exception as e:
-    print(f"Redis connection failed: {e}. Caching disabled.")
+# Initialize Redis client only if enabled in config
+if settings.ENABLE_REDIS_CACHE:
+    try:
+        redis_client = redis.from_url(
+            settings.REDIS_URL,
+            decode_responses=True,
+            socket_connect_timeout=5,
+            socket_timeout=5,
+            retry_on_timeout=True,
+            health_check_interval=30,
+        )
+        # Test connection
+        redis_client.ping()
+        REDIS_AVAILABLE = True
+        print("Redis caching enabled and connected successfully.")
+    except Exception as e:
+        print(f"Redis connection failed: {e}. Caching disabled.")
+        redis_client = None
+        REDIS_AVAILABLE = False
+else:
+    print("Redis caching disabled in configuration.")
     redis_client = None
     REDIS_AVAILABLE = False
 

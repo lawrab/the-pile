@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
     ENVIRONMENT: str = "development"
     BASE_URL: str = "http://localhost:8000"
+    IMPORT_RATE_LIMIT_HOURS: int = 0  # 0 = disabled, any positive value = hours between imports
+    ENABLE_REDIS_CACHE: bool = False  # Enable Redis caching for performance
 
     class Config:
         env_file = ".env"
