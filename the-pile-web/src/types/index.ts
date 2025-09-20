@@ -22,6 +22,7 @@ export interface Game {
   steam_review_summary?: string      // "Very Positive", "Mixed", "Overwhelmingly Positive", etc.
   steam_review_count?: number        // Total number of reviews
   steam_type?: string               // 'game', 'dlc', 'demo', 'advertising', 'mod', 'video'
+  rtime_last_played?: number         // Unix timestamp of when game was last played
 }
 
 export enum GameStatus {

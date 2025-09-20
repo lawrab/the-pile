@@ -84,7 +84,25 @@ export function ModernGameGrid({
     }
   }
 
-  const getStatusLabel = (status: GameStatus) => {
+  const getStatusLabel = (status: GameStatus, game?: PileEntry) => {
+    if (status === GameStatus.UNPLAYED && game) {
+      const playtime = game.playtime_minutes || 0
+      const price = game.purchase_price || 0
+      
+      if (playtime === 0) {
+        if (price > 50) return 'UNTOUCHED (Expensive regret)'
+        if (price > 20) return 'UNTOUCHED (Impulse buy?)'
+        if (price > 0) return 'UNTOUCHED (Still wrapped)'
+        return 'UNTOUCHED (Free & ignored)'
+      }
+      
+      if (playtime < 60) {
+        return `UNTOUCHED (${playtime}m then quit?)` 
+      }
+      
+      return 'UNTOUCHED'
+    }
+    
     switch (status) {
       case GameStatus.UNPLAYED: return 'UNTOUCHED'
       case GameStatus.PLAYING: return 'Actually Playing'
@@ -105,18 +123,29 @@ export function ModernGameGrid({
     }
   }
 
-  const formatLastPlayed = (timestamp: number) => {
-    const lastPlayed = new Date(timestamp * 1000)
-    const now = new Date()
-    const diffTime = now.getTime() - lastPlayed.getTime()
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  const formatLastPlayed = (timestamp?: number) => {
+    if (!timestamp || timestamp === 0) return 'Never'
     
-    if (diffDays === 0) return 'Today'
-    if (diffDays === 1) return 'Yesterday'
-    if (diffDays < 7) return `${diffDays}d ago`
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
-    return `${Math.floor(diffDays / 365)}y ago`
+    try {
+      const lastPlayed = new Date(timestamp * 1000)
+      const now = new Date()
+      
+      // Check if the date is valid
+      if (isNaN(lastPlayed.getTime())) return 'Unknown'
+      
+      const diffTime = now.getTime() - lastPlayed.getTime()
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+      
+      if (diffDays < 0) return 'Future?' // Invalid timestamp
+      if (diffDays === 0) return 'Today'
+      if (diffDays === 1) return 'Yesterday' 
+      if (diffDays < 7) return `${diffDays}d ago`
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
+      return `${Math.floor(diffDays / 365)}y ago`
+    } catch {
+      return 'Unknown'
+    }
   }
 
   const getShameIntensity = (game: PileEntry) => {
@@ -441,22 +470,17 @@ export function ModernGameGrid({
                 <div className="space-y-3 text-xs text-slate-400">
                   {/* Status Badge - Full Width */}
                   <div className="space-y-1">
-                    <div className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium ${
+                    <div className={`inline-block px-2 py-1 rounded border text-[10px] font-medium leading-tight ${
                       getStatusColor(game.status)
                     } ${
                       game.status === GameStatus.UNPLAYED && getShameIntensity(game) === 'extreme' 
                         ? 'animate-pulse' 
                         : ''
                     }`}>
-                      {getStatusLabel(game.status)}
-                      {game.status === GameStatus.UNPLAYED && getShameMessage(game) && (
-                        <div className="text-[9px] mt-0.5 opacity-80">
-                          {getShameMessage(game)}
-                        </div>
-                      )}
+                      {getStatusLabel(game.status, game)}
                     </div>
                     {/* Show last played for In Progress, Completed, and Abandoned games */}
-                    {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) && game.steam_game.rtime_last_played && (
+                    {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) && (
                       <div className="text-[10px] text-slate-500">
                         Last played: {formatLastPlayed(game.steam_game.rtime_last_played)}
                       </div>
@@ -497,11 +521,11 @@ export function ModernGameGrid({
                     </div>
                     
                     <div className="flex items-center gap-1 min-h-[16px]">
-                      {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) && game.steam_game.rtime_last_played ? (
+                      {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) ? (
                         <>
                           <Activity className="h-3 w-3 flex-shrink-0" />
                           <span className="truncate text-[10px] leading-tight">
-                            Last played: {formatLastPlayed(game.steam_game.rtime_last_played)}
+                            Last: {formatLastPlayed(game.steam_game.rtime_last_played)}
                           </span>
                         </>
                       ) : getSyncReminder(game.updated_at) ? (
@@ -571,22 +595,17 @@ export function ModernGameGrid({
                     <div className="space-y-1">
                       <div className="flex items-center gap-4 text-sm text-slate-400">
                         <div className="flex flex-col gap-1">
-                          <div className={`px-2 py-1 rounded border text-xs font-medium ${
+                          <div className={`px-2 py-1 rounded border text-xs font-medium leading-tight ${
                             getStatusColor(game.status)
                           } ${
                             game.status === GameStatus.UNPLAYED && getShameIntensity(game) === 'extreme' 
                               ? 'animate-pulse' 
                               : ''
                           }`}>
-                            {getStatusLabel(game.status)}
-                            {game.status === GameStatus.UNPLAYED && getShameMessage(game) && (
-                              <div className="text-[10px] mt-0.5 opacity-80">
-                                {getShameMessage(game)}
-                              </div>
-                            )}
+                            {getStatusLabel(game.status, game)}
                           </div>
                           {/* Show last played for In Progress, Completed, and Abandoned games */}
-                          {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) && game.steam_game.rtime_last_played && (
+                          {(game.status === GameStatus.PLAYING || game.status === GameStatus.COMPLETED || game.status === GameStatus.ABANDONED) && (
                             <div className="text-[10px] text-slate-500 px-2">
                               Last played: {formatLastPlayed(game.steam_game.rtime_last_played)}
                             </div>
