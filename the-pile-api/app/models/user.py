@@ -1,8 +1,8 @@
-from app.db.base import Base
-
 from sqlalchemy import Column, DateTime, Float, Integer, JSON, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.db.base import Base
 
 
 class User(Base):

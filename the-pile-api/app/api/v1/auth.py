@@ -5,22 +5,21 @@ Secure authentication endpoints following FastAPI best practices.
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.core.rate_limiter import limiter
 from app.core.security import (
+    Token,
     create_access_token,
     create_secure_cookie_params,
-    Token,
 )
 from app.db.base import get_db
 from app.models.user import User
 from app.services.steam_auth import SteamAuth
 from app.services.user_service import UserService
-
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from fastapi.responses import RedirectResponse
-
-from sqlalchemy.orm import Session
 
 router = APIRouter()
 steam_auth = SteamAuth()

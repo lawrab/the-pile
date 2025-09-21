@@ -5,12 +5,12 @@ Repository for statistics and analytics queries.
 from collections import Counter
 from typing import Any, Dict, List
 
+from sqlalchemy import desc
+from sqlalchemy.orm import joinedload, Session
+
 from app.models.pile_entry import GameStatus, PileEntry
 from app.models.steam_game import SteamGame
 from app.repositories.base import BaseRepository
-
-from sqlalchemy import desc
-from sqlalchemy.orm import joinedload, Session
 
 
 class StatsRepository(BaseRepository[PileEntry]):

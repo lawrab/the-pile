@@ -2,11 +2,11 @@ import random
 from typing import Optional
 import uuid
 
+from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.schemas.share import ShareableStats, ShareResponse
 from app.services.stats_service import StatsService
-
-from sqlalchemy.orm import Session
 
 
 class ShareService:

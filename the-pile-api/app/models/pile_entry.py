@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta, timezone
 import enum
 
-from app.db.base import Base
-
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.db.base import Base
 
 
 class GameStatus(str, enum.Enum):
