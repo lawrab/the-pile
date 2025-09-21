@@ -151,7 +151,7 @@ export default function ProfilePage() {
                   <p className="text-gray-300 mb-2">
                     Your account is scheduled for deletion on{' '}
                     <span className="font-mono text-orange-300">
-                      {new Date(user.deletion_scheduled_at).toLocaleDateString()}
+                      {user.deletion_scheduled_at ? new Date(user.deletion_scheduled_at).toLocaleDateString() : 'Unknown date'}
                     </span>
                   </p>
                   <p className="text-sm text-gray-400">
