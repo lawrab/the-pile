@@ -79,8 +79,16 @@ class UserService:
             "username": user.username,
             "avatar_url": user.avatar_url,
             "shame_score": user.shame_score,
-            "deletion_requested_at": user.deletion_requested_at.isoformat() if user.deletion_requested_at else None,
-            "deletion_scheduled_at": user.deletion_scheduled_at.isoformat() if user.deletion_scheduled_at else None,
+            "deletion_requested_at": (
+                user.deletion_requested_at.isoformat()
+                if user.deletion_requested_at
+                else None
+            ),
+            "deletion_scheduled_at": (
+                user.deletion_scheduled_at.isoformat()
+                if user.deletion_scheduled_at
+                else None
+            ),
         }
 
     async def get_current_user_optional(
