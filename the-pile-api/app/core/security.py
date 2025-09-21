@@ -9,7 +9,7 @@ from typing import Optional
 
 from fastapi import HTTPException, status
 from fastapi.security import HTTPBearer
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
