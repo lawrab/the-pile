@@ -124,8 +124,11 @@ class TestAuthEndpoints:
 
         data = response.json()
         assert data["id"] == sample_user.id
-        # The deletion timestamps should be included in the response
-        # (this might require updating the user response model)
+        # Verify deletion timestamps are included in the response
+        assert "deletion_requested_at" in data
+        assert "deletion_scheduled_at" in data
+        assert data["deletion_requested_at"] is not None
+        assert data["deletion_scheduled_at"] is not None
 
     def test_delete_profile_user_not_found(
         self, client, auth_headers, db_session, mock_jwt_decode
