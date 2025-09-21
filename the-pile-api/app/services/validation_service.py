@@ -15,9 +15,9 @@ from fastapi import HTTPException
 class InputValidationService:
     """Centralized input validation and sanitization service."""
 
-    # Steam ID pattern: 17-digit number starting with 76561198
-    # Steam IDs are 64-bit integers that start with 76561198 for normal users
-    STEAM_ID_PATTERN = re.compile(r"^76561198[0-9]{9}$")
+    # Steam ID pattern: 17-digit number starting with 765611 (covers both 76561197 and 76561198 prefixes)
+    # Steam IDs are 64-bit integers that typically start with 765611 for normal users
+    STEAM_ID_PATTERN = re.compile(r"^765611[0-9]{11}$")
 
     # Valid characters for amnesty reasons (alphanumeric, spaces, basic punctuation)
     SAFE_TEXT_PATTERN = re.compile(r"^[a-zA-Z0-9\s\.,!?\-\'\"]+$")
@@ -27,8 +27,8 @@ class InputValidationService:
         """
         Validate Steam ID format.
 
-        Steam IDs are 64-bit integers that start with 76561198 when converted
-        to decimal. The format is: 76561198 + 9 additional digits.
+        Steam IDs are 64-bit integers that typically start with 765611 when converted
+        to decimal. The format is: 765611 + 11 additional digits (17 digits total).
 
         Args:
             steam_id: Steam ID string to validate
@@ -58,7 +58,7 @@ class InputValidationService:
                 status_code=400,
                 detail=(
                     "Invalid Steam ID format. Must be 17-digit number "
-                    "starting with 76561198"
+                    "starting with 765611"
                 ),
             )
 

@@ -83,6 +83,14 @@ async def import_steam_library(
     logger = logging.getLogger(__name__)
     logger.info(f"Import endpoint called for user {current_user['id']}")
 
+    # Validate inputs before starting background task
+    try:
+        validated_steam_id = InputValidationService.validate_steam_id(current_user["steam_id"])
+        validated_user_id = InputValidationService.validate_user_id(current_user["id"])
+    except HTTPException as e:
+        logger.error(f"Validation failed for user {current_user['id']}: {e.detail}")
+        raise e
+
     # Check rate limit if enabled
     if settings.IMPORT_RATE_LIMIT_HOURS > 0:
         user = db.query(User).filter(User.id == current_user["id"]).first()
@@ -120,13 +128,13 @@ async def import_steam_library(
 
     logger.info(
         f"Adding background task for user {current_user['id']}, "
-        f"steam_id {current_user['steam_id']}"
+        f"steam_id {validated_steam_id}"
     )
 
     # Add background task to import library
     # Note: Don't pass the db session - let the background task create its own
     background_tasks.add_task(
-        _import_steam_library_task, current_user["steam_id"], current_user["id"]
+        _import_steam_library_task, validated_steam_id, validated_user_id
     )
 
     logger.info(f"Background task added successfully for user {current_user['id']}")
@@ -137,25 +145,65 @@ async def import_steam_library(
 async def _import_steam_library_task(steam_id: str, user_id: int):
     """Background task wrapper that creates its own database session"""
     import logging
+    from datetime import datetime, timezone
 
     from app.db.base import get_db_session
+    from app.models.import_status import ImportStatus
 
     logger = logging.getLogger(__name__)
     logger.info(f"Starting import for user {user_id}, steam_id {steam_id}")
 
-    # Validate inputs
-    validated_steam_id = InputValidationService.validate_steam_id(steam_id)
-    validated_user_id = InputValidationService.validate_user_id(user_id)
-
     db = get_db_session()
+    import_status = None
+    
     try:
-        await pile_service.import_steam_library(
-            validated_steam_id, validated_user_id, db
+        # Create import status record immediately
+        import_status = ImportStatus(
+            user_id=user_id,
+            operation_type="import",
+            status="running",
+            progress_current=0,
         )
-        logger.info(f"Import completed successfully for user {validated_user_id}")
+        db.add(import_status)
+        db.commit()
+        db.refresh(import_status)
+        
+        logger.info(f"Created import status record {import_status.id}")
+        
+        # Run the actual import
+        await pile_service.import_steam_library(steam_id, user_id, db)
+        logger.info(f"Import completed successfully for user {user_id}")
+        
     except Exception as e:
-        logger.error(f"Import failed for user {validated_user_id}: {str(e)}")
-        raise
+        logger.error(f"Import failed for user {user_id}: {str(e)}")
+        
+        # Ensure import status reflects the failure
+        if import_status:
+            import_status.status = "failed"
+            import_status.error_message = str(e)
+            import_status.completed_at = datetime.now(timezone.utc)
+            db.commit()
+        else:
+            # Fallback: create failed status record if none was created
+            try:
+                failed_status = ImportStatus(
+                    user_id=user_id,
+                    operation_type="import",
+                    status="failed",
+                    error_message=str(e),
+                    progress_current=0,
+                    progress_total=0,
+                    completed_at=datetime.now(timezone.utc)
+                )
+                db.add(failed_status)
+                db.commit()
+                logger.info(f"Created fallback failed import status for user {user_id}")
+            except Exception as fallback_error:
+                logger.error(f"Failed to create fallback import status: {fallback_error}")
+        
+        # Don't re-raise the exception in background tasks as it can't be handled properly
+        # The error is logged and stored in the import_status record for the frontend
+        
     finally:
         db.close()
 
@@ -186,17 +234,15 @@ async def _sync_playtime_task(steam_id: str, user_id: int):
     logger = logging.getLogger(__name__)
     logger.info(f"Starting sync for user {user_id}, steam_id {steam_id}")
 
-    # Validate inputs
-    validated_steam_id = InputValidationService.validate_steam_id(steam_id)
-    validated_user_id = InputValidationService.validate_user_id(user_id)
-
     db = get_db_session()
     try:
-        await pile_service.sync_playtime(validated_steam_id, validated_user_id, db)
-        logger.info(f"Sync completed successfully for user {validated_user_id}")
+        # Note: Validation should be done before starting background task in sync endpoint
+        await pile_service.sync_playtime(steam_id, user_id, db)
+        logger.info(f"Sync completed successfully for user {user_id}")
     except Exception as e:
-        logger.error(f"Sync failed for user {validated_user_id}: {str(e)}")
-        raise
+        logger.error(f"Sync failed for user {user_id}: {str(e)}")
+        # Don't re-raise the exception in background tasks as it can't be handled properly
+        # The error is logged for debugging
     finally:
         db.close()
 
