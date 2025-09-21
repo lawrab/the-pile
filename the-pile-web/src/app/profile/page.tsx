@@ -16,18 +16,35 @@ export default function ProfilePage() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isCanceling, setIsCanceling] = useState(false)
 
   const handleDeleteAccount = async () => {
     setIsDeleting(true)
     try {
       const response = await authApi.requestAccountDeletion()
       alert(`Account deletion scheduled. You have 30 days to cancel this request by logging in again.`)
-      // Optionally redirect to logout or show success message
+      // Refresh the page to show the new state
+      window.location.reload()
     } catch (error) {
       console.error('Failed to request account deletion:', error)
       alert('Failed to request account deletion. Please try again.')
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleCancelDeletion = async () => {
+    setIsCanceling(true)
+    try {
+      const response = await authApi.cancelAccountDeletion()
+      alert('Account deletion request cancelled successfully.')
+      // Refresh the page to show the new state
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to cancel account deletion:', error)
+      alert('Failed to cancel account deletion. Please try again.')
+    } finally {
+      setIsCanceling(false)
     }
   }
 
@@ -122,34 +139,64 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-400">
               <Trash2 className="h-5 w-5" />
-              Delete Account
+              {user.deletion_requested_at ? 'Account Deletion Pending' : 'Delete Account'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-gray-300">
-                Permanently delete your account and all associated data from The Pile.
-              </p>
-              <p className="text-sm text-gray-400">
-                This action cannot be undone. You will have a 30-day grace period to cancel this request.
-              </p>
-              <ul className="text-sm text-gray-400 space-y-1 ml-4">
-                <li>• Your profile will be deleted</li>
-                <li>• All pile entries and game data will be removed</li>
-                <li>• Statistics and shame scores will be erased</li>
-                <li>• You can cancel within 30 days by logging in again</li>
-              </ul>
-            </div>
-            
-            <Button 
-              variant="outline"
-              onClick={() => setShowDeleteDialog(true)}
-              className="border-red-600 text-red-400 hover:bg-red-950/50 hover:text-red-300"
-              disabled={isDeleting}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {isDeleting ? 'Processing...' : 'Delete My Account'}
-            </Button>
+            {user.deletion_requested_at ? (
+              /* Deletion is pending - show cancellation option */
+              <div className="space-y-4">
+                <div className="p-4 bg-orange-950/30 border border-orange-500/50 rounded-lg">
+                  <h3 className="font-semibold text-orange-400 mb-2">⚠️ Account Deletion Scheduled</h3>
+                  <p className="text-gray-300 mb-2">
+                    Your account is scheduled for deletion on{' '}
+                    <span className="font-mono text-orange-300">
+                      {new Date(user.deletion_scheduled_at).toLocaleDateString()}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    You can cancel this request at any time before the deletion date.
+                  </p>
+                </div>
+                
+                <div className="flex gap-4">
+                  <Button 
+                    variant="outline"
+                    onClick={handleCancelDeletion}
+                    className="border-green-600 text-green-400 hover:bg-green-950/50 hover:text-green-300"
+                    disabled={isCanceling}
+                  >
+                    {isCanceling ? 'Canceling...' : 'Cancel Deletion Request'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              /* No deletion pending - show normal deletion option */
+              <div className="space-y-2">
+                <p className="text-gray-300">
+                  Permanently delete your account and all associated data from The Pile.
+                </p>
+                <p className="text-sm text-gray-400">
+                  This action cannot be undone. You will have a 30-day grace period to cancel this request.
+                </p>
+                <ul className="text-sm text-gray-400 space-y-1 ml-4">
+                  <li>• Your profile will be deleted</li>
+                  <li>• All pile entries and game data will be removed</li>
+                  <li>• Statistics and shame scores will be erased</li>
+                  <li>• You can cancel within 30 days by logging in again</li>
+                </ul>
+                
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="border-red-600 text-red-400 hover:bg-red-950/50 hover:text-red-300 mt-4"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {isDeleting ? 'Processing...' : 'Delete My Account'}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
