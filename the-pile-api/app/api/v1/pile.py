@@ -1,6 +1,14 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -63,6 +71,7 @@ async def get_pile(
 @limiter.limit("2/hour")
 async def import_steam_library(
     request: Request,
+    response: Response,
     background_tasks: BackgroundTasks,
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
@@ -155,6 +164,7 @@ async def _import_steam_library_task(steam_id: str, user_id: int):
 @limiter.limit("10/hour")
 async def sync_playtime(
     request: Request,
+    response: Response,
     background_tasks: BackgroundTasks,
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
@@ -225,6 +235,7 @@ async def get_import_status(
 @limiter.limit("10/minute")
 async def grant_amnesty(
     request: Request,
+    response: Response,
     pile_entry_id: int,
     amnesty_data: AmnestyRequest,
     current_user: dict = Depends(user_service.get_current_user),
@@ -272,6 +283,7 @@ async def grant_amnesty(
 @limiter.limit("10/minute")
 async def start_playing(
     request: Request,
+    response: Response,
     pile_entry_id: int,
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
@@ -316,6 +328,7 @@ async def start_playing(
 @limiter.limit("10/minute")
 async def mark_completed(
     request: Request,
+    response: Response,
     pile_entry_id: int,
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
@@ -360,6 +373,7 @@ async def mark_completed(
 @limiter.limit("10/minute")
 async def mark_abandoned(
     request: Request,
+    response: Response,
     pile_entry_id: int,
     abandon_data: AmnestyRequest,  # Reuse the same schema for reason
     current_user: dict = Depends(user_service.get_current_user),
@@ -407,6 +421,7 @@ async def mark_abandoned(
 @limiter.limit("10/minute")
 async def update_status(
     request: Request,
+    response: Response,
     pile_entry_id: int,
     status_data: dict,  # Expect {"status": "playing"/"completed"/etc}
     current_user: dict = Depends(user_service.get_current_user),
@@ -473,6 +488,7 @@ async def update_status(
 @limiter.limit("1/hour")
 async def clear_pile(
     request: Request,
+    response: Response,
     current_user: dict = Depends(user_service.get_current_user),
     db: Session = Depends(get_db),
 ):
