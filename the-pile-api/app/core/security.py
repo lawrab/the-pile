@@ -3,8 +3,8 @@ Secure authentication and authorization utilities.
 Following FastAPI security best practices.
 """
 
-import secrets
 from datetime import datetime, timedelta, timezone
+import secrets
 from typing import Optional
 
 from fastapi import HTTPException, status

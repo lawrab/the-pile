@@ -2,7 +2,7 @@
 Secure authentication endpoints following FastAPI best practices.
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -17,6 +17,7 @@ from app.core.security import (
     create_secure_cookie_params,
 )
 from app.db.base import get_db
+from app.models.user import User
 from app.services.steam_auth import SteamAuth
 from app.services.user_service import UserService
 
@@ -203,6 +204,107 @@ async def logout(request: Request, response: Response):
     )
 
     return {"message": "Successfully logged out"}
+
+
+@router.delete("/profile")
+@limiter.limit("3 per hour")
+async def request_account_deletion(
+    request: Request,
+    response: Response,
+    current_user: Annotated[dict, Depends(user_service.get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """
+    GDPR Article 17 - Right to erasure
+    Request account deletion with 30-day grace period
+    """
+    try:
+        # Get user from database
+        user = db.query(User).filter(User.id == current_user["id"]).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+
+        # Check if deletion is already requested
+        if user.deletion_requested_at:
+            return {
+                "message": "Account deletion already requested",
+                "deletion_date": user.deletion_scheduled_at,
+                "grace_period_ends": user.deletion_scheduled_at,
+            }
+
+        # Set deletion timestamps
+        now = datetime.now(timezone.utc)
+        user.deletion_requested_at = now
+        user.deletion_scheduled_at = now + timedelta(days=30)
+
+        db.commit()
+
+        return {
+            "message": "Account deletion scheduled successfully",
+            "deletion_date": user.deletion_scheduled_at,
+            "grace_period_ends": user.deletion_scheduled_at,
+            "notice": "You have 30 days to cancel this request by logging in again",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Account deletion request failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process deletion request",
+        )
+
+
+@router.post("/profile/cancel-deletion")
+@limiter.limit("10 per hour")
+async def cancel_account_deletion(
+    request: Request,
+    response: Response,
+    current_user: Annotated[dict, Depends(user_service.get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """
+    Cancel a previously requested account deletion
+    """
+    try:
+        # Get user from database
+        user = db.query(User).filter(User.id == current_user["id"]).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+
+        # Check if deletion was requested
+        if not user.deletion_requested_at:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No deletion request found to cancel",
+            )
+
+        # Clear deletion timestamps
+        user.deletion_requested_at = None
+        user.deletion_scheduled_at = None
+
+        db.commit()
+
+        return {
+            "message": "Account deletion request cancelled successfully",
+            "status": "active",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Account deletion cancellation failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to cancel deletion request",
+        )
 
 
 @router.get("/verify")

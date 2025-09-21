@@ -1,5 +1,5 @@
-import enum
 from datetime import datetime, timedelta, timezone
+import enum
 
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.hybrid import hybrid_property

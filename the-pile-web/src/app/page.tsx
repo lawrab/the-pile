@@ -177,6 +177,23 @@ export default function HomePage() {
               <span>No Judgment Zone</span>
             </div>
           </div>
+
+          {/* Steam Privacy Notice */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <div className="bg-amber-900/20 border border-amber-600/30 rounded-lg p-4 backdrop-blur-sm">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-amber-100/90">
+                  <p className="font-semibold mb-1">Steam Profile Privacy Requirements</p>
+                  <p className="text-amber-100/70">
+                    To import your Steam library, your profile must be set to <span className="font-medium text-amber-200">Public</span> temporarily. 
+                    This is a Steam API limitation. You can change it back to Private after importing. 
+                    Go to Steam → Edit Profile → Privacy Settings → Game Details: Public.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Interactive Demo Section */}

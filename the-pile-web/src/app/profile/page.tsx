@@ -2,16 +2,34 @@
 
 import { useAuth } from '@/lib/auth-provider'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User, Settings } from 'lucide-react'
+import { ArrowLeft, User, Settings, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { AdvancedSettings } from '@/components/advanced-settings'
 import { useState } from 'react'
+import { authApi } from '@/lib/api'
 
 export default function ProfilePage() {
   const { user } = useAuth()
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true)
+    try {
+      const response = await authApi.requestAccountDeletion()
+      alert(`Account deletion scheduled. You have 30 days to cancel this request by logging in again.`)
+      // Optionally redirect to logout or show success message
+    } catch (error) {
+      console.error('Failed to request account deletion:', error)
+      alert('Failed to request account deletion. Please try again.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   if (!user) {
     return (
@@ -98,7 +116,55 @@ export default function ProfilePage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Account Deletion */}
+        <Card className="border-red-500/50 bg-red-950/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-400">
+              <Trash2 className="h-5 w-5" />
+              Delete Account
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-gray-300">
+                Permanently delete your account and all associated data from The Pile.
+              </p>
+              <p className="text-sm text-gray-400">
+                This action cannot be undone. You will have a 30-day grace period to cancel this request.
+              </p>
+              <ul className="text-sm text-gray-400 space-y-1 ml-4">
+                <li>• Your profile will be deleted</li>
+                <li>• All pile entries and game data will be removed</li>
+                <li>• Statistics and shame scores will be erased</li>
+                <li>• You can cancel within 30 days by logging in again</li>
+              </ul>
+            </div>
+            
+            <Button 
+              variant="outline"
+              onClick={() => setShowDeleteDialog(true)}
+              className="border-red-600 text-red-400 hover:bg-red-950/50 hover:text-red-300"
+              disabled={isDeleting}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {isDeleting ? 'Processing...' : 'Delete My Account'}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDeleteAccount}
+        type="danger"
+        title="Delete Account"
+        message="Are you sure you want to delete your account? This will schedule your account for deletion in 30 days. You can cancel this request by logging in again within that time period."
+        confirmText="Yes, Delete My Account"
+        cancelText="Cancel"
+      />
     </div>
   )
 }

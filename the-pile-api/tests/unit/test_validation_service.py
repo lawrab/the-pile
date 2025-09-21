@@ -4,8 +4,8 @@ Unit tests for InputValidationService.
 Tests all validation functions for proper input validation and security measures.
 """
 
-import pytest
 from fastapi import HTTPException
+import pytest
 
 from app.services.validation_service import InputValidationService
 

@@ -5,9 +5,9 @@ Shared test configuration and fixtures for The Pile API tests.
 import asyncio
 from typing import AsyncGenerator, Generator
 
-import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
+import pytest
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 

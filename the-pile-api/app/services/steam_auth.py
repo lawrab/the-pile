@@ -1,7 +1,7 @@
 import re
+from typing import Dict, Optional
 import urllib.parse
 import urllib.request
-from typing import Dict, Optional
 
 from app.core.config import settings
 

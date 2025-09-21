@@ -77,8 +77,8 @@ async def import_steam_library(
     db: Session = Depends(get_db),
 ):
     """Import user's Steam library"""
-    import logging
     from datetime import datetime, timedelta, timezone
+    import logging
 
     logger = logging.getLogger(__name__)
     logger.info(f"Import endpoint called for user {current_user['id']}")
