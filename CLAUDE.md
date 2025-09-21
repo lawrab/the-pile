@@ -460,3 +460,4 @@ The project is now at **v0.1.0-alpha** - a production-ready alpha with:
 - Ready for public testing and feedback
 
 Next priorities include background job processing, enhanced analytics, and social features.
+- we must run quality checks before we create PRs
