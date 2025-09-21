@@ -28,6 +28,8 @@ api.interceptors.response.use(
 export const authApi = {
   getSteamLoginUrl: () => api.get<{ auth_url: string }>('/auth/steam/login'),
   getCurrentUser: () => api.get<User>('/auth/me'),
+  requestAccountDeletion: () => api.delete('/auth/profile'),
+  cancelAccountDeletion: () => api.post('/auth/profile/cancel-deletion'),
 }
 
 export const pileApi = {
