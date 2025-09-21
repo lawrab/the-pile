@@ -1,11 +1,10 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
 from app.db.base import get_db
 from app.schemas.share import ShareableStats, ShareResponse
 from app.services.share_service import ShareService
 from app.services.user_service import UserService
-
-from fastapi import APIRouter, Depends, HTTPException, status
-
-from sqlalchemy.orm import Session
 
 router = APIRouter()
 user_service = UserService()
