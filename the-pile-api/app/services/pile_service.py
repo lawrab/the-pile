@@ -11,12 +11,15 @@ try:
 except ImportError:
     dateutil_parser = None
 from app.core.config import settings
+from app.core.logging import get_app_logger
 from app.models.import_status import ImportStatus
 from app.models.pile_entry import GameStatus, PileEntry
 from app.models.steam_game import SteamGame
 from app.models.user import User
 from app.schemas.pile import PileFilters
 from app.services.cache_service import invalidate_cache_pattern
+
+logger = get_app_logger(__name__)
 
 
 class RateLimiter:
@@ -63,9 +66,6 @@ class PileService:
             tuple: (is_public: bool, visibility_state: str)
             visibility_state can be: "public", "friendsonly", "private", or "unknown"
         """
-        import logging
-
-        logger = logging.getLogger(__name__)
 
         # Apply rate limiting
         await self.rate_limiter.acquire()
@@ -114,9 +114,6 @@ class PileService:
 
     async def get_steam_owned_games(self, steam_id: str):
         """Fetch owned games from Steam API with rate limiting and timeout handling"""
-        import logging
-
-        logger = logging.getLogger(__name__)
 
         # Apply rate limiting
         await self.rate_limiter.acquire()
@@ -452,9 +449,6 @@ class PileService:
 
     async def import_steam_library(self, steam_id: str, user_id: int, db: Session):
         """Import user's Steam library with parallel processing"""
-        import logging
-
-        logger = logging.getLogger(__name__)
 
         logger.info(
             f"Starting import_steam_library for user {user_id}, steam_id {steam_id}"
@@ -595,10 +589,7 @@ class PileService:
         db: Session,
     ):
         """Process a batch of games with their fetched details"""
-        import logging
-        
-        logger = logging.getLogger(__name__)
-        
+
         for game_data in batch_games:
             app_id = game_data["appid"]
 
@@ -618,22 +609,22 @@ class PileService:
             # Extract game information with improved price handling
             price_overview = details.get("price_overview", {})
             game_price = 0.0
-            
+
             if price_overview:
                 # Steam returns prices in cents, convert to dollars
                 initial_price_cents = price_overview.get("initial", 0)
                 final_price_cents = price_overview.get("final", initial_price_cents)
-                
+
                 # Use final price (after discounts) if available, otherwise initial
                 game_price = final_price_cents / 100.0 if final_price_cents else 0.0
-                
+
                 # Debug logging for price calculation
                 if initial_price_cents != final_price_cents:
                     logger.debug(
                         f"Game {app_id} price: ${initial_price_cents/100:.2f} "
                         f"-> ${final_price_cents/100:.2f} (discounted)"
                     )
-            
+
             # Game is free if the price is 0 (check the converted dollar amount)
             is_free = game_price == 0.0
 
@@ -793,17 +784,14 @@ class PileService:
         Sync playtime data from Steam with abandoned detection using
         Steam's last played data
         """
-        import logging
-        
-        logger = logging.getLogger(__name__)
-        
+
         try:
             owned_games = await self.get_steam_owned_games(steam_id)
 
             # Build maps for efficient lookup
             playtime_map = {}
             last_played_map = {}
-            
+
             # Debug: Track privacy issues
             games_with_last_played = 0
             games_without_last_played = 0
@@ -824,11 +812,12 @@ class PileService:
                     last_played_map[app_id] = None
                     games_without_last_played += 1
 
-            # Log privacy analysis - use WARNING to ensure visibility
+            # Log privacy analysis
             total_games = len(owned_games)
             logger.warning(
-                f"SYNC PRIVACY ANALYSIS - User {user_id}: {games_with_last_played}/{total_games} games have "
-                f"last played data, {games_without_last_played} games missing last played data "
+                f"SYNC PRIVACY ANALYSIS - User {user_id}: "
+                f"{games_with_last_played}/{total_games} games have last played data, "
+                f"{games_without_last_played} games missing last played data "
                 f"(likely due to Steam privacy settings)"
             )
 
@@ -896,7 +885,7 @@ class PileService:
             # Commit all changes
             db.commit()
 
-            # Log sync completion summary - use WARNING to ensure visibility  
+            # Log sync completion summary
             logger.warning(
                 f"SYNC COMPLETED - User {user_id}: "
                 f"Checked {checked_count} games, updated playtime for "

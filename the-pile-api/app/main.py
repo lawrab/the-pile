@@ -1,5 +1,4 @@
 import time
-import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,10 +7,11 @@ from slowapi.errors import RateLimitExceeded
 
 from app.api.v1 import auth, pile, share, stats
 from app.core.config import settings
+from app.core.logging import configure_uvicorn_integration
 from app.core.rate_limiter import limiter
 
-# Configure logging to work with uvicorn's colored output
-logging.getLogger().setLevel(logging.INFO)
+# Configure logging integration with uvicorn for colored output
+configure_uvicorn_integration()
 
 app = FastAPI(
     title="The Pile API",
