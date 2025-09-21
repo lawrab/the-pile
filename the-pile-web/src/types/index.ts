@@ -4,6 +4,8 @@ export interface User {
   username: string
   avatar_url?: string
   shame_score: number
+  deletion_requested_at?: string
+  deletion_scheduled_at?: string
 }
 
 export interface Game {
