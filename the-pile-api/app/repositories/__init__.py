@@ -11,11 +11,11 @@ This package provides:
 
 from .base import BaseRepository
 from .deps import (
+    RepositoryContainer,
     get_pile_repository,
     get_repository_container,
     get_stats_repository,
     get_user_repository,
-    RepositoryContainer,
 )
 from .pile_repository import PileRepository
 from .stats_repository import StatsRepository

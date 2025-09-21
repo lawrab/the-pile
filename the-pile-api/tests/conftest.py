@@ -8,7 +8,7 @@ from typing import AsyncGenerator, Generator
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 import pytest
-from sqlalchemy import create_engine, StaticPool
+from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.db.base import Base, get_db

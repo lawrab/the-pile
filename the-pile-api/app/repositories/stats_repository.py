@@ -6,7 +6,7 @@ from collections import Counter
 from typing import Any, Dict, List
 
 from sqlalchemy import desc
-from sqlalchemy.orm import joinedload, Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.pile_entry import GameStatus, PileEntry
 from app.models.steam_game import SteamGame
