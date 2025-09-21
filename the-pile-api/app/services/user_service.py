@@ -11,11 +11,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.security import (
-    credentials_exception,
-    security,
-    verify_token,
-)
+from app.core.security import credentials_exception, security, verify_token
 from app.db.base import get_db
 from app.models.user import User
 
