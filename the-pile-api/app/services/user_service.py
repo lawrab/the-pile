@@ -6,9 +6,6 @@ Following FastAPI security best practices.
 from typing import Annotated, Optional
 
 import httpx
-from fastapi import Cookie, Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.security import (
@@ -18,6 +15,11 @@ from app.core.security import (
 )
 from app.db.base import get_db
 from app.models.user import User
+
+from fastapi import Cookie, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials
+
+from sqlalchemy.orm import Session
 
 
 class UserService:

@@ -1,6 +1,6 @@
-from sqlalchemy import JSON, Column, Float, Integer, String, Text
-
 from app.db.base import Base
+
+from sqlalchemy import Column, Float, Integer, JSON, String, Text
 
 
 class Game(Base):

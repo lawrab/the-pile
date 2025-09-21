@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-
 from app.db.base import get_db
 from app.schemas.stats import BehavioralInsights, RealityCheck, ShameScore
 from app.services.stats_service import StatsService
 from app.services.user_service import UserService
+
+from fastapi import APIRouter, Depends
+
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 user_service = UserService()

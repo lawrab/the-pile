@@ -5,9 +5,10 @@ Tests all validation functions for proper input validation and security measures
 """
 
 import pytest
-from fastapi import HTTPException
 
 from app.services.validation_service import InputValidationService
+
+from fastapi import HTTPException
 
 
 class TestSteamIdValidation:

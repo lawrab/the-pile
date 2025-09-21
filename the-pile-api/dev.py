@@ -3,8 +3,8 @@
 
 import os
 
-import uvicorn
 from dotenv import load_dotenv
+import uvicorn
 
 # Load environment variables
 load_dotenv()

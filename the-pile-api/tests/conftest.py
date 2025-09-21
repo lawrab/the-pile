@@ -5,17 +5,19 @@ Shared test configuration and fixtures for The Pile API tests.
 import asyncio
 from typing import AsyncGenerator, Generator
 
-import pytest
-from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from sqlalchemy import StaticPool, create_engine
-from sqlalchemy.orm import sessionmaker
+import pytest
 
 from app.db.base import Base, get_db
 from app.main import app
 from app.models.pile_entry import GameStatus, PileEntry
 from app.models.steam_game import SteamGame
 from app.models.user import User
+
+from fastapi.testclient import TestClient
+
+from sqlalchemy import create_engine, StaticPool
+from sqlalchemy.orm import sessionmaker
 
 # Test database setup
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test_the_pile.db"
