@@ -53,7 +53,9 @@ class ColoredFormatter(logging.Formatter):
                 record.stack_info if hasattr(record, "stack_info") else None,
             )
             # Apply color to levelname
-            record.levelname = f"{self.COLORS[record.levelname]}{record.levelname}{self.COLORS['RESET']}"
+            color_start = self.COLORS[record.levelname]
+            color_end = self.COLORS['RESET']
+            record.levelname = f"{color_start}{record.levelname}{color_end}"
 
         # Format using our template
         formatter = logging.Formatter(self.fmt)

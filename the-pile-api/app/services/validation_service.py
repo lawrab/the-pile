@@ -15,7 +15,8 @@ from fastapi import HTTPException
 class InputValidationService:
     """Centralized input validation and sanitization service."""
 
-    # Steam ID pattern: 17-digit number starting with 765611 (covers both 76561197 and 76561198 prefixes)
+    # Steam ID pattern: 17-digit number starting with 765611
+    # (covers both 76561197 and 76561198 prefixes)
     # Steam IDs are 64-bit integers that typically start with 765611 for normal users
     STEAM_ID_PATTERN = re.compile(r"^765611[0-9]{11}$")
 

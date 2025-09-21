@@ -204,7 +204,7 @@ async def _import_steam_library_task(steam_id: str, user_id: int):
                     f"Failed to create fallback import status: {fallback_error}"
                 )
 
-        # Don't re-raise the exception in background tasks as it can't be handled properly
+        # Don't re-raise the exception in background tasks as it can't be handled
         # The error is logged and stored in the import_status record for the frontend
 
     finally:
@@ -312,7 +312,7 @@ async def _sync_playtime_task(steam_id: str, user_id: int):
             except Exception as fallback_error:
                 logger.error(f"Failed to create fallback sync status: {fallback_error}")
 
-        # Don't re-raise the exception in background tasks as it can't be handled properly
+        # Don't re-raise the exception in background tasks as it can't be handled
         # The error is logged and stored in the import_status record for the frontend
 
     finally:

@@ -815,8 +815,9 @@ class PileService:
             # Log privacy analysis
             total_games = len(owned_games)
             logger.warning(
-                f"SYNC PRIVACY ANALYSIS - User {user_id}: {games_with_last_played}/{total_games} games have "
-                f"last played data, {games_without_last_played} games missing last played data "
+                f"SYNC PRIVACY ANALYSIS - User {user_id}: "
+                f"{games_with_last_played}/{total_games} games have last played data, "
+                f"{games_without_last_played} games missing last played data "
                 f"(likely due to Steam privacy settings)"
             )
 
