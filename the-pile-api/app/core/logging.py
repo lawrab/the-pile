@@ -54,7 +54,7 @@ class ColoredFormatter(logging.Formatter):
             )
             # Apply color to levelname
             color_start = self.COLORS[record.levelname]
-            color_end = self.COLORS['RESET']
+            color_end = self.COLORS["RESET"]
             record.levelname = f"{color_start}{record.levelname}{color_end}"
 
         # Format using our template
