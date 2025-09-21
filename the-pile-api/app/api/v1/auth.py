@@ -27,7 +27,7 @@ user_service = UserService()
 
 @router.get("/steam/login")
 @limiter.limit("10 per minute")
-async def steam_login(request: Request):
+async def steam_login(request: Request, response: Response):
     """
     Initiate Steam OpenID authentication.
     Redirects user to Steam's authentication page.
@@ -44,7 +44,9 @@ async def steam_login(request: Request):
 
 @router.get("/steam/callback")
 @limiter.limit("20 per minute")
-async def steam_callback(request: Request, db: Annotated[Session, Depends(get_db)]):
+async def steam_callback(
+    request: Request, response: Response, db: Annotated[Session, Depends(get_db)]
+):
     """
     Handle Steam OpenID callback with secure parameter validation.
     """
@@ -140,6 +142,7 @@ async def get_current_user(
 @limiter.limit("30 per minute")
 async def get_access_token(
     request: Request,
+    response: Response,
     current_user: Annotated[dict, Depends(user_service.get_current_user)],
 ) -> Token:
     """
