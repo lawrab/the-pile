@@ -4,19 +4,10 @@ Unit tests for InputValidationService.
 Tests all validation functions for proper input validation and security measures.
 """
 
-<<<<<<< HEAD
 from fastapi import HTTPException
 import pytest
-||||||| parent of 9e6a2d5 (Improve code quality: fix import order and configure isort)
-import pytest
-from fastapi import HTTPException
-=======
-import pytest
->>>>>>> 9e6a2d5 (Improve code quality: fix import order and configure isort)
 
 from app.services.validation_service import InputValidationService
-
-from fastapi import HTTPException
 
 
 class TestSteamIdValidation:

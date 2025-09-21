@@ -1,21 +1,12 @@
 import random
 from typing import Optional
-<<<<<<< HEAD
 import uuid
 
 from sqlalchemy.orm import Session
-||||||| parent of 9e6a2d5 (Improve code quality: fix import order and configure isort)
-
-from sqlalchemy.orm import Session
-=======
-import uuid
->>>>>>> 9e6a2d5 (Improve code quality: fix import order and configure isort)
 
 from app.models.user import User
 from app.schemas.share import ShareableStats, ShareResponse
 from app.services.stats_service import StatsService
-
-from sqlalchemy.orm import Session
 
 
 class ShareService:

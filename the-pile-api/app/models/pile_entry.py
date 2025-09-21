@@ -1,17 +1,12 @@
 from datetime import datetime, timedelta, timezone
-<<<<<<< HEAD
 import enum
-||||||| parent of 9e6a2d5 (Improve code quality: fix import order and configure isort)
-=======
-import enum
-
-from app.db.base import Base
->>>>>>> 9e6a2d5 (Improve code quality: fix import order and configure isort)
 
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.db.base import Base
 
 
 class GameStatus(str, enum.Enum):
