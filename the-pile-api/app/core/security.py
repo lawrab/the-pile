@@ -7,13 +7,14 @@ from datetime import datetime, timedelta, timezone
 import secrets
 from typing import Optional
 
-from fastapi import HTTPException, status
-from fastapi.security import HTTPBearer
-from jose import JWTError, jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from app.core.config import settings
+
+from fastapi import HTTPException, status
+from fastapi.security import HTTPBearer
 
 
 class Token(BaseModel):

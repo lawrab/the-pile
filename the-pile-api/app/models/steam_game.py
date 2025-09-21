@@ -1,8 +1,8 @@
-from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
+from app.db.base import Base
+
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, JSON, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from app.db.base import Base
 
 
 class SteamGame(Base):

@@ -1,7 +1,7 @@
-from sqlalchemy.orm import Session
-
 from app.schemas.stats import BehavioralInsights, RealityCheck, ShameScore
 from app.services.cache_service import cache_result
+
+from sqlalchemy.orm import Session
 
 
 class StatsService:

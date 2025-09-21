@@ -1,10 +1,22 @@
 from logging.config import fileConfig
 from pathlib import Path
+<<<<<<< HEAD
 import sys
 
 from sqlalchemy import engine_from_config, pool
+||||||| parent of 9e6a2d5 (Improve code quality: fix import order and configure isort)
+=======
+import sys
+>>>>>>> 9e6a2d5 (Improve code quality: fix import order and configure isort)
 
 from alembic import context
+<<<<<<< HEAD
+||||||| parent of 9e6a2d5 (Improve code quality: fix import order and configure isort)
+from sqlalchemy import engine_from_config, pool
+=======
+
+from sqlalchemy import engine_from_config, pool
+>>>>>>> 9e6a2d5 (Improve code quality: fix import order and configure isort)
 
 # Add the project root to the path so we can import our models
 sys.path.append(str(Path(__file__).parent.parent))
